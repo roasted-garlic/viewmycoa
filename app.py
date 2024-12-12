@@ -120,6 +120,66 @@ def delete_pdf(pdf_id):
     db.session.delete(pdf)
     db.session.commit()
     return jsonify({'success': True})
+@app.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
+def edit_product(product_id):
+    product = models.Product.query.get_or_404(product_id)
+    
+    if request.method == 'POST':
+        try:
+            product.title = request.form['title']
+            product.batch_number = request.form['batch_number']
+            
+            # Handle attributes
+            attributes = {}
+            attr_names = request.form.getlist('attr_name[]')
+            attr_values = request.form.getlist('attr_value[]')
+            for name, value in zip(attr_names, attr_values):
+                if name and value:  # Only add if both name and value are provided
+                    attributes[name] = value
+            product.set_attributes(attributes)
+            
+            # Handle product image
+            if 'product_image' in request.files and request.files['product_image'].filename:
+                file = request.files['product_image']
+                if file and utils.is_valid_image(file):
+                    if product.product_image:  # Delete old image if it exists
+                        try:
+                            os.remove(os.path.join('static', product.product_image))
+                        except OSError:
+                            pass
+                    filename = utils.clean_filename(file.filename)
+                    filepath = os.path.join('uploads', filename)
+                    processed_image = utils.process_image(file)
+                    with open(os.path.join('static', filepath), 'wb') as f:
+                        f.write(processed_image.getvalue())
+                    product.product_image = filepath
+            
+            # Handle label image
+            if 'label_image' in request.files and request.files['label_image'].filename:
+                file = request.files['label_image']
+                if file and utils.is_valid_image(file):
+                    if product.label_image:  # Delete old image if it exists
+                        try:
+                            os.remove(os.path.join('static', product.label_image))
+                        except OSError:
+                            pass
+                    filename = utils.clean_filename(file.filename)
+                    filepath = os.path.join('uploads', filename)
+                    processed_image = utils.process_image(file)
+                    with open(os.path.join('static', filepath), 'wb') as f:
+                        f.write(processed_image.getvalue())
+                    product.label_image = filepath
+            
+            db.session.commit()
+            flash('Product updated successfully!', 'success')
+            return redirect(url_for('product_detail', product_id=product.id))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating product: {str(e)}', 'danger')
+            return render_template('product_edit.html', product=product)
+    
+    return render_template('product_edit.html', product=product)
 @app.route('/api/delete_product/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
     product = models.Product.query.get_or_404(product_id)
