@@ -24,7 +24,7 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
 }
-app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 db.init_app(app)
@@ -134,4 +134,5 @@ def save_image(file):
     img.thumbnail((800, 800))  # Resize if needed
     img.save(filepath)
     
-    return filepath
+    # Return relative path from static folder
+    return filepath.replace('static/', '', 1)
