@@ -21,6 +21,16 @@
             </div>
 
             <div class="mb-3">
+                <label for="template" class="form-label">Product Template</label>
+                <select class="form-select" id="template" name="template_id">
+                    <option value="">No Template</option>
+                    {% for template in templates %}
+                    <option value="{{ template.id }}">{{ template.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
                 <label class="form-label">Product Attributes</label>
                 <div id="attributesContainer">
                     <!-- Attributes will be added here dynamically -->

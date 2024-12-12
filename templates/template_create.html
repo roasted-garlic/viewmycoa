@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h1>Create Product Template</h1>
+        <form method="POST" id="templateForm">
+            <div class="mb-3">
+                <label for="name" class="form-label">Template Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Template Attributes</label>
+                <div id="attributesContainer">
+                    <!-- Attributes will be added here dynamically -->
+                </div>
+                <button type="button" class="btn btn-secondary mt-2" id="addAttribute">
+                    <i class="fas fa-plus"></i> Add Attribute
+                </button>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create Template</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/template.js') }}"></script>
+{% endblock %}

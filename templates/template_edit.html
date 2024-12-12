@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h1>Edit Product Template</h1>
+        <form method="POST" id="templateForm">
+            <div class="mb-3">
+                <label for="name" class="form-label">Template Name</label>
+                <input type="text" class="form-control" id="name" name="name" value="{{ template.name }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Template Attributes</label>
+                <div id="attributesContainer">
+                    {% for name in template.get_attributes().keys() %}
+                    <div class="attribute-group mb-2">
+                        <div class="row">
+                            <div class="col">
+                                <input type="text" class="form-control attr-name" name="attr_name[]" value="{{ name }}" required>
+                            </div>
+                            <div class="col-auto">
+                                <button type="button" class="btn btn-danger remove-attribute">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="btn btn-secondary mt-2" id="addAttribute">
+                    <i class="fas fa-plus"></i> Add Attribute
+                </button>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Update Template</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/template.js') }}"></script>
+{% endblock %}

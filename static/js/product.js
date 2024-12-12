@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const generateBatchBtn = document.getElementById('generateBatch');
     const addAttributeBtn = document.getElementById('addAttribute');
     const attributesContainer = document.getElementById('attributesContainer');
+    const templateSelect = document.getElementById('template');
 
     // Initialize delete handlers for existing attributes
     document.querySelectorAll('.remove-attribute').forEach(button => {
@@ -26,6 +27,51 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!document.getElementById('batchNumber').value) {
             generateBatchBtn.click();
         }
+    // Handle template selection
+    if (templateSelect) {
+        templateSelect.addEventListener('change', async function() {
+            const templateId = this.value;
+            if (templateId) {
+                try {
+                    const response = await fetch(`/api/template/${templateId}`);
+                    if (response.ok) {
+                        const template = await response.json();
+                        // Clear existing attributes
+                        attributesContainer.innerHTML = '';
+                        // Add template attributes
+                        Object.keys(template.attributes).forEach(attrName => {
+                            const attributeGroup = document.createElement('div');
+                            attributeGroup.className = 'attribute-group mb-2';
+                            
+                            attributeGroup.innerHTML = `
+                                <div class="row">
+                                    <div class="col">
+                                        <input type="text" class="form-control attr-name" name="attr_name[]" value="${attrName}" required>
+                                    </div>
+                                    <div class="col">
+                                        <input type="text" class="form-control" name="attr_value[]" value="" required>
+                                    </div>
+                                    <div class="col-auto">
+                                        <button type="button" class="btn btn-danger remove-attribute">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            attributesContainer.appendChild(attributeGroup);
+                            initializeDeleteHandler(attributeGroup.querySelector('.remove-attribute'));
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading template:', error);
+                }
+            } else {
+                // Clear attributes if no template selected
+                attributesContainer.innerHTML = '';
+            }
+        });
+    }
     }
 
     // Add attribute fields

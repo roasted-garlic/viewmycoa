@@ -45,6 +45,8 @@ def index():
 
 @app.route('/product/new', methods=['GET', 'POST'])
 def create_product():
+    templates = models.ProductTemplate.query.all()
+    
     if request.method == 'POST':
         title = request.form.get('title')
         attributes = {}
@@ -75,7 +77,7 @@ def create_product():
         flash('Product created successfully!', 'success')
         return redirect(url_for('product_detail', product_id=product.id))
 
-    return render_template('product_create.html')
+    return render_template('product_create.html', templates=templates)
 
 @app.route('/product/<int:product_id>')
 def product_detail(product_id):
@@ -117,8 +119,87 @@ def generate_pdf(product_id):
 @app.route('/api/delete_pdf/<int:pdf_id>', methods=['DELETE'])
 def delete_pdf(pdf_id):
     pdf = models.GeneratedPDF.query.get_or_404(pdf_id)
+@app.route('/api/template/<int:template_id>')
+def get_template(template_id):
+    template = models.ProductTemplate.query.get_or_404(template_id)
+    return jsonify({
+        'id': template.id,
+        'name': template.name,
+        'attributes': template.get_attributes()
+    })
     db.session.delete(pdf)
     db.session.commit()
+@app.route('/templates')
+def template_list():
+    templates = models.ProductTemplate.query.all()
+    return render_template('template_list.html', templates=templates)
+
+@app.route('/template/new', methods=['GET', 'POST'])
+def create_template():
+    if request.method == 'POST':
+        try:
+            template = models.ProductTemplate(
+                name=request.form['name']
+            )
+            
+            # Handle attributes
+            attributes = {}
+            attr_names = request.form.getlist('attr_name[]')
+            for name in attr_names:
+                if name:  # Only add if name is provided
+                    attributes[name] = ""  # Empty value as it's just a template
+            template.set_attributes(attributes)
+            
+            db.session.add(template)
+            db.session.commit()
+            
+            flash('Template created successfully!', 'success')
+            return redirect(url_for('template_list'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error creating template: {str(e)}', 'danger')
+            return render_template('template_create.html')
+    
+    return render_template('template_create.html')
+
+@app.route('/template/<int:template_id>/edit', methods=['GET', 'POST'])
+def edit_template(template_id):
+    template = models.ProductTemplate.query.get_or_404(template_id)
+    
+    if request.method == 'POST':
+        try:
+            template.name = request.form['name']
+            
+            # Handle attributes
+            attributes = {}
+            attr_names = request.form.getlist('attr_name[]')
+            for name in attr_names:
+                if name:  # Only add if name is provided
+                    attributes[name] = ""  # Empty value as it's just a template
+            template.set_attributes(attributes)
+            
+            db.session.commit()
+            flash('Template updated successfully!', 'success')
+            return redirect(url_for('template_list'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating template: {str(e)}', 'danger')
+            return render_template('template_edit.html', template=template)
+    
+    return render_template('template_edit.html', template=template)
+
+@app.route('/api/delete_template/<int:template_id>', methods=['DELETE'])
+def delete_template(template_id):
+    try:
+        template = models.ProductTemplate.query.get_or_404(template_id)
+        db.session.delete(template)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
     return jsonify({'success': True})
 @app.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
 def edit_product(product_id):
