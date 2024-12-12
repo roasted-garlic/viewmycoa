@@ -3,6 +3,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const addAttributeBtn = document.getElementById('addAttribute');
     const attributesContainer = document.getElementById('attributesContainer');
 
+    // Initialize delete handlers for existing attributes
+    document.querySelectorAll('.remove-attribute').forEach(button => {
+        initializeDeleteHandler(button);
+    });
+
     // Generate batch number
     if (generateBatchBtn) {
         generateBatchBtn.addEventListener('click', async function() {
@@ -53,10 +58,15 @@ document.addEventListener('DOMContentLoaded', function() {
             
             attributesContainer.appendChild(attributeGroup);
             
-            // Add remove button handler
-            attributeGroup.querySelector('.remove-attribute').addEventListener('click', function() {
-                attributeGroup.remove();
-            });
+            // Initialize delete handler for the new attribute group
+            initializeDeleteHandler(attributeGroup.querySelector('.remove-attribute'));
+        });
+    }
+
+    // Helper function to initialize delete button handler
+    function initializeDeleteHandler(button) {
+        button.addEventListener('click', function() {
+            this.closest('.attribute-group').remove();
         });
     }
 
