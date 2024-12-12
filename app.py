@@ -11,6 +11,7 @@ from PIL import Image
 import io
 import base64
 
+import utils
 class Base(DeclarativeBase):
     pass
 
