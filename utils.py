@@ -74,9 +74,12 @@ def generate_upc_barcode():
 
 def save_barcode(barcode_number):
     """Generate and save a barcode image"""
-    my_barcode = barcode.UPCA(barcode_number, writer=ImageWriter())
-    filename = f'barcode_{barcode_number}'
-    filepath = os.path.join('static', 'uploads', filename)
+    filepath = os.path.join('static', 'uploads', f'barcode_{barcode_number}')
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    filepath = my_barcode.save(filepath)
-    return f'uploads/{os.path.basename(filepath)}'
+    
+    # Use EAN13 as it's compatible with UPC-A (12 digits)
+    ean = barcode.get('ean13', '0' + barcode_number, writer=ImageWriter())
+    filename = ean.save(filepath)
+    
+    # Return relative path from static folder
+    return f'uploads/barcode_{barcode_number}'
