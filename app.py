@@ -120,6 +120,27 @@ def delete_pdf(pdf_id):
     db.session.delete(pdf)
     db.session.commit()
     return jsonify({'success': True})
+@app.route('/api/delete_product/<int:product_id>', methods=['DELETE'])
+def delete_product(product_id):
+    product = models.Product.query.get_or_404(product_id)
+    
+    # Delete the product images if they exist
+    if product.product_image:
+        try:
+            os.remove(os.path.join('static', product.product_image))
+        except OSError:
+            pass
+            
+    if product.label_image:
+        try:
+            os.remove(os.path.join('static', product.label_image))
+        except OSError:
+            pass
+    
+    db.session.delete(product)
+    db.session.commit()
+    return jsonify({'success': True})
+
 
 def generate_batch_number():
     chars = string.ascii_uppercase + string.digits
