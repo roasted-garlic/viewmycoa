@@ -61,15 +61,13 @@ def create_product():
         product_image = request.files.get('product_image')
         label_image = request.files.get('label_image')
 
-        # Generate barcode
+        # Generate UPC-A barcode number
         barcode_number = utils.generate_upc_barcode()
-        barcode_image_path = utils.save_barcode(barcode_number)
 
         product = models.Product(
             title=title,
             batch_number=generate_batch_number(),
-            barcode=barcode_number,
-            barcode_image=barcode_image_path
+            barcode=barcode_number
         )
         product.set_attributes(attributes)
 
@@ -228,8 +226,6 @@ def edit_product(product_id):
             
             # Generate and save barcode
             barcode_number = utils.generate_upc_barcode()
-            barcode_path = utils.save_barcode(barcode_number)
-            product.barcode = barcode_number
             
             # Handle product image
             if 'product_image' in request.files and request.files['product_image'].filename:

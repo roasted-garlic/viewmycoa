@@ -4,8 +4,6 @@ import os
 from PIL import Image
 from io import BytesIO
 import base64
-import barcode
-from barcode.writer import ImageWriter
 
 def generate_batch_number():
     """Generate a random 8-character alphanumeric batch number"""
@@ -59,11 +57,11 @@ def format_file_size(size):
     return f"{size:.1f} GB"
 
 def generate_upc_barcode():
-    """Generate a random 12-digit UPC-A barcode"""
+    """Generate a random 12-digit UPC-A barcode number"""
     # Generate first 11 digits randomly
     digits = ''.join(random.choice(string.digits) for _ in range(11))
     
-    # Calculate check digit
+    # Calculate check digit using UPC-A algorithm
     sum_odd = sum(int(digits[i]) for i in range(0, 11, 2))
     sum_even = sum(int(digits[i]) for i in range(1, 11, 2))
     total = sum_odd * 3 + sum_even
@@ -71,15 +69,3 @@ def generate_upc_barcode():
     
     # Return complete UPC-A code
     return digits + str(check_digit)
-
-def save_barcode(barcode_number):
-    """Generate and save a barcode image"""
-    filepath = os.path.join('static', 'uploads', f'barcode_{barcode_number}')
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    
-    # Use EAN13 as it's compatible with UPC-A (12 digits)
-    ean = barcode.get('ean13', '0' + barcode_number, writer=ImageWriter())
-    filename = ean.save(filepath)
-    
-    # Return relative path from static folder
-    return f'uploads/barcode_{barcode_number}'
