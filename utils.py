@@ -56,6 +56,8 @@ def format_file_size(size):
         if size < 1024.0:
             return f"{size:.1f} {unit}"
         size /= 1024.0
+    return f"{size:.1f} GB"
+
 def generate_upc_barcode():
     """Generate a random 12-digit UPC-A barcode"""
     # Generate first 11 digits randomly
@@ -73,8 +75,8 @@ def generate_upc_barcode():
 def save_barcode(barcode_number):
     """Generate and save a barcode image"""
     upc = barcode.get('upc', barcode_number, writer=ImageWriter())
-    filename = f'barcode_{barcode_number}'
+    filename = f'barcode_{barcode_number}.png' #added .png extension
     filepath = os.path.join('static', 'uploads', filename)
+    os.makedirs(os.path.dirname(filepath), exist_ok=True) #create directory if it doesn't exist
     upc.save(filepath)
     return f'uploads/{filename}'
-    return f"{size:.1f} GB"
