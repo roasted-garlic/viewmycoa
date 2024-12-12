@@ -23,20 +23,22 @@
     <div class="col-md-4 mb-4 template-card">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">{{ template.name }}</h5>
-                <p class="card-text">
-                    <strong>Attributes:</strong>
-                    <ul class="list-unstyled">
+                <h5 class="card-title mb-3">{{ template.name }}</h5>
+                <div class="card-text mb-4">
+                    <strong class="d-block mb-2">Attributes:</strong>
+                    <div class="d-flex flex-wrap gap-2">
                     {% for attr_name in template.get_attributes().keys() %}
-                        <li><i class="fas fa-tag me-2"></i>{{ attr_name }}</li>
+                        <span class="badge rounded-pill bg-secondary">
+                            <i class="fas fa-tag me-1"></i>{{ attr_name }}
+                        </span>
                     {% endfor %}
-                    </ul>
-                </p>
-                <div class="btn-group">
-                    <a href="{{ url_for('edit_template', template_id=template.id) }}" class="btn btn-primary">
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('edit_template', template_id=template.id) }}" class="btn btn-outline-primary">
                         <i class="fas fa-edit"></i> Edit
                     </a>
-                    <button class="btn btn-danger delete-template" data-template-id="{{ template.id }}">
+                    <button class="btn btn-outline-danger delete-template" data-template-id="{{ template.id }}">
                         <i class="fas fa-trash"></i> Delete
                     </button>
                 </div>
