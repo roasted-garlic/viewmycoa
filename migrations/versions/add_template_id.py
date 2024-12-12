@@ -9,20 +9,12 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'add_template_id'
-down_revision = 'initial'
+down_revision = None
 branch_labels = None
 depends_on = None
 
 def upgrade():
-    # Add template_id column to product table
-    op.add_column('product', sa.Column('template_id', sa.Integer(), nullable=True))
-    op.create_foreign_key(
-        'fk_product_template_id',
-        'product', 'template',
-        ['template_id'], ['id'],
-        ondelete='SET NULL'
-    )
+    pass
 
 def downgrade():
-    op.drop_constraint('fk_product_template_id', 'product', type_='foreignkey')
-    op.drop_column('product', 'template_id')
+    pass

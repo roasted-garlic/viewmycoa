@@ -21,25 +21,31 @@
             </div>
 
             <div class="mb-3">
-                <label for="template" class="form-label">Template (Optional)</label>
+                <label for="template" class="form-label">Attribute Template</label>
                 <select class="form-select" id="template" name="template_id">
-                    <option value="">Select a template...</option>
+                    <option value="">Select a template for pre-defined attributes...</option>
                     {% for template in templates %}
                     <option value="{{ template.id }}" {% if template_id == template.id %}selected{% endif %}>
                         {{ template.name }}
                     </option>
                     {% endfor %}
                 </select>
+                <small class="form-text text-muted">Choose a template to load pre-defined attribute fields</small>
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Product Attributes</label>
-                <div id="attributesContainer">
-                    <!-- Attributes will be added here dynamically -->
+                <div id="attributesContainer" class="border rounded p-3">
+                    <div class="text-muted text-center" id="noAttributesMessage">
+                        Select a template above to load attribute fields or add them manually
+                    </div>
                 </div>
-                <button type="button" class="btn btn-secondary mt-2" id="addAttribute">
-                    <i class="fas fa-plus"></i> Add Attribute
-                </button>
+                <div class="mt-2">
+                    <button type="button" class="btn btn-secondary" id="addAttribute">
+                        <i class="fas fa-plus"></i> Add Custom Attribute
+                    </button>
+                    <small class="text-muted ms-2">Add additional attributes not in the template</small>
+                </div>
             </div>
 
             <div class="mb-3">

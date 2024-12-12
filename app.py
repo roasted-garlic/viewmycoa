@@ -25,11 +25,6 @@ if db_url:
     # Ensure proper format for SQLAlchemy
     if db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql://", 1)
-    # Add SSL mode if not present
-    if "?" not in db_url:
-        db_url += "?sslmode=require"
-    elif "sslmode=" not in db_url:
-        db_url += "&sslmode=require"
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
@@ -52,9 +47,8 @@ logging.basicConfig(level=logging.DEBUG)
 # Ensure upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-with app.app_context():
-    import models
-    db.create_all()
+# Import models for migrations
+import models
 
 @app.route('/')
 def index():

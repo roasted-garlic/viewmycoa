@@ -8,19 +8,27 @@
             <div class="mb-3">
                 <label for="name" class="form-label">Template Name</label>
                 <input type="text" class="form-control" id="name" name="name" required>
+                <small class="form-text text-muted">Give your attribute template a descriptive name (e.g., "Electronics Specifications", "Clothing Details")</small>
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Template Attributes</label>
-                <div id="attributesContainer">
+                <label class="form-label">Define Attributes</label>
+                <p class="text-muted">Add the attributes that will be available for products using this template.</p>
+                <div id="attributesContainer" class="border rounded p-3 mb-3">
                     <!-- Attributes will be added here dynamically -->
                 </div>
                 <button type="button" class="btn btn-secondary mt-2" id="addAttribute">
-                    <i class="fas fa-plus"></i> Add Attribute
+                    <i class="fas fa-plus"></i> Add Attribute Field
                 </button>
             </div>
 
-            <button type="submit" class="btn btn-primary">Create Template</button>
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> These attributes will be available as pre-defined fields when creating new products with this template.
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Save Template
+            </button>
         </form>
     </div>
 </div>
