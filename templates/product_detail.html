@@ -7,20 +7,12 @@
         <p class="lead">Batch Number: {{ product.batch_number }}</p>
         {% if product.barcode %}
         <p class="lead">UPC-A Barcode: {{ product.barcode }}</p>
-        <div class="mb-3">
-            <img src="{{ url_for('static', filename='uploads/barcode_' + product.barcode + '.png') }}" 
+        {% if product.barcode_image %}
+        <div class="mb-4">
+            <img src="{{ url_for('static', filename=product.barcode_image) }}" 
                  alt="Product Barcode"
-                 class="img-fluid"
-                 style="max-width: 300px;">
-        </div>
-        {% endif %}
-        <p class="lead">UPC-A Barcode: {{ product.barcode }}</p>
-        {% if product.barcode %}
-        <div class="mb-3">
-            <img src="{{ url_for('static', filename='uploads/barcode_' + product.barcode + '.png') }}" 
-                 alt="Product Barcode"
-                 class="img-fluid"
-                 style="max-width: 300px;">
+                 class="img-fluid barcode-image"
+                 style="max-width: 300px; background-color: white; padding: 1rem;">
         </div>
         {% endif %}
     </div>

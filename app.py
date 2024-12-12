@@ -63,12 +63,13 @@ def create_product():
 
         # Generate barcode
         barcode_number = utils.generate_upc_barcode()
-        barcode_path = utils.save_barcode(barcode_number)
+        barcode_image_path = utils.save_barcode(barcode_number)
 
         product = models.Product(
             title=title,
             batch_number=generate_batch_number(),
-            barcode=barcode_number
+            barcode=barcode_number,
+            barcode_image=barcode_image_path
         )
         product.set_attributes(attributes)
 
