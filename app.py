@@ -1,6 +1,8 @@
 import os
+import os
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from sqlalchemy.orm import DeclarativeBase
 import logging
 from werkzeug.utils import secure_filename
@@ -14,20 +16,36 @@ import base64
 class Base(DeclarativeBase):
     pass
 
-db = SQLAlchemy(model_class=Base)
+# Initialize Flask app and SQLAlchemy
 app = Flask(__name__)
-
-# Configuration
-app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "a secret key")
+# Handle database URL format
+db_url = os.environ.get("DATABASE_URL")
+if db_url:
+    # Ensure proper format for SQLAlchemy
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+    # Add SSL mode if not present
+    if "?" not in db_url:
+        db_url += "?sslmode=require"
+    elif "sslmode=" not in db_url:
+        db_url += "&sslmode=require"
+app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
 }
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
+# Create upload directory
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+# Initialize database and migrations
+db = SQLAlchemy(model_class=Base)
 db.init_app(app)
+migrate = Migrate(app, db)
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -119,6 +137,59 @@ def delete_pdf(pdf_id):
     pdf = models.GeneratedPDF.query.get_or_404(pdf_id)
     db.session.delete(pdf)
     db.session.commit()
+@app.route('/api/template/<int:template_id>')
+def get_template(template_id):
+    template = models.Template.query.get_or_404(template_id)
+    return jsonify({
+        'id': template.id,
+        'name': template.name,
+        'attributes': template.get_attributes()
+    })
+
+@app.route('/templates')
+def template_list():
+    templates = models.Template.query.order_by(models.Template.created_at.desc()).all()
+    return render_template('template_list.html', templates=templates)
+
+@app.route('/template/create', methods=['GET', 'POST'])
+def create_template():
+    if request.method == 'POST':
+        try:
+            template = models.Template(name=request.form['name'])
+            
+            # Handle attributes
+            attributes = {}
+            attr_names = request.form.getlist('attr_name[]')
+            attr_values = request.form.getlist('attr_value[]')
+            for name, value in zip(attr_names, attr_values):
+                if name and value:  # Only add if both name and value are provided
+                    attributes[name.lower()] = value
+            template.set_attributes(attributes)
+            
+            db.session.add(template)
+            db.session.commit()
+            
+            flash('Template created successfully!', 'success')
+            return redirect(url_for('template_list'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error creating template: {str(e)}', 'danger')
+            return render_template('template_create.html')
+    
+    return render_template('template_create.html')
+
+@app.route('/api/delete_template/<int:template_id>', methods=['DELETE'])
+def delete_template(template_id):
+    try:
+        template = models.Template.query.get_or_404(template_id)
+        db.session.delete(template)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
     return jsonify({'success': True})
 @app.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
 def edit_product(product_id):

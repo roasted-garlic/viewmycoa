@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h1>Create Template</h1>
+        <form method="POST" id="templateForm">
+            <div class="mb-3">
+                <label for="name" class="form-label">Template Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Template Attributes</label>
+                <div id="attributesContainer">
+                    <!-- Attributes will be added here dynamically -->
+                </div>
+                <button type="button" class="btn btn-secondary mt-2" id="addAttribute">
+                    <i class="fas fa-plus"></i> Add Attribute
+                </button>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create Template</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addAttributeBtn = document.getElementById('addAttribute');
+    const attributesContainer = document.getElementById('attributesContainer');
+
+    // Add attribute fields
+    if (addAttributeBtn) {
+        addAttributeBtn.addEventListener('click', function() {
+            const attributeGroup = document.createElement('div');
+            attributeGroup.className = 'attribute-group mb-2';
+            
+            attributeGroup.innerHTML = `
+                <div class="row">
+                    <div class="col">
+                        <input type="text" class="form-control attr-name" name="attr_name[]" 
+                               placeholder="Attribute Name" required>
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" name="attr_value[]" 
+                               placeholder="Default Value" required>
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-danger remove-attribute">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Add event listener for lowercase conversion
+            const attrNameInput = attributeGroup.querySelector('.attr-name');
+            attrNameInput.addEventListener('input', function(e) {
+                this.value = this.value.toLowerCase();
+            });
+            
+            attributesContainer.appendChild(attributeGroup);
+            
+            // Initialize delete handler
+            const deleteBtn = attributeGroup.querySelector('.remove-attribute');
+            deleteBtn.addEventListener('click', function() {
+                attributeGroup.remove();
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,4 +1,40 @@
 document.addEventListener('DOMContentLoaded', function() {
+// Template handling
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSelect = document.getElementById('template');
+    if (templateSelect) {
+        templateSelect.addEventListener('change', async function() {
+            const templateId = this.value;
+            if (templateId) {
+                try {
+                    const response = await fetch(`/api/template/${templateId}`);
+                    if (response.ok) {
+                        const template = await response.json();
+                        // Clear existing attributes
+                        const attributesContainer = document.getElementById('attributesContainer');
+                        attributesContainer.innerHTML = '';
+                        
+                        // Add template attributes
+                        Object.entries(template.attributes).forEach(([name, value]) => {
+                            const attrBtn = document.getElementById('addAttribute');
+                            attrBtn.click(); // Create new attribute group
+                            
+                            // Fill in the last added group
+                            const groups = document.querySelectorAll('.attribute-group');
+                            const lastGroup = groups[groups.length - 1];
+                            lastGroup.querySelector('[name="attr_name[]"]').value = name;
+                            lastGroup.querySelector('[name="attr_value[]"]').value = value;
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading template:', error);
+                    showNotification('Error loading template', 'danger');
+                }
+            }
+        });
+    }
+});
+
     const generateBatchBtn = document.getElementById('generateBatch');
     const addAttributeBtn = document.getElementById('addAttribute');
     const attributesContainer = document.getElementById('attributesContainer');
