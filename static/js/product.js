@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
             attributeGroup.innerHTML = `
                 <div class="row">
                     <div class="col">
-                        <input type="text" class="form-control" name="attr_name[]" placeholder="Attribute Name" required>
+                        <input type="text" class="form-control attr-name" name="attr_name[]" placeholder="Attribute Name" required>
                     </div>
                     <div class="col">
                         <input type="text" class="form-control" name="attr_value[]" placeholder="Attribute Value" required>
@@ -42,6 +42,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             `;
+            
+            // Add event listener for lowercase conversion
+            const attrNameInput = attributeGroup.querySelector('.attr-name');
+            attrNameInput.addEventListener('input', function(e) {
+                this.value = this.value.toLowerCase();
+            });
             
             attributesContainer.appendChild(attributeGroup);
             

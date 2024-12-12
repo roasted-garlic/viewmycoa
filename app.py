@@ -182,24 +182,33 @@ def edit_product(product_id):
     return render_template('product_edit.html', product=product)
 @app.route('/api/delete_product/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
-    product = models.Product.query.get_or_404(product_id)
-    
-    # Delete the product images if they exist
-    if product.product_image:
-        try:
-            os.remove(os.path.join('static', product.product_image))
-        except OSError:
-            pass
-            
-    if product.label_image:
-        try:
-            os.remove(os.path.join('static', product.label_image))
-        except OSError:
-            pass
-    
-    db.session.delete(product)
-    db.session.commit()
-    return jsonify({'success': True})
+    try:
+        product = models.Product.query.get_or_404(product_id)
+        
+        # Delete the product images if they exist
+        if product.product_image:
+            try:
+                image_path = os.path.join('static', product.product_image)
+                if os.path.exists(image_path):
+                    os.remove(image_path)
+            except OSError as e:
+                logging.error(f"Error deleting product image: {e}")
+                
+        if product.label_image:
+            try:
+                image_path = os.path.join('static', product.label_image)
+                if os.path.exists(image_path):
+                    os.remove(image_path)
+            except OSError as e:
+                logging.error(f"Error deleting label image: {e}")
+        
+        db.session.delete(product)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error deleting product: {e}")
+        return jsonify({'error': str(e)}), 500
 
 
 def generate_batch_number():
