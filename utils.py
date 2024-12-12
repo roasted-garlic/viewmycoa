@@ -74,9 +74,10 @@ def generate_upc_barcode():
 
 def save_barcode(barcode_number):
     """Generate and save a barcode image"""
-    upc = barcode.get('upc', barcode_number, writer=ImageWriter())
-    filename = f'barcode_{barcode_number}.png' #added .png extension
+    EAN = barcode.get_barcode_class('upc')
+    my_barcode = EAN(barcode_number, writer=ImageWriter())
+    filename = f'barcode_{barcode_number}'
     filepath = os.path.join('static', 'uploads', filename)
-    os.makedirs(os.path.dirname(filepath), exist_ok=True) #create directory if it doesn't exist
-    upc.save(filepath)
-    return f'uploads/{filename}'
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    filepath = my_barcode.save(filepath)
+    return f'uploads/{os.path.basename(filepath)}'
