@@ -1,0 +1,62 @@
+/* Custom styles to complement Bootstrap */
+
+.product-card {
+    transition: transform 0.2s;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+}
+
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+
+.attribute-group {
+    transition: all 0.3s ease;
+}
+
+.attribute-group:hover {
+    background-color: var(--bs-secondary-bg);
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.remove-attribute {
+    transition: transform 0.2s;
+}
+
+.remove-attribute:hover {
+    transform: scale(1.1);
+}
+
+/* PDF list styles */
+.list-group-item {
+    transition: background-color 0.2s;
+}
+
+.list-group-item:hover {
+    background-color: var(--bs-secondary-bg);
+}
+
+/* Form validation styles */
+.form-control:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+.is-invalid {
+    border-color: var(--bs-danger);
+}
+
+/* Image preview container */
+.img-thumbnail {
+    background-color: var(--bs-secondary-bg);
+    border-color: var(--bs-border-color);
+}
+
+/* Toast notifications */
+.toast-container {
+    z-index: 1050;
+}
