@@ -17,8 +17,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Generate initial batch number
-        generateBatchBtn.click();
+        // Only generate initial batch number on create page (when batch number is empty)
+        if (!document.getElementById('batchNumber').value) {
+            generateBatchBtn.click();
+        }
     }
 
     // Add attribute fields
