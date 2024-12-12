@@ -357,6 +357,15 @@ wheels = [
 ]
 
 [[package]]
+name = "python-barcode"
+version = "0.15.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/22/63/bc2fb47c9ba904b376780917f053b1c85b87085fd44948590e71c11187b0/python-barcode-0.15.1.tar.gz", hash = "sha256:3b1825fbdb11e597466dff4286b4ea9b1e86a57717b59e563ae679726fc854de", size = 228161 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/10/27/9b5c5bb1938d4e6b12f4c95f40ea905c11df3cd58e128e9305397b9a2697/python_barcode-0.15.1-py3-none-any.whl", hash = "sha256:057636fba37369c22852410c8535b36adfbeb965ddfd4e5b6924455d692e0886", size = 212956 },
+]
+
+[[package]]
 name = "repl-nix-productattributemanager"
 version = "0.1.0"
 source = { virtual = "." }
@@ -366,6 +375,7 @@ dependencies = [
     { name = "flask-sqlalchemy" },
     { name = "pillow" },
     { name = "psycopg2-binary" },
+    { name = "python-barcode" },
     { name = "requests" },
     { name = "sqlalchemy" },
     { name = "werkzeug" },
@@ -378,6 +388,7 @@ requires-dist = [
     { name = "flask-sqlalchemy", specifier = ">=3.1.1" },
     { name = "pillow" },
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
+    { name = "python-barcode", specifier = ">=0.15.1" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "sqlalchemy", specifier = ">=2.0.36" },
     { name = "werkzeug", specifier = ">=3.1.3" },

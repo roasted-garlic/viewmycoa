@@ -219,6 +219,11 @@ def edit_product(product_id):
                     attributes[name] = value
             product.set_attributes(attributes)
             
+            # Generate and save barcode
+            barcode_number = utils.generate_upc_barcode()
+            barcode_path = utils.save_barcode(barcode_number)
+            product.barcode = barcode_number
+            
             # Handle product image
             if 'product_image' in request.files and request.files['product_image'].filename:
                 file = request.files['product_image']

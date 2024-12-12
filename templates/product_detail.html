@@ -5,6 +5,15 @@
     <div class="col">
         <h1>{{ product.title }}</h1>
         <p class="lead">Batch Number: {{ product.batch_number }}</p>
+        <p class="lead">UPC-A Barcode: {{ product.barcode }}</p>
+        {% if product.barcode %}
+        <div class="mb-3">
+            <img src="{{ url_for('static', filename='uploads/barcode_' + product.barcode + '.png') }}" 
+                 alt="Product Barcode"
+                 class="img-fluid"
+                 style="max-width: 300px;">
+        </div>
+        {% endif %}
     </div>
     <div class="col-auto">
         <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-primary me-2">

@@ -4,6 +4,8 @@ import os
 from PIL import Image
 from io import BytesIO
 import base64
+import barcode
+from barcode.writer import ImageWriter
 
 def generate_batch_number():
     """Generate a random 8-character alphanumeric batch number"""
@@ -54,4 +56,25 @@ def format_file_size(size):
         if size < 1024.0:
             return f"{size:.1f} {unit}"
         size /= 1024.0
+def generate_upc_barcode():
+    """Generate a random 12-digit UPC-A barcode"""
+    # Generate first 11 digits randomly
+    digits = ''.join(random.choice(string.digits) for _ in range(11))
+    
+    # Calculate check digit
+    sum_odd = sum(int(digits[i]) for i in range(0, 11, 2))
+    sum_even = sum(int(digits[i]) for i in range(1, 11, 2))
+    total = sum_odd * 3 + sum_even
+    check_digit = (10 - (total % 10)) % 10
+    
+    # Return complete UPC-A code
+    return digits + str(check_digit)
+
+def save_barcode(barcode_number):
+    """Generate and save a barcode image"""
+    upc = barcode.get('upc', barcode_number, writer=ImageWriter())
+    filename = f'barcode_{barcode_number}'
+    filepath = os.path.join('static', 'uploads', filename)
+    upc.save(filepath)
+    return f'uploads/{filename}'
     return f"{size:.1f} GB"
