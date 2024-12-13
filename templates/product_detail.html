@@ -36,8 +36,8 @@
   </div>
 </div>
 
-        <div>
-            <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-primary me-2">
+        <div class="product-actions">
+            <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-primary">
                 <i class="fas fa-edit"></i> Edit Product
             </a>
             <button class="btn btn-danger" id="deleteProduct" data-product-id="{{ product.id }}">
