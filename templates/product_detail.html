@@ -158,8 +158,10 @@
 <script>
 // Delete product confirmation modal
 const deleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+const pdfDeleteModal = new bootstrap.Modal(document.getElementById('pdfDeleteModal'));
+let pdfToDelete = null;
 
-document.getElementById('deleteProduct').addEventListener('click', function() {
+document.getElementById('deleteProduct')?.addEventListener('click', function() {
     deleteConfirmModal.show();
 });
 
@@ -205,7 +207,7 @@ document.getElementById('generatePDF').addEventListener('click', async function(
         }
     } catch (error) {
         console.error('Error:', error);
-        showNotification('Failed to generate PDF', 'error');
+        showNotification('Failed to generate PDF', 'danger');
     } finally {
         // Reset button state
         normalState.classList.remove('d-none');
@@ -259,7 +261,7 @@ document.getElementById('generateJSON').addEventListener('click', async function
         }
     } catch (error) {
         console.error('Error:', error);
-        showNotification('Failed to generate JSON', 'error');
+        showNotification('Failed to generate JSON', 'danger');
     }
 });
 
