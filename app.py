@@ -435,55 +435,46 @@ def generate_json(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
         
-        # Create base label data structure with required fields
+        # Create base label data structure with actual product data
         label_data = {
-            "cannabinoid": "",  # These will be filled from product attributes if available
-            "mg_per_piece": "",
-            "count": "",
-            "per_piece_g": "",
-            "net_weight_g": "",
-            "background": "",
             "product_barcode": product.barcode,
             "sku": product.batch_number,
             "product_name": product.title,
-            "product_name_att": product.title,  # Will be updated if we have attributes
-            "qr_code": "",
             "lot_barcode": product.batch_number,
-            "expire_date": "",
-            "disclaimer": "",
-            "manufactured_by": ""
+            "product_name_att": product.title  # Will be updated if we have attributes
         }
         
-        # Add all product attributes
+        # Add all product attributes dynamically
         attributes = product.get_attributes()
         for idx, (key, value) in enumerate(attributes.items()):
-            # Map known fields directly
-            if key.lower() in label_data:
-                label_data[key.lower()] = value
-            else:
-                # Add as additional attributes
-                label_data[f"product_att_name_{idx}"] = key
-                label_data[f"product_att_name_{idx}_value"] = value
-        
-        # Update product_name_att if we have attributes
-        if attributes:
-            first_attr_value = next(iter(attributes.values()))
-            label_data["product_name_att"] = f"{product.title}: {first_attr_value}"
+            # Add attribute name and value
+            label_data[f"product_att_name_{idx}"] = key
+            label_data[f"product_att_name_{idx}_value"] = value
+            
+            # For the first attribute, update product_name_att
+            if idx == 0:
+                label_data["product_name_att"] = f"{product.title}: {value}"
 
-        # Structure the response based on label quantity
+        # Add image if available
+        if product.label_image:
+            label_data["background"] = url_for('static', filename=product.label_image, _external=True)
+
+        # Prepare the API response structure
         response_data = {
             "template_id": product.craftmypdf_template_id,
             "export_type": "pdf",
             "cloud_storage": 1
         }
 
+        # Handle single vs multiple labels
         if product.label_qty > 1:
             response_data["data"] = {
                 "label_data": [label_data.copy() for _ in range(product.label_qty)]
             }
         else:
+            # For single label, don't wrap in label_data array
             response_data["data"] = label_data
-        
+
         return jsonify(response_data)
         
     except Exception as e:
