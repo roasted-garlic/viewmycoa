@@ -170,30 +170,50 @@ def generate_pdf(product_id):
         
         app.logger.debug(f"Final API Request Data: {json_data}")
         
-        # Structure API request data with all necessary parameters
+        # Structure API request data according to example format
         filename = f"{product.title}_{product.batch_number}.pdf"
+        
+        # Get the data from json_response and ensure it's properly formatted
+        data = json_response.get_json() if hasattr(json_response, 'get_json') else json_response
+        
+        # Prepare the payload according to the example structure
         json_payload = {
             "template_id": product.craftmypdf_template_id,
-            "export_type": "json",
-            "data": json.dumps(json_data),
+            "export_type": "file",
+            "output_file": filename,
             "expiration": 60,
-            "output_file": filename
+            "cloud_storage": 1,
+            "data": json.dumps(data) if isinstance(data, dict) else json.dumps({"label_data": data})
         }
 
-        app.logger.debug(f"Sending request to CraftMyPDF API with payload: {json_payload}")
+        app.logger.debug("Sending request to CraftMyPDF API with payload:")
+        app.logger.debug(json_payload)
+
+        app.logger.debug(f"API Request Payload: {json_payload}")
         
-        # Make API call
+        # Make the API request
+        app.logger.debug("CraftMyPDF API Request URL: https://api.craftmypdf.com/v1/create")
         headers = {
             'X-API-KEY': api_key,
             'Content-Type': 'application/json'
         }
+        app.logger.debug(f"CraftMyPDF API Headers: {headers}")
+        
+        # Make the API request
+        app.logger.debug("Making request to CraftMyPDF API")
+        app.logger.debug(f"Request URL: https://api.craftmypdf.com/v1/create")
+        app.logger.debug(f"Request Headers: {headers}")
+        app.logger.debug(f"Request Payload: {json_payload}")
         
         response = requests.post(
-            'https://api.craftmypdf.com/v1/create',
-            headers={'X-API-KEY': api_key},
+            "https://api.craftmypdf.com/v1/create",
+            headers=headers,
             json=json_payload,
             timeout=30
         )
+        
+        app.logger.debug(f"Response Status Code: {response.status_code}")
+        app.logger.debug(f"Response Content: {response.text}")
         
         app.logger.debug(f"CraftMyPDF API Response Status: {response.status_code}")
         app.logger.debug(f"CraftMyPDF API Response Content: {response.text}")
