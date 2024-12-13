@@ -181,7 +181,7 @@ document.getElementById('confirmDelete').addEventListener('click', async functio
 });
 
 // Generate PDF
-document.getElementById('generatePDF')?.addEventListener('click', async function() {
+document.getElementById('generatePDF').addEventListener('click', async function() {
     const btn = this;
     const normalState = btn.querySelector('.normal-state');
     const loadingState = btn.querySelector('.loading-state');
@@ -244,7 +244,7 @@ document.getElementById('confirmPdfDelete').addEventListener('click', async func
 });
 
 // Generate JSON
-document.getElementById('generateJSON')?.addEventListener('click', async function() {
+document.getElementById('generateJSON').addEventListener('click', async function() {
     const productId = this.dataset.productId;
     try {
         const response = await fetch(`/api/generate_json/${productId}`);
@@ -258,95 +258,6 @@ document.getElementById('generateJSON')?.addEventListener('click', async functio
     } catch (error) {
         console.error('Error:', error);
         showNotification('Failed to generate JSON', 'error');
-    }
-});
-
-// Copy JSON to clipboard
-document.getElementById('copyJSON')?.addEventListener('click', function() {
-    const jsonText = document.getElementById('jsonPreview').textContent;
-    navigator.clipboard.writeText(jsonText).then(() => {
-        this.innerHTML = '<i class="fas fa-check"></i> Copied!';
-        setTimeout(() => {
-            this.innerHTML = '<i class="fas fa-copy"></i> Copy to Clipboard';
-        }, 2000);
-    });
-});
-</script>
-    const normalState = btn.querySelector('.normal-state');
-    const loadingState = btn.querySelector('.loading-state');
-    const productId = document.getElementById('deleteProduct').dataset.productId;
-    
-    // Show loading state
-    normalState.classList.add('d-none');
-    loadingState.classList.remove('d-none');
-    btn.disabled = true;
-
-    try {
-        const response = await fetch(`/api/generate_pdf/${productId}`, {
-            method: 'POST'
-        });
-        if (response.ok) {
-            location.reload();
-        } else {
-            throw new Error('Failed to generate PDF');
-        }
-    } catch (error) {
-        console.error('Error generating PDF:', error);
-        // Reset button state
-        normalState.classList.remove('d-none');
-        loadingState.classList.add('d-none');
-        btn.disabled = false;
-        showNotification('Failed to generate PDF. Please try again.', 'error');
-    }
-});
-
-// PDF Delete Modal
-const pdfDeleteModal = new bootstrap.Modal(document.getElementById('pdfDeleteModal'));
-let pdfToDelete = null;
-
-document.querySelectorAll('.delete-pdf').forEach(button => {
-    button.addEventListener('click', function() {
-        pdfToDelete = this;
-        pdfDeleteModal.show();
-    });
-});
-
-document.getElementById('confirmPdfDelete').addEventListener('click', async function() {
-    if (pdfToDelete) {
-        const pdfId = pdfToDelete.dataset.pdfId;
-        try {
-            const response = await fetch(`/api/delete_pdf/${pdfId}`, {
-                method: 'DELETE'
-            });
-            if (response.ok) {
-                pdfToDelete.closest('.list-group-item').remove();
-                showNotification('PDF deleted successfully', 'success');
-            }
-        } catch (error) {
-            console.error('Error deleting PDF:', error);
-            showNotification('Error deleting PDF', 'danger');
-        }
-        pdfDeleteModal.hide();
-        pdfToDelete = null;
-    }
-});
-
-// JSON Generation and Display
-document.getElementById('generateJSON').addEventListener('click', async function() {
-    const productId = this.dataset.productId;
-    try {
-        const response = await fetch(`/api/generate_json/${productId}`);
-        if (response.ok) {
-            const data = await response.json();
-            const jsonPreview = document.getElementById('jsonPreview');
-            jsonPreview.textContent = JSON.stringify(data, null, 2);
-            
-            // Show the modal
-            const modal = new bootstrap.Modal(document.getElementById('jsonModal'));
-            modal.show();
-        }
-    } catch (error) {
-        console.error('Error generating JSON:', error);
     }
 });
 
