@@ -10,11 +10,6 @@ def generate_batch_number():
     chars = string.ascii_uppercase + string.digits
     return ''.join(random.choice(chars) for _ in range(8))
 
-def generate_sku():
-    """Generate a random 8-character alphanumeric SKU"""
-    chars = string.ascii_uppercase + string.digits
-    return ''.join(random.choice(chars) for _ in range(8))
-
 def process_image(image_file, max_size=(800, 800)):
     """Process and optimize uploaded images"""
     try:
@@ -74,8 +69,3 @@ def generate_upc_barcode():
     
     # Return complete UPC-A code
     return digits + str(check_digit)
-
-def generate_sku():
-    """Generate a random 8-character alphanumeric SKU"""
-    chars = string.ascii_uppercase + string.digits
-    return ''.join(random.choice(chars) for _ in range(8))

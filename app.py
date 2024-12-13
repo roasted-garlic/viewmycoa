@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
-from database import db
-from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase
 import logging
 from werkzeug.utils import secure_filename
 import string
@@ -11,60 +11,38 @@ from PIL import Image
 import io
 import base64
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
-
-# Initialize Flask
-app = Flask(__name__)
-
-# Configuration
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "a secret key")
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-
-# Ensure upload directory exists
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
-# Initialize extensions
-db.init_app(app)
-migrate = Migrate(app, db)
-
-# Import models after db initialization to avoid circular imports
-from models import Product, ProductTemplate, GeneratedPDF
-
-# Initialize Flask
-app = Flask(__name__)
-
-# Configuration
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "a secret key")
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-
-# Ensure upload directory exists
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
-# Initialize extensions
-db.init_app(app)
-migrate = Migrate(app, db)
 import utils
 
-# Create tables
+class Base(DeclarativeBase):
+    pass
+
+db = SQLAlchemy(model_class=Base)
+app = Flask(__name__)
+
+# Configuration
+app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_recycle": 300,
+    "pool_pre_ping": True,
+}
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+
+db.init_app(app)
+
+logging.basicConfig(level=logging.DEBUG)
+
+# Ensure upload directory exists
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
 with app.app_context():
+    import models
     db.create_all()
 
 @app.route('/')
 def index():
-    products = Product.query.all()
+    products = models.Product.query.all()
     return render_template('product_list.html', products=products)
 
 def fetch_craftmypdf_templates():
@@ -117,11 +95,11 @@ def fetch_craftmypdf_templates():
 
 @app.route('/product/new', methods=['GET', 'POST'])
 def create_product():
-    templates = ProductTemplate.query.all()
+    templates = models.ProductTemplate.query.all()
     pdf_templates = fetch_craftmypdf_templates()
     
     if request.method == 'POST':
-        name = request.form.get('name')  # Changed from title to name
+        title = request.form.get('title')
         attributes = {}
         
         # Process dynamic attributes
@@ -136,22 +114,11 @@ def create_product():
         # Generate UPC-A barcode number
         barcode_number = utils.generate_upc_barcode()
 
-        product = Product(
-            name=name,
-            batch_number=utils.generate_batch_number(),
-            sku=utils.generate_sku(),  # Use dedicated SKU generator
+        product = models.Product(
+            title=title,
+            batch_number=generate_batch_number(),
             barcode=barcode_number,
-            craftmypdf_template_id=request.form.get('craftmypdf_template_id'),
-            # Add new fields
-            cannabinoid=request.form.get('cannabinoid'),
-            mg_per_piece=request.form.get('mg_per_piece'),
-            count=request.form.get('count'),
-            per_piece_g=request.form.get('per_piece_g'),
-            net_weight_g=request.form.get('net_weight_g'),
-            qr_code=request.form.get('qr_code'),
-            expire_date=request.form.get('expire_date'),
-            disclaimer=request.form.get('disclaimer'),
-            manufactured_by=request.form.get('manufactured_by')
+            craftmypdf_template_id=request.form.get('craftmypdf_template_id')
         )
         product.set_attributes(attributes)
 
@@ -170,18 +137,18 @@ def create_product():
 
 @app.route('/product/<int:product_id>')
 def product_detail(product_id):
-    product = Product.query.get_or_404(product_id)
-    pdfs = GeneratedPDF.query.filter_by(product_id=product_id).all()
+    product = models.Product.query.get_or_404(product_id)
+    pdfs = models.GeneratedPDF.query.filter_by(product_id=product_id).all()
     return render_template('product_detail.html', product=product, pdfs=pdfs)
 
 @app.route('/api/generate_batch', methods=['POST'])
 def generate_batch():
-    return jsonify({'batch_number': utils.generate_batch_number()})
+    return jsonify({'batch_number': generate_batch_number()})
 
 @app.route('/api/generate_pdf/<int:product_id>', methods=['POST'])
 def generate_pdf(product_id):
     try:
-        product = Product.query.get_or_404(product_id)
+        product = models.Product.query.get_or_404(product_id)
         
         # Get API key from environment
         api_key = os.environ.get('CRAFTMYPDF_API_KEY')
@@ -189,22 +156,42 @@ def generate_pdf(product_id):
             app.logger.error("API key not configured")
             return jsonify({'error': 'API key not configured'}), 500
 
-        # Get the label data in the correct format
-        json_response = generate_json(product_id)
-        if isinstance(json_response, tuple):  # Error case
-            return json_response
-            
-        # Get the JSON data for the product
-        json_data = json_response.json
-        
+        # Prepare basic label data
+        single_label_data = {
+            "batch_lot": product.batch_number,
+            "barcode": product.barcode
+        }
+
         # Structure API request data
         api_data = {
             "template_id": product.craftmypdf_template_id,
             "export_type": "pdf",
             "cloud_storage": 1,
-            "data": [json_data] if product.label_qty == 1 else json_data["label_data"]
+            "data": {}
         }
-        
+
+        # Create basic label data
+        single_label_data = {
+            "batch_lot": product.batch_number,
+            "barcode": product.barcode
+        }
+
+        # Handle single vs multiple labels based on label_qty
+        if product.label_qty > 1:
+            api_data["data"] = {
+                "label_data": [single_label_data.copy() for _ in range(product.label_qty)]
+            }
+        else:
+            api_data["data"] = single_label_data
+
+        # Debug log the final payload
+        app.logger.debug(f"Final API Request Data: {api_data}")
+
+        app.logger.debug(f"Final API Request Data: {api_data}")
+
+        app.logger.debug(f"API Request Payload: {api_data}")
+
+        # Debug log the request payload
         app.logger.debug(f"Sending request to CraftMyPDF API with payload: {api_data}")
         
         # Make API call
@@ -244,9 +231,9 @@ def generate_pdf(product_id):
             return jsonify({'error': 'No PDF URL in response'}), 500
             
         # Create PDF record
-        pdf = GeneratedPDF(
+        pdf = models.GeneratedPDF(
             product_id=product.id,
-            filename=f"{product.name}_{product.batch_number}.pdf",
+            filename=f"{product.title}_{product.batch_number}.pdf",
             pdf_url=pdf_url
         )
         db.session.add(pdf)
@@ -263,14 +250,14 @@ def generate_pdf(product_id):
 
 @app.route('/api/delete_pdf/<int:pdf_id>', methods=['DELETE'])
 def delete_pdf(pdf_id):
-    pdf = GeneratedPDF.query.get_or_404(pdf_id)
+    pdf = models.GeneratedPDF.query.get_or_404(pdf_id)
     db.session.delete(pdf)
     db.session.commit()
     return jsonify({'success': True})
 
 @app.route('/api/template/<int:template_id>')
 def get_template(template_id):
-    template = ProductTemplate.query.get_or_404(template_id)
+    template = models.ProductTemplate.query.get_or_404(template_id)
     return jsonify({
         'id': template.id,
         'name': template.name,
@@ -279,14 +266,14 @@ def get_template(template_id):
 
 @app.route('/templates')
 def template_list():
-    templates = ProductTemplate.query.all()
+    templates = models.ProductTemplate.query.all()
     return render_template('template_list.html', templates=templates)
 
 @app.route('/template/new', methods=['GET', 'POST'])
 def create_template():
     if request.method == 'POST':
         try:
-            template = ProductTemplate(
+            template = models.ProductTemplate(
                 name=request.form['name']
             )
             
@@ -313,7 +300,7 @@ def create_template():
 
 @app.route('/template/<int:template_id>/edit', methods=['GET', 'POST'])
 def edit_template(template_id):
-    template = ProductTemplate.query.get_or_404(template_id)
+    template = models.ProductTemplate.query.get_or_404(template_id)
     
     if request.method == 'POST':
         try:
@@ -341,7 +328,7 @@ def edit_template(template_id):
 @app.route('/api/delete_template/<int:template_id>', methods=['DELETE'])
 def delete_template(template_id):
     try:
-        template = ProductTemplate.query.get_or_404(template_id)
+        template = models.ProductTemplate.query.get_or_404(template_id)
         db.session.delete(template)
         db.session.commit()
         return jsonify({'success': True})
@@ -351,11 +338,11 @@ def delete_template(template_id):
 
 @app.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
 def edit_product(product_id):
-    product = Product.query.get_or_404(product_id)
+    product = models.Product.query.get_or_404(product_id)
     
     if request.method == 'POST':
         try:
-            product.name = request.form['name']
+            product.title = request.form['title']
             product.batch_number = request.form['batch_number']
             
             # Handle attributes
@@ -416,7 +403,7 @@ def edit_product(product_id):
 @app.route('/api/delete_product/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
     try:
-        product = Product.query.get_or_404(product_id)
+        product = models.Product.query.get_or_404(product_id)
         
         # Delete the product images if they exist
         if product.product_image:
@@ -446,21 +433,38 @@ def delete_product(product_id):
 @app.route('/api/generate_json/<int:product_id>')
 def generate_json(product_id):
     try:
-        product = Product.query.get_or_404(product_id)
-        app.logger.debug(f"Generating JSON for product {product_id}")
+        product = models.Product.query.get_or_404(product_id)
         
-        # Get base product data
-        product_data = product.to_json_data()
+        # Create base label data structure
+        label_data = {
+            "batch_lot": product.batch_number,
+            "barcode": product.barcode,
+            "product_name": product.title
+        }
         
-        # Update background URL if label image exists
-        if product.label_image:
-            product_data["background"] = url_for('static', filename=product.label_image, _external=True)
+        # Add all product attributes
+        for key, value in product.get_attributes().items():
+            label_data[key.lower().replace(' ', '_')] = value
         
-        # Always return in the label_data format to match example structure
-        label_data = {"label_data": [product_data.copy() for _ in range(product.label_qty or 4)]}
-        app.logger.debug(f"Generated label data with {len(label_data['label_data'])} labels")
+        # Structure the response based on label quantity
+        if product.label_qty > 1:
+            response_data = {
+                "template_id": product.craftmypdf_template_id,
+                "export_type": "pdf",
+                "cloud_storage": 1,
+                "data": {
+                    "label_data": [label_data.copy() for _ in range(product.label_qty)]
+                }
+            }
+        else:
+            response_data = {
+                "template_id": product.craftmypdf_template_id,
+                "export_type": "pdf",
+                "cloud_storage": 1,
+                "data": label_data
+            }
         
-        return jsonify(label_data)
+        return jsonify(response_data)
         
     except Exception as e:
         app.logger.error(f"Error generating JSON: {str(e)}")
@@ -482,19 +486,3 @@ def save_image(file):
     
     # Return relative path from static folder
     return filepath.replace('static/', '', 1)
-
-if __name__ == '__main__':
-    try:
-        # Ensure the upload directory exists
-        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-        
-        # Test database connection
-        with app.app_context():
-            db.engine.connect()
-            logging.info("Database connection successful")
-        
-        # Start the server
-        app.run(host='0.0.0.0', port=5000, debug=True)
-    except Exception as e:
-        logging.error(f"Error starting the application: {str(e)}")
-        raise
