@@ -157,9 +157,10 @@
 {% block scripts %}
 <script>
 // Delete product confirmation modal
-const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+const deleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+
 document.getElementById('deleteProduct').addEventListener('click', function() {
-    deleteModal.show();
+    deleteConfirmModal.show();
 });
 
 document.getElementById('confirmDelete').addEventListener('click', async function() {
@@ -169,15 +170,16 @@ document.getElementById('confirmDelete').addEventListener('click', async functio
             method: 'DELETE'
         });
         if (response.ok) {
+            showNotification('Product deleted successfully', 'success');
             window.location.href = '/';
         } else {
-            showNotification('Failed to delete product', 'error');
+            showNotification('Failed to delete product', 'danger');
         }
     } catch (error) {
         console.error('Error:', error);
-        showNotification('Failed to delete product', 'error');
+        showNotification('Failed to delete product', 'danger');
     }
-    deleteModal.hide();
+    deleteConfirmModal.hide();
 });
 
 // Generate PDF
