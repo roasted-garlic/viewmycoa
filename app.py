@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 import string
 import random
 import requests
+import json
 from PIL import Image
 import io
 import base64
