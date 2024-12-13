@@ -10,6 +10,7 @@ import requests
 from PIL import Image
 import io
 import base64
+import json
 
 import utils
 
@@ -178,15 +179,31 @@ def generate_pdf(product_id):
         for key, value in product.get_attributes().items():
             single_label_data[key.lower().replace(' ', '_')] = value
 
-        # Structure API request data
-        # Create the API request data structure
+        # Structure API request data with all necessary parameters
+        filename = f"{product.title}_{product.batch_number}.pdf"
         api_data = {
-            "template_id": product.craftmypdf_template_id,
-            "export_type": "file",
-            "cloud_storage": 1,
             "data": {
-                "label_data": [single_label_data for _ in range(product.label_qty)]
-            }
+                "label_data": [single_label_data for _ in range(product.label_qty or 1)],
+                "date": utils.get_current_date(),
+                "currency": "USD"
+            },
+            "load_data_from": None,
+            "template_id": product.craftmypdf_template_id,
+            "version": 1,
+            "export_type": "file",  # Using 'file' as specified in API docs
+            "expiration": 60,
+            "output_file": filename,
+            "image_resample_res": 600,
+            "direct_download": 0,
+            "cloud_storage": 1,
+            "password_protected": False,
+            "password": None,
+            "postaction_s3_filekey": None,
+            "postaction_s3_bucket": None,
+            "resize_images": "0",
+            "resize_max_width": "1000",
+            "resize_max_height": "1000",
+            "resize_format": "jpeg"
         }
 
         # Debug log the final payload
@@ -231,26 +248,40 @@ def generate_pdf(product_id):
                 app.logger.error(f"API Error: {error_msg}")
                 return jsonify({'error': error_msg}), response.status_code
             
-            pdf_url = result.get('file_url')
+            if result.get('status') != 'success':
+                error_msg = result.get('message', 'PDF generation failed')
+                app.logger.error(f"API Error: {error_msg}")
+                return jsonify({'error': error_msg}), 500
+            
+            pdf_url = result.get('file')
+            transaction_ref = result.get('transaction_ref')
+            
             if not pdf_url:
                 app.logger.error("No PDF URL in response")
                 return jsonify({'error': 'No PDF URL in response'}), 500
-                
-            app.logger.info(f"Successfully generated PDF: {pdf_url}")
-        except ValueError as e:
-            app.logger.error(f"Failed to parse API response: {str(e)}")
-            return jsonify({'error': 'Invalid API response format'}), 500
             
-        # Create PDF record
-        pdf = models.GeneratedPDF(
-            product_id=product.id,
-            filename=f"{product.title}_{product.batch_number}.pdf",
-            pdf_url=pdf_url
-        )
-        db.session.add(pdf)
-        db.session.commit()
-        
-        return jsonify({'success': True, 'pdf_url': pdf_url})
+            # Create PDF record with additional metadata
+            filename = f"{product.title}_{product.batch_number}.pdf"
+            pdf = models.GeneratedPDF(
+                product_id=product.id,
+                filename=filename,
+                pdf_url=pdf_url,
+                created_at=utils.get_current_timestamp()
+            )
+            db.session.add(pdf)
+            db.session.commit()
+                
+            app.logger.info(f"Successfully generated PDF: {filename} with URL: {pdf_url}")
+            return jsonify({
+                'success': True, 
+                'pdf_url': pdf_url,
+                'filename': filename,
+                'id': pdf.id
+            })
+            
+        except json.JSONDecodeError as e:
+            app.logger.error(f"Error decoding JSON response: {str(e)}")
+            return jsonify({'error': 'Invalid response from PDF service'}), 500
         
     except requests.exceptions.RequestException as e:
         app.logger.error(f"API request error: {str(e)}")
