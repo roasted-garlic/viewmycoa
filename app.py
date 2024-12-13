@@ -35,8 +35,11 @@ def serve_pdf(filename):
     response = send_from_directory('static/pdfs', filename, 
                                  mimetype='application/pdf',
                                  as_attachment=False)
-    response.headers['Content-Disposition'] = 'inline; filename="{}"'.format(filename)
+    response.headers['Content-Disposition'] = 'inline'
     response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Security-Policy'] = "default-src 'self'"
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     return response
 
 db.init_app(app)
