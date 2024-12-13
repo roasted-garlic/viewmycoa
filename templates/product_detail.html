@@ -218,7 +218,7 @@ document.getElementById('generatePDF').addEventListener('click', async function(
 document.querySelectorAll('.delete-pdf').forEach(button => {
     button.addEventListener('click', async function() {
         const pdfId = this.dataset.pdfId;
-        if (window.confirm('Are you sure you want to delete this PDF?')) {
+        if (window.confirm('Are you sure you want to delete this PDF?\n\nThis action cannot be undone.')) {
             try {
                 const response = await fetch(`/api/delete_pdf/${pdfId}`, {
                     method: 'DELETE'
