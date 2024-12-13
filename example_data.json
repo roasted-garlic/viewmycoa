@@ -1,0 +1,41 @@
+{
+  "data": {
+    "label_data": [
+      {
+        "batch_lot": "ZZOS47D1",
+        "sku": "PRD12345",
+        "barcode": "020164665686",
+        "product_name": "Sample Product",
+        "label_image": "http://example.com/static/uploads/label.jpg",
+        "attribute_1": "Value 1",
+        "attribute_2": "Value 2"
+      },
+      {
+        "batch_lot": "ZZOS47D1",
+        "sku": "PRD12345",
+        "barcode": "020164665686",
+        "product_name": "Sample Product",
+        "label_image": "http://example.com/static/uploads/label.jpg",
+        "attribute_1": "Value 1",
+        "attribute_2": "Value 2"
+      }
+    ]
+  },
+  "load_data_from": null,
+  "template_id": "68977b23b35dadce",
+  "version": 1,
+  "export_type": "json",
+  "expiration": 60,
+  "output_file": "sample_product_ZZOS47D1.pdf",
+  "image_resample_res": 600,
+  "direct_download": 0,
+  "cloud_storage": 1,
+  "password_protected": false,
+  "password": null,
+  "postaction_s3_filekey": null,
+  "postaction_s3_bucket": null,
+  "resize_images": "0",
+  "resize_max_width": "1000",
+  "resize_max_height": "1000",
+  "resize_format": "jpeg"
+}

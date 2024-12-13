@@ -172,28 +172,15 @@ def generate_pdf(product_id):
         
         # Structure API request data with all necessary parameters
         filename = f"{product.title}_{product.batch_number}.pdf"
-        api_data = {
-            "data": json_data,  # Complete data structure from generate_json
-            "load_data_from": None,
+        json_payload = {
             "template_id": product.craftmypdf_template_id,
-            "version": 1,
-            "export_type": "json",  # Using 'json' as specified in the API docs
+            "export_type": "json",
+            "data": json.dumps(json_data),
             "expiration": 60,
-            "output_file": filename,
-            "image_resample_res": 600,
-            "direct_download": 0,
-            "cloud_storage": 1,
-            "password_protected": False,
-            "password": None,
-            "postaction_s3_filekey": None,
-            "postaction_s3_bucket": None,
-            "resize_images": "0",
-            "resize_max_width": "1000",
-            "resize_max_height": "1000",
-            "resize_format": "jpeg"
+            "output_file": filename
         }
 
-        app.logger.debug(f"Sending request to CraftMyPDF API with payload: {api_data}")
+        app.logger.debug(f"Sending request to CraftMyPDF API with payload: {json_payload}")
         
         # Make API call
         headers = {
@@ -203,8 +190,8 @@ def generate_pdf(product_id):
         
         response = requests.post(
             'https://api.craftmypdf.com/v1/create',
-            json=api_data,
-            headers=headers,
+            headers={'X-API-KEY': api_key},
+            json=json_payload,
             timeout=30
         )
         
