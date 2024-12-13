@@ -165,30 +165,33 @@ def generate_pdf(product_id):
             "barcode": product.barcode
         }
 
-        # Structure API request data
-        # Prepare label data
+        # Get the same JSON structure as generate_json endpoint
         label_data = {
             "batch_lot": product.batch_number,
+            "sku": product.sku,
             "barcode": product.barcode,
             "product_name": product.title,
-            "sku": product.sku
+            "label_image": url_for('static', filename=product.label_image, _external=True) if product.label_image else None
         }
+        
+        # Add all product attributes
+        for key, value in product.get_attributes().items():
+            label_data[key.lower().replace(' ', '_')] = value
 
-        # Add product attributes
-        label_data.update(product.get_attributes())
-
-        # Handle multiple labels
+        # Handle multiple labels structure
         if product.label_qty > 1:
-            label_data = {
+            final_data = {
                 "label_data": [label_data.copy() for _ in range(product.label_qty)]
             }
+        else:
+            final_data = label_data
 
         api_data = {
             "template_id": product.craftmypdf_template_id,
             "export_type": "json",
             "output_file": f"{product.title}_{product.batch_number}.pdf",
             "expiration": 10,
-            "data": json.dumps(label_data)
+            "data": json.dumps(final_data)
         }
 
         # Debug log the final payload
