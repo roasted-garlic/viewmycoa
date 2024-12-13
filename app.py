@@ -116,9 +116,12 @@ def generate_pdf(product_id):
             "batch_lot": product.batch_number,
             "barcode": product.barcode
         },
-        "template_id": "05f77b2b18ad809a",  # Replace with your actual template ID
+        "template_id": "05f77b2b18ad809a",
         "export_type": "json",
-        "cloud_storage": 1
+        "cloud_storage": 1,
+        "direct_download": 0,
+        "image_resample_res": 300,
+        "resize_images": "0"
     }
     
     try:
@@ -128,7 +131,7 @@ def generate_pdf(product_id):
             'Content-Type': 'application/json'
         }
         response = requests.post(
-            'https://api.craftmypdf.com/v1/generate',
+            'https://api.craftmypdf.com/v1/create',
             json=api_data,
             headers=headers
         )
