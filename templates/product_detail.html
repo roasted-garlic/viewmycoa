@@ -55,23 +55,21 @@
             <img src="{{ url_for('static', filename=product.product_image) }}" class="img-fluid mb-4" alt="{{ product.title }}">
         {% endif %}
         
-        <h3>Product Attributes</h3>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Value</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for name, value in product.get_attributes().items() %}
-                <tr>
-                    <td>{{ name }}</td>
-                    <td>{{ value }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <h3 class="mb-3">Product Attributes</h3>
+        <div class="row g-3">
+            {% for name, value in product.get_attributes().items() %}
+            <div class="col-md-6">
+                <div class="card bg-dark border-secondary h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-info">
+                            <i class="fas fa-tag"></i> {{ name }}
+                        </h5>
+                        <p class="card-text h5">{{ value }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
 
     <div class="col-md-6">
