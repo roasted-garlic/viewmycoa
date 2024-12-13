@@ -121,7 +121,17 @@ def create_product():
             batch_number=utils.generate_batch_number(),
             sku=utils.generate_sku(),  # Use dedicated SKU generator
             barcode=barcode_number,
-            craftmypdf_template_id=request.form.get('craftmypdf_template_id')
+            craftmypdf_template_id=request.form.get('craftmypdf_template_id'),
+            # Add new fields
+            cannabinoid=request.form.get('cannabinoid'),
+            mg_per_piece=request.form.get('mg_per_piece'),
+            count=request.form.get('count'),
+            per_piece_g=request.form.get('per_piece_g'),
+            net_weight_g=request.form.get('net_weight_g'),
+            qr_code=request.form.get('qr_code'),
+            expire_date=request.form.get('expire_date'),
+            disclaimer=request.form.get('disclaimer'),
+            manufactured_by=request.form.get('manufactured_by')
         )
         product.set_attributes(attributes)
 
@@ -419,22 +429,37 @@ def generate_json(product_id):
         product = models.Product.query.get_or_404(product_id)
         app.logger.debug(f"Generating JSON for product ID: {product_id}")
         
-        # Get product data with all fields
+        # Get base product data
         product_data = product.to_json_data()
+        app.logger.debug(f"Initial product data: {product_data}")
         
-        # If label image exists, convert to full URL
+        # Update background URL if label image exists
         if product.label_image:
             product_data["background"] = url_for('static', filename=product.label_image, _external=True)
+            app.logger.debug(f"Updated background URL: {product_data['background']}")
         
-        # Create the specified number of labels
+        # Add product attributes
+        attributes = product.get_attributes()
+        if attributes:
+            app.logger.debug(f"Processing attributes: {attributes}")
+            if len(attributes) > 0:
+                first_attr = list(attributes.items())[0]
+                product_data["product_att_name_0"] = first_attr[0]
+                product_data["product_att_name_0_value"] = str(first_attr[1])
+                product_data["product_name_att"] = f"{product.name}: {first_attr[1]}"
+                app.logger.debug(f"Updated with first attribute: {first_attr}")
+        
+        app.logger.debug(f"Final product data: {product_data}")
+        
+        # Generate the specified number of labels
         label_data = [product_data.copy() for _ in range(product.label_qty)]
         
-        app.logger.debug(f"Generated JSON data: {label_data}")
-        
-        # Return single object for single label, array for multiple
+        # Structure response based on number of labels
         if product.label_qty == 1:
+            app.logger.debug("Returning single label data")
             return jsonify(label_data[0])
         else:
+            app.logger.debug(f"Returning multiple ({product.label_qty}) labels data")
             return jsonify({"label_data": label_data})
         
     except Exception as e:

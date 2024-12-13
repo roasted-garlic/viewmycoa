@@ -40,43 +40,52 @@ class Product(db.Model):
 
     def to_json_data(self):
         """Convert product data to JSON format for CraftMyPDF API"""
-        data = {
-            "cannabinoid": self.cannabinoid or "",
-            "mg_per_piece": self.mg_per_piece or "",
-            "count": self.count or "",
-            "per_piece_g": self.per_piece_g or "",
-            "net_weight_g": self.net_weight_g or "",
-            "product_barcode": self.barcode,
-            "sku": self.sku,
-            "product_name": self.name,
-            "qr_code": self.qr_code or "",
-            "lot_barcode": self.batch_number,
-            "expire_date": self.expire_date or "",
-            "disclaimer": self.disclaimer or "",
-            "manufactured_by": self.manufactured_by or ""
-        }
+        try:
+            # Build the base data structure exactly matching the required format
+            data = {
+                "cannabinoid": self.cannabinoid or "",
+                "mg_per_piece": self.mg_per_piece or "",
+                "count": self.count or "",
+                "per_piece_g": self.per_piece_g or "",
+                "net_weight_g": self.net_weight_g or "",
+                "background": "",  # Will be set in the API endpoint
+                "product_barcode": int(self.barcode) if self.barcode else None,
+                "sku": self.sku or "",
+                "product_name": self.name,
+                "product_name_att": "",  # Will be updated if attributes exist
+                "product_att_name_0": "",  # Will be updated if attributes exist
+                "product_att_name_0_value": "",  # Will be updated if attributes exist
+                "qr_code": self.qr_code or "",
+                "lot_barcode": self.batch_number,
+                "expire_date": self.expire_date or "",
+                "disclaimer": self.disclaimer or "",
+                "manufactured_by": self.manufactured_by or ""
+            }
 
-        # Handle label image for background
-        if self.label_image:
-            # Ensure it's a full URL when used in the template
-            data["background"] = self.label_image
+            # Handle dynamic attributes
+            attributes = self.get_attributes()
+            if attributes:
+                # Take the first attribute for the main product name attribute
+                if len(attributes) > 0:
+                    first_attr = list(attributes.items())[0]
+                    data["product_att_name_0"] = first_attr[0]
+                    data["product_att_name_0_value"] = str(first_attr[1])
+                    data["product_name_att"] = f"{self.name}: {first_attr[1]}"
 
-        # Process dynamic attributes
-        attributes = self.get_attributes()
-        if attributes:
-            # Add attributes in the exact format required
-            for idx, (name, value) in enumerate(attributes.items()):
-                data[f"product_att_name_{idx}"] = name
-                data[f"product_att_name_{idx}_value"] = value
+            # Ensure all values are strings except product_barcode
+            cleaned_data = {}
+            for key, value in data.items():
+                if value is not None:
+                    if key != "product_barcode":
+                        cleaned_data[key] = str(value)
+                    else:
+                        cleaned_data[key] = value
 
-            # Create product_name_att with attributes
-            attr_values = list(attributes.values())
-            if attr_values:
-                data["product_name_att"] = f"{self.name}: {', '.join(attr_values)}"
-        else:
-            data["product_name_att"] = self.name
-
-        return data
+            return cleaned_data
+        except Exception as e:
+            from flask import current_app
+            current_app.logger.error(f"Error generating JSON data for product {self.id}: {str(e)}")
+            raise
 
     def set_attributes(self, attrs):
         self.attributes = json.dumps(attrs)
