@@ -114,7 +114,7 @@ def create_product():
         # Generate UPC-A barcode number
         barcode_number = utils.generate_upc_barcode()
         batch_number = generate_batch_number()
-        sku = utils.generate_sku(batch_number) # Generate SKU based on batch number
+        sku = utils.generate_sku() # Generate unique SKU
 
         product = models.Product(
             title=title,
