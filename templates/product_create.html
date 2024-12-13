@@ -3,11 +3,29 @@
 {% block content %}
 <div class="row">
     <div class="col-md-8 offset-md-2">
-        <h1>Create New Product</h1>
+        <h1 class="mb-4">Create New Product</h1>
         <form method="POST" enctype="multipart/form-data" id="productForm">
-            <div class="mb-3">
-                <label for="title" class="form-label">Product Title</label>
-                <input type="text" class="form-control" id="title" name="title" required>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card bg-dark border-secondary h-100">
+                        <div class="card-body">
+                            <h5 class="card-title text-info mb-3">
+                                <i class="fas fa-image"></i> Product Image
+                            </h5>
+                            <input type="file" class="form-control" id="productImage" name="product_image" accept="image/*" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-dark border-secondary h-100">
+                        <div class="card-body">
+                            <h5 class="card-title text-info mb-3">
+                                <i class="fas fa-tag"></i> Product Title
+                            </h5>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="mb-3">
@@ -50,23 +68,35 @@
                 </button>
             </div>
 
-            <div class="mb-3">
-                <label for="productImage" class="form-label">Product Image</label>
-                <input type="file" class="form-control" id="productImage" name="product_image" accept="image/*" required>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card bg-dark border-secondary">
+                        <div class="card-body">
+                            <h5 class="card-title text-info mb-3">
+                                <i class="fas fa-tag"></i> Label Image
+                            </h5>
+                            <input type="file" class="form-control" id="labelImage" name="label_image" accept="image/*" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-dark border-secondary">
+                        <div class="card-body">
+                            <h5 class="card-title text-info mb-3">
+                                <i class="fas fa-copy"></i> Number of Labels
+                            </h5>
+                            <input type="number" class="form-control" id="labelQty" name="label_qty" value="4" min="1" required>
+                            <small class="form-text text-muted mt-2">Specify how many labels you need (default is 4)</small>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label for="labelImage" class="form-label">Label Image</label>
-                <input type="file" class="form-control" id="labelImage" name="label_image" accept="image/*" required>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save"></i> Create Product
+                </button>
             </div>
-
-            <div class="mb-3">
-                <label for="labelQty" class="form-label">Number of Labels</label>
-                <input type="number" class="form-control" id="labelQty" name="label_qty" value="4" min="1" required>
-                <small class="form-text text-muted">Specify how many labels you need (default is 4)</small>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Create Product</button>
         </form>
     </div>
 </div>
