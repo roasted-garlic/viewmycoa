@@ -157,73 +157,85 @@ def generate_pdf(product_id):
         # Get API key from environment
         api_key = os.environ.get('CRAFTMYPDF_API_KEY')
         if not api_key:
-            app.logger.error("API key not configured")
-            return jsonify({'error': 'API key not configured'}), 500
+            app.logger.error("CraftMyPDF API key not configured")
+            return jsonify({'error': 'CraftMyPDF API key not configured'}), 500
 
-        # Create label data
-        label_data = {
-            'batch_lot': product.batch_number,
-            'barcode': product.barcode,
-            'product_name': product.title,
-            'sku': product.sku
-        }
+        # Verify template ID exists
+        if not product.craftmypdf_template_id:
+            return jsonify({'error': 'No CraftMyPDF template ID configured for this product'}), 400
 
-        # Create JSON payload exactly like the example
+        # Create the JSON payload matching example_data.json structure
         json_payload = {
             "data": {
                 "label_data": [{
                     "batch_lot": product.batch_number,
+                    "sku": product.sku,
                     "barcode": product.barcode,
-                    "product_name": product.title,
-                    "sku": product.sku
+                    "product_name": product.title
                 }]
             },
+            "load_data_from": None,
             "template_id": product.craftmypdf_template_id,
-            "export_type": "file",
+            "version": 1,
+            "export_type": "json",
             "expiration": 60,
             "output_file": f"{product.title}_{product.batch_number}.pdf",
+            "image_resample_res": 600,
+            "direct_download": 0,
             "cloud_storage": 1,
-            "direct_download": 0
+            "password_protected": False,
+            "password": None,
+            "postaction_s3_filekey": None,
+            "postaction_s3_bucket": None,
+            "resize_images": "0",
+            "resize_max_width": "1000",
+            "resize_max_height": "1000",
+            "resize_format": "jpeg"
         }
         
-        app.logger.debug(f"Final API Request Data: {json_payload}")
+        # Add product attributes to label_data
+        attributes = product.get_attributes()
+        if attributes:
+            for key, value in attributes.items():
+                json_payload["data"]["label_data"][0][key.lower()] = value
+
+        # Add label image if it exists
+        if product.label_image:
+            json_payload["data"]["label_data"][0]["label_image"] = url_for('static', 
+                                                                         filename=product.label_image, 
+                                                                         _external=True)
+        
+        app.logger.debug(f"CraftMyPDF API Request Data: {json.dumps(json_payload, indent=2)}")
         
         headers = {
             "X-API-KEY": api_key,
             "Content-Type": "application/json"
         }
-        
-        app.logger.debug("Sending request to CraftMyPDF API")
-        app.logger.debug(f"CraftMyPDF API Request URL: https://api.craftmypdf.com/v1/create")
-        app.logger.debug(f"CraftMyPDF API Headers: {headers}")
-        
+
         response = requests.post(
             "https://api.craftmypdf.com/v1/create",
             headers=headers,
-            json=json_payload
+            json=json_payload,
+            timeout=30
         )
         
         app.logger.debug(f"CraftMyPDF API Response Status: {response.status_code}")
         app.logger.debug(f"CraftMyPDF API Response Content: {response.text}")
         
         if response.status_code != 200:
-            error_msg = f"API Error (Status {response.status_code}): {response.text}"
+            error_msg = f"CraftMyPDF API Error: {response.text}"
             app.logger.error(error_msg)
             return jsonify({'error': error_msg}), response.status_code
 
         result = response.json()
-        
-        # Get the PDF URL from the response
         pdf_url = result.get('file')
         if not pdf_url:
-            app.logger.error("No PDF URL in response")
-            return jsonify({'error': 'No PDF URL in response'}), 500
+            return jsonify({'error': 'No PDF URL in CraftMyPDF response'}), 500
         
-        # Create PDF record
-        filename = f"{product.title}_{product.batch_number}.pdf"
+        # Save the generated PDF record
         pdf = models.GeneratedPDF(
             product_id=product.id,
-            filename=filename,
+            filename=f"{product.title}_{product.batch_number}.pdf",
             pdf_url=pdf_url,
             created_at=utils.get_current_timestamp()
         )
@@ -231,15 +243,20 @@ def generate_pdf(product_id):
         db.session.commit()
             
         return jsonify({
-            'success': True, 
+            'success': True,
             'pdf_url': pdf_url,
-            'filename': filename,
+            'filename': pdf.filename,
             'id': pdf.id
         })
         
+    except requests.exceptions.RequestException as e:
+        error_msg = f"CraftMyPDF API request failed: {str(e)}"
+        app.logger.error(error_msg)
+        return jsonify({'error': error_msg}), 500
     except Exception as e:
-        app.logger.error(f"PDF generation error: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        error_msg = f"PDF generation error: {str(e)}"
+        app.logger.error(error_msg)
+        return jsonify({'error': error_msg}), 500
 
 @app.route('/api/delete_pdf/<int:pdf_id>', methods=['DELETE'])
 def delete_pdf(pdf_id):
