@@ -166,26 +166,30 @@ def generate_pdf(product_id):
         }
 
         # Structure API request data
+        # Prepare label data
+        label_data = {
+            "batch_lot": product.batch_number,
+            "barcode": product.barcode,
+            "product_name": product.title,
+            "sku": product.sku
+        }
+
+        # Add product attributes
+        label_data.update(product.get_attributes())
+
+        # Handle multiple labels
+        if product.label_qty > 1:
+            label_data = {
+                "label_data": [label_data.copy() for _ in range(product.label_qty)]
+            }
+
         api_data = {
             "template_id": product.craftmypdf_template_id,
-            "export_type": "pdf",
-            "cloud_storage": 1,
-            "data": {}
+            "export_type": "json",
+            "output_file": f"{product.title}_{product.batch_number}.pdf",
+            "expiration": 10,
+            "data": json.dumps(label_data)
         }
-
-        # Create basic label data
-        single_label_data = {
-            "batch_lot": product.batch_number,
-            "barcode": product.barcode
-        }
-
-        # Handle single vs multiple labels based on label_qty
-        if product.label_qty > 1:
-            api_data["data"] = {
-                "label_data": [single_label_data.copy() for _ in range(product.label_qty)]
-            }
-        else:
-            api_data["data"] = single_label_data
 
         # Debug log the final payload
         app.logger.debug(f"Final API Request Data: {api_data}")
