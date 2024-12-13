@@ -435,34 +435,54 @@ def generate_json(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
         
-        # Create base label data structure
+        # Create base label data structure with required fields
         label_data = {
-            "batch_lot": product.batch_number,
-            "barcode": product.barcode,
-            "product_name": product.title
+            "cannabinoid": "",  # These will be filled from product attributes if available
+            "mg_per_piece": "",
+            "count": "",
+            "per_piece_g": "",
+            "net_weight_g": "",
+            "background": "",
+            "product_barcode": product.barcode,
+            "sku": product.batch_number,
+            "product_name": product.title,
+            "product_name_att": product.title,  # Will be updated if we have attributes
+            "qr_code": "",
+            "lot_barcode": product.batch_number,
+            "expire_date": "",
+            "disclaimer": "",
+            "manufactured_by": ""
         }
         
         # Add all product attributes
-        for key, value in product.get_attributes().items():
-            label_data[key.lower().replace(' ', '_')] = value
+        attributes = product.get_attributes()
+        for idx, (key, value) in enumerate(attributes.items()):
+            # Map known fields directly
+            if key.lower() in label_data:
+                label_data[key.lower()] = value
+            else:
+                # Add as additional attributes
+                label_data[f"product_att_name_{idx}"] = key
+                label_data[f"product_att_name_{idx}_value"] = value
         
+        # Update product_name_att if we have attributes
+        if attributes:
+            first_attr_value = next(iter(attributes.values()))
+            label_data["product_name_att"] = f"{product.title}: {first_attr_value}"
+
         # Structure the response based on label quantity
+        response_data = {
+            "template_id": product.craftmypdf_template_id,
+            "export_type": "pdf",
+            "cloud_storage": 1
+        }
+
         if product.label_qty > 1:
-            response_data = {
-                "template_id": product.craftmypdf_template_id,
-                "export_type": "pdf",
-                "cloud_storage": 1,
-                "data": {
-                    "label_data": [label_data.copy() for _ in range(product.label_qty)]
-                }
+            response_data["data"] = {
+                "label_data": [label_data.copy() for _ in range(product.label_qty)]
             }
         else:
-            response_data = {
-                "template_id": product.craftmypdf_template_id,
-                "export_type": "pdf",
-                "cloud_storage": 1,
-                "data": label_data
-            }
+            response_data["data"] = label_data
         
         return jsonify(response_data)
         
