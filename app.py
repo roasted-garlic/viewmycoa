@@ -419,32 +419,19 @@ def generate_json(product_id):
         product = models.Product.query.get_or_404(product_id)
         app.logger.debug(f"Generating JSON for product ID: {product_id}")
         
-        # Create label entries based on label_qty
-        label_data = []
+        # Get product data with all fields
+        product_data = product.to_json_data()
         
-        for _ in range(product.label_qty):
-            # Create base label with only actual product data
-            label = {
-                "name": product.name,
-                "batch_number": product.batch_number,
-                "barcode": product.barcode,
-                "sku": product.sku
-            }
-            
-            # Add label image if available
-            if product.label_image:
-                label["label_image"] = url_for('static', filename=product.label_image, _external=True)
-            
-            # Add existing attributes
-            attributes = product.get_attributes()
-            if attributes:
-                for attr_name, attr_value in attributes.items():
-                    if attr_name and attr_value:  # Only add if both name and value exist
-                        label[attr_name] = attr_value
-            
-            label_data.append(label)
+        # If label image exists, convert to full URL
+        if product.label_image:
+            product_data["background"] = url_for('static', filename=product.label_image, _external=True)
         
-        # Return the data based on quantity
+        # Create the specified number of labels
+        label_data = [product_data.copy() for _ in range(product.label_qty)]
+        
+        app.logger.debug(f"Generated JSON data: {label_data}")
+        
+        # Return single object for single label, array for multiple
         if product.label_qty == 1:
             return jsonify(label_data[0])
         else:
