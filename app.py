@@ -242,13 +242,27 @@ def generate_pdf(product_id):
             return jsonify({'error': 'No PDF URL in response'}), 500
             
         # Create PDF record
-        pdf = models.GeneratedPDF(
-            product_id=product.id,
-            filename=f"{product.title}_{product.batch_number}.pdf",
-            pdf_url=pdf_url
-        )
-        db.session.add(pdf)
-        db.session.commit()
+        # Download and save PDF locally
+        pdf_filename = f"{product.title}_{product.batch_number}.pdf"
+        pdf_filepath = os.path.join('static', 'pdfs', pdf_filename)
+        
+        # Ensure pdfs directory exists
+        os.makedirs(os.path.join('static', 'pdfs'), exist_ok=True)
+        
+        # Download PDF
+        pdf_response = requests.get(pdf_url)
+        if pdf_response.status_code == 200:
+            with open(pdf_filepath, 'wb') as f:
+                f.write(pdf_response.content)
+            
+            # Create PDF record with local path
+            pdf = models.GeneratedPDF(
+                product_id=product.id,
+                filename=pdf_filename,
+                pdf_url=url_for('static', filename=f'pdfs/{pdf_filename}', _external=True)
+            )
+            db.session.add(pdf)
+            db.session.commit()
         
         return jsonify({'success': True, 'pdf_url': pdf_url})
         
