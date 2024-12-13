@@ -160,26 +160,3 @@
     cursor: not-allowed;
     opacity: 0.75;
 }
-
-@media (max-width: 576px) {
-    .product-title {
-        font-size: 1.75rem;
-        margin-bottom: 1rem;
-        word-break: break-word;
-    }
-    
-    .product-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        width: 100%;
-    }
-    
-    .product-actions .btn {
-        width: 100%;
-        padding: 0.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-}
