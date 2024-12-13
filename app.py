@@ -160,60 +160,48 @@ def generate_pdf(product_id):
             app.logger.error("API key not configured")
             return jsonify({'error': 'API key not configured'}), 500
 
-        # Get the complete data structure from generate_json function
-        json_response = generate_json(product_id)
-        if isinstance(json_response, tuple):
-            return json_response  # This will return the error response if any
-        
-        # Get the data from json_response and ensure it's in the correct format
-        json_data = json_response.get_json() if hasattr(json_response, 'get_json') else json_response
-        
-        app.logger.debug(f"Final API Request Data: {json_data}")
-        
-        # Structure API request data according to example format
-        filename = f"{product.title}_{product.batch_number}.pdf"
-        
-        # Get the data from json_response and ensure it's properly formatted
-        data = json_response.get_json() if hasattr(json_response, 'get_json') else json_response
-        
-        # Prepare the payload according to the example structure
+        # Create label data
+        label_data = {
+            'batch_lot': product.batch_number,
+            'barcode': product.barcode,
+            'product_name': product.title,
+            'sku': product.sku
+        }
+
+        # Create JSON payload exactly like the example
         json_payload = {
+            "data": {
+                "label_data": [{
+                    "batch_lot": product.batch_number,
+                    "barcode": product.barcode,
+                    "product_name": product.title,
+                    "sku": product.sku
+                }]
+            },
             "template_id": product.craftmypdf_template_id,
             "export_type": "file",
-            "output_file": filename,
             "expiration": 60,
+            "output_file": f"{product.title}_{product.batch_number}.pdf",
             "cloud_storage": 1,
-            "data": json.dumps(data) if isinstance(data, dict) else json.dumps({"label_data": data})
+            "direct_download": 0
         }
-
-        app.logger.debug("Sending request to CraftMyPDF API with payload:")
-        app.logger.debug(json_payload)
-
-        app.logger.debug(f"API Request Payload: {json_payload}")
         
-        # Make the API request
-        app.logger.debug("CraftMyPDF API Request URL: https://api.craftmypdf.com/v1/create")
+        app.logger.debug(f"Final API Request Data: {json_payload}")
+        
         headers = {
-            'X-API-KEY': api_key,
-            'Content-Type': 'application/json'
+            "X-API-KEY": api_key,
+            "Content-Type": "application/json"
         }
-        app.logger.debug(f"CraftMyPDF API Headers: {headers}")
         
-        # Make the API request
-        app.logger.debug("Making request to CraftMyPDF API")
-        app.logger.debug(f"Request URL: https://api.craftmypdf.com/v1/create")
-        app.logger.debug(f"Request Headers: {headers}")
-        app.logger.debug(f"Request Payload: {json_payload}")
+        app.logger.debug("Sending request to CraftMyPDF API")
+        app.logger.debug(f"CraftMyPDF API Request URL: https://api.craftmypdf.com/v1/create")
+        app.logger.debug(f"CraftMyPDF API Headers: {headers}")
         
         response = requests.post(
             "https://api.craftmypdf.com/v1/create",
             headers=headers,
-            json=json_payload,
-            timeout=30
+            json=json_payload
         )
-        
-        app.logger.debug(f"Response Status Code: {response.status_code}")
-        app.logger.debug(f"Response Content: {response.text}")
         
         app.logger.debug(f"CraftMyPDF API Response Status: {response.status_code}")
         app.logger.debug(f"CraftMyPDF API Response Content: {response.text}")
@@ -222,52 +210,33 @@ def generate_pdf(product_id):
             error_msg = f"API Error (Status {response.status_code}): {response.text}"
             app.logger.error(error_msg)
             return jsonify({'error': error_msg}), response.status_code
+
+        result = response.json()
         
-        try:
-            result = response.json()
-            if response.status_code != 200:
-                error_msg = result.get('message', 'Unknown API error')
-                app.logger.error(f"API Error: {error_msg}")
-                return jsonify({'error': error_msg}), response.status_code
-            
-            if result.get('status') != 'success':
-                error_msg = result.get('message', 'PDF generation failed')
-                app.logger.error(f"API Error: {error_msg}")
-                return jsonify({'error': error_msg}), 500
-            
-            pdf_url = result.get('file')
-            transaction_ref = result.get('transaction_ref')
-            
-            if not pdf_url:
-                app.logger.error("No PDF URL in response")
-                return jsonify({'error': 'No PDF URL in response'}), 500
-            
-            # Create PDF record with additional metadata
-            filename = f"{product.title}_{product.batch_number}.pdf"
-            pdf = models.GeneratedPDF(
-                product_id=product.id,
-                filename=filename,
-                pdf_url=pdf_url,
-                created_at=utils.get_current_timestamp()
-            )
-            db.session.add(pdf)
-            db.session.commit()
-                
-            app.logger.info(f"Successfully generated PDF: {filename} with URL: {pdf_url}")
-            return jsonify({
-                'success': True, 
-                'pdf_url': pdf_url,
-                'filename': filename,
-                'id': pdf.id
-            })
-            
-        except json.JSONDecodeError as e:
-            app.logger.error(f"Error decoding JSON response: {str(e)}")
-            return jsonify({'error': 'Invalid response from PDF service'}), 500
+        # Get the PDF URL from the response
+        pdf_url = result.get('file')
+        if not pdf_url:
+            app.logger.error("No PDF URL in response")
+            return jsonify({'error': 'No PDF URL in response'}), 500
         
-    except requests.exceptions.RequestException as e:
-        app.logger.error(f"API request error: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        # Create PDF record
+        filename = f"{product.title}_{product.batch_number}.pdf"
+        pdf = models.GeneratedPDF(
+            product_id=product.id,
+            filename=filename,
+            pdf_url=pdf_url,
+            created_at=utils.get_current_timestamp()
+        )
+        db.session.add(pdf)
+        db.session.commit()
+            
+        return jsonify({
+            'success': True, 
+            'pdf_url': pdf_url,
+            'filename': filename,
+            'id': pdf.id
+        })
+        
     except Exception as e:
         app.logger.error(f"PDF generation error: {str(e)}")
         return jsonify({'error': str(e)}), 500
