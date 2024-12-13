@@ -1,76 +1,45 @@
-import string
-import random
-import os
-from PIL import Image
-from io import BytesIO
-import base64
 
-def generate_batch_number():
-    """Generate a random 8-character alphanumeric batch number"""
-    chars = string.ascii_uppercase + string.digits
-    return ''.join(random.choice(chars) for _ in range(8))
+import random
+import string
+from PIL import Image
+import io
+from werkzeug.utils import secure_filename
+
+def generate_upc_barcode():
+    """Generate a random UPC-A barcode number"""
+    digits = ''.join(random.choices(string.digits, k=11))
+    return digits + calculate_upc_check_digit(digits)
+
+def calculate_upc_check_digit(digits):
+    """Calculate the check digit for a UPC-A barcode"""
+    total = 0
+    for i, digit in enumerate(digits):
+        total += int(digit) * (3 if i % 2 else 1)
+    check_digit = (10 - (total % 10)) % 10
+    return str(check_digit)
 
 def generate_sku():
-    """Generate a random 8-character alphanumeric SKU"""
-    chars = string.ascii_uppercase + string.digits
-    return ''.join(random.choice(chars) for _ in range(8))
+    """Generate a unique SKU"""
+    prefix = ''.join(random.choices(string.ascii_uppercase, k=2))
+    numbers = ''.join(random.choices(string.digits, k=6))
+    return f"{prefix}{numbers}"
 
-def process_image(image_file, max_size=(800, 800)):
-    """Process and optimize uploaded images"""
-    try:
-        img = Image.open(image_file)
-        
-        # Convert to RGB if necessary
-        if img.mode in ('RGBA', 'P'):
-            img = img.convert('RGB')
-        
-        # Resize if larger than max_size
-        if img.size[0] > max_size[0] or img.size[1] > max_size[1]:
-            img.thumbnail(max_size)
-        
-        # Optimize image
-        output = BytesIO()
-        img.save(output, format='JPEG', quality=85, optimize=True)
-        output.seek(0)
-        
-        return output
-        
-    except Exception as e:
-        raise ValueError(f"Error processing image: {str(e)}")
+def clean_filename(filename):
+    """Clean and secure a filename"""
+    return secure_filename(filename)
 
 def is_valid_image(file):
-    """Validate image file"""
+    """Check if file is a valid image"""
     try:
-        img = Image.open(file)
-        img.verify()
+        Image.open(file)
         return True
     except:
         return False
 
-def clean_filename(filename):
-    """Clean and sanitize filename"""
-    valid_chars = f"-_.{string.ascii_letters}{string.digits}"
-    cleaned = ''.join(c for c in filename if c in valid_chars)
-    return cleaned[:255]  # Limit length to 255 characters
-
-def format_file_size(size):
-    """Format file size in bytes to human readable format"""
-    for unit in ['B', 'KB', 'MB']:
-        if size < 1024.0:
-            return f"{size:.1f} {unit}"
-        size /= 1024.0
-    return f"{size:.1f} GB"
-
-def generate_upc_barcode():
-    """Generate a random 12-digit UPC-A barcode number"""
-    # Generate first 11 digits randomly
-    digits = ''.join(random.choice(string.digits) for _ in range(11))
-    
-    # Calculate check digit using UPC-A algorithm
-    sum_odd = sum(int(digits[i]) for i in range(0, 11, 2))
-    sum_even = sum(int(digits[i]) for i in range(1, 11, 2))
-    total = sum_odd * 3 + sum_even
-    check_digit = (10 - (total % 10)) % 10
-    
-    # Return complete UPC-A code
-    return digits + str(check_digit)
+def process_image(file):
+    """Process and optimize image"""
+    img = Image.open(file)
+    output = io.BytesIO()
+    img.save(output, format=img.format, optimize=True)
+    output.seek(0)
+    return output
