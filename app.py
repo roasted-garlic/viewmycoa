@@ -1,8 +1,7 @@
 import os
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
-from flask_sqlalchemy import SQLAlchemy
+from database import db
 from flask_migrate import Migrate
-from sqlalchemy.orm import DeclarativeBase
 import logging
 from werkzeug.utils import secure_filename
 import string
@@ -12,16 +11,14 @@ from PIL import Image
 import io
 import base64
 
-import utils
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
 
-class Base(DeclarativeBase):
-    pass
-
-db = SQLAlchemy(model_class=Base)
+# Initialize Flask
 app = Flask(__name__)
 
 # Configuration
-app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "a secret key")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
@@ -30,21 +27,44 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
+# Ensure upload directory exists
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+# Initialize extensions
 db.init_app(app)
 migrate = Migrate(app, db)
 
-logging.basicConfig(level=logging.DEBUG)
+# Import models after db initialization to avoid circular imports
+from models import Product, ProductTemplate, GeneratedPDF
+
+# Initialize Flask
+app = Flask(__name__)
+
+# Configuration
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "a secret key")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_recycle": 300,
+    "pool_pre_ping": True,
+}
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 # Ensure upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+# Initialize extensions
+db.init_app(app)
+migrate = Migrate(app, db)
+import utils
+
+# Create tables
 with app.app_context():
-    import models
     db.create_all()
 
 @app.route('/')
 def index():
-    products = models.Product.query.all()
+    products = Product.query.all()
     return render_template('product_list.html', products=products)
 
 def fetch_craftmypdf_templates():
@@ -97,7 +117,7 @@ def fetch_craftmypdf_templates():
 
 @app.route('/product/new', methods=['GET', 'POST'])
 def create_product():
-    templates = models.ProductTemplate.query.all()
+    templates = ProductTemplate.query.all()
     pdf_templates = fetch_craftmypdf_templates()
     
     if request.method == 'POST':
@@ -116,7 +136,7 @@ def create_product():
         # Generate UPC-A barcode number
         barcode_number = utils.generate_upc_barcode()
 
-        product = models.Product(
+        product = Product(
             name=name,
             batch_number=utils.generate_batch_number(),
             sku=utils.generate_sku(),  # Use dedicated SKU generator
@@ -150,18 +170,18 @@ def create_product():
 
 @app.route('/product/<int:product_id>')
 def product_detail(product_id):
-    product = models.Product.query.get_or_404(product_id)
-    pdfs = models.GeneratedPDF.query.filter_by(product_id=product_id).all()
+    product = Product.query.get_or_404(product_id)
+    pdfs = GeneratedPDF.query.filter_by(product_id=product_id).all()
     return render_template('product_detail.html', product=product, pdfs=pdfs)
 
 @app.route('/api/generate_batch', methods=['POST'])
 def generate_batch():
-    return jsonify({'batch_number': generate_batch_number()})
+    return jsonify({'batch_number': utils.generate_batch_number()})
 
 @app.route('/api/generate_pdf/<int:product_id>', methods=['POST'])
 def generate_pdf(product_id):
     try:
-        product = models.Product.query.get_or_404(product_id)
+        product = Product.query.get_or_404(product_id)
         
         # Get API key from environment
         api_key = os.environ.get('CRAFTMYPDF_API_KEY')
@@ -224,7 +244,7 @@ def generate_pdf(product_id):
             return jsonify({'error': 'No PDF URL in response'}), 500
             
         # Create PDF record
-        pdf = models.GeneratedPDF(
+        pdf = GeneratedPDF(
             product_id=product.id,
             filename=f"{product.name}_{product.batch_number}.pdf",
             pdf_url=pdf_url
@@ -243,14 +263,14 @@ def generate_pdf(product_id):
 
 @app.route('/api/delete_pdf/<int:pdf_id>', methods=['DELETE'])
 def delete_pdf(pdf_id):
-    pdf = models.GeneratedPDF.query.get_or_404(pdf_id)
+    pdf = GeneratedPDF.query.get_or_404(pdf_id)
     db.session.delete(pdf)
     db.session.commit()
     return jsonify({'success': True})
 
 @app.route('/api/template/<int:template_id>')
 def get_template(template_id):
-    template = models.ProductTemplate.query.get_or_404(template_id)
+    template = ProductTemplate.query.get_or_404(template_id)
     return jsonify({
         'id': template.id,
         'name': template.name,
@@ -259,14 +279,14 @@ def get_template(template_id):
 
 @app.route('/templates')
 def template_list():
-    templates = models.ProductTemplate.query.all()
+    templates = ProductTemplate.query.all()
     return render_template('template_list.html', templates=templates)
 
 @app.route('/template/new', methods=['GET', 'POST'])
 def create_template():
     if request.method == 'POST':
         try:
-            template = models.ProductTemplate(
+            template = ProductTemplate(
                 name=request.form['name']
             )
             
@@ -293,7 +313,7 @@ def create_template():
 
 @app.route('/template/<int:template_id>/edit', methods=['GET', 'POST'])
 def edit_template(template_id):
-    template = models.ProductTemplate.query.get_or_404(template_id)
+    template = ProductTemplate.query.get_or_404(template_id)
     
     if request.method == 'POST':
         try:
@@ -321,7 +341,7 @@ def edit_template(template_id):
 @app.route('/api/delete_template/<int:template_id>', methods=['DELETE'])
 def delete_template(template_id):
     try:
-        template = models.ProductTemplate.query.get_or_404(template_id)
+        template = ProductTemplate.query.get_or_404(template_id)
         db.session.delete(template)
         db.session.commit()
         return jsonify({'success': True})
@@ -331,7 +351,7 @@ def delete_template(template_id):
 
 @app.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
 def edit_product(product_id):
-    product = models.Product.query.get_or_404(product_id)
+    product = Product.query.get_or_404(product_id)
     
     if request.method == 'POST':
         try:
@@ -396,7 +416,7 @@ def edit_product(product_id):
 @app.route('/api/delete_product/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
     try:
-        product = models.Product.query.get_or_404(product_id)
+        product = Product.query.get_or_404(product_id)
         
         # Delete the product images if they exist
         if product.product_image:
@@ -426,7 +446,7 @@ def delete_product(product_id):
 @app.route('/api/generate_json/<int:product_id>')
 def generate_json(product_id):
     try:
-        product = models.Product.query.get_or_404(product_id)
+        product = Product.query.get_or_404(product_id)
         app.logger.debug(f"Generating JSON for product {product_id}")
         
         # Get base product data
@@ -462,3 +482,19 @@ def save_image(file):
     
     # Return relative path from static folder
     return filepath.replace('static/', '', 1)
+
+if __name__ == '__main__':
+    try:
+        # Ensure the upload directory exists
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+        
+        # Test database connection
+        with app.app_context():
+            db.engine.connect()
+            logging.info("Database connection successful")
+        
+        # Start the server
+        app.run(host='0.0.0.0', port=5000, debug=True)
+    except Exception as e:
+        logging.error(f"Error starting the application: {str(e)}")
+        raise
