@@ -104,6 +104,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             attributesContainer.appendChild(attributeGroup);
             
+            // Focus on the new attribute name input
+            attributeGroup.querySelector('.attr-name').focus();
+            
             // Initialize delete handler for the new attribute group
             initializeDeleteHandler(attributeGroup.querySelector('.remove-attribute'));
         });
