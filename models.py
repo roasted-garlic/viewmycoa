@@ -16,17 +16,15 @@ class ProductTemplate(db.Model):
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)  # Renamed from title to name
-    batch_number = db.Column(db.String(8))
-    sku = db.Column(db.String(8), unique=True, nullable=False)  # Same format as batch_number
-    barcode = db.Column(db.String(12), unique=True)  # UPC-A is 12 digits
+    name = db.Column(db.String(200), nullable=False)
+    batch_number = db.Column(db.String(8), nullable=False)
+    sku = db.Column(db.String(8), unique=True, nullable=False)
+    barcode = db.Column(db.String(12), unique=True, nullable=False)
     attributes = db.Column(db.Text)  # Stored as JSON
-    product_image = db.Column(db.String(500))  # URL/path to image
     label_image = db.Column(db.String(500))    # URL/path to image
     template_id = db.Column(db.Integer, db.ForeignKey('product_template.id', ondelete='SET NULL'), nullable=True)
     craftmypdf_template_id = db.Column(db.String(255))
     label_qty = db.Column(db.Integer, default=4, nullable=False)
-    craftmypdf_template_id = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     def set_attributes(self, attrs):

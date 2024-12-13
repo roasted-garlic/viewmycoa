@@ -164,26 +164,17 @@ def generate_pdf(product_id):
         if isinstance(json_response, tuple):  # Error case
             return json_response
             
-        response_data = json_response.json
-        if not response_data or 'label_data' not in response_data:
-            return jsonify({'error': 'Failed to generate label data'}), 500
-            
-        # Structure API request data with correct format
+        # Get the JSON data for the product
+        json_data = json_response.json
+        
+        # Structure API request data
         api_data = {
             "template_id": product.craftmypdf_template_id,
             "export_type": "pdf",
             "cloud_storage": 1,
-            "data": response_data  # Use the response data directly since it's already properly structured
+            "data": [json_data] if product.label_qty == 1 else json_data["label_data"]
         }
-
-        # Debug log the final payload
-        app.logger.debug(f"Final API Request Data: {api_data}")
-
-        app.logger.debug(f"Final API Request Data: {api_data}")
-
-        app.logger.debug(f"API Request Payload: {api_data}")
-
-        # Debug log the request payload
+        
         app.logger.debug(f"Sending request to CraftMyPDF API with payload: {api_data}")
         
         # Make API call
@@ -426,40 +417,38 @@ def delete_product(product_id):
 def generate_json(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
+        app.logger.debug(f"Generating JSON for product ID: {product_id}")
         
-        # Create label data array
+        # Create label entries based on label_qty
         label_data = []
         
-        # Base label data with only actual product fields
-        base_label = {
-            "product_name": product.name,
-            "product_name_att": product.name,  # Will be updated if attributes exist
-            "product_barcode": product.barcode,
-            "lot_barcode": product.batch_number,
-            "sku": product.sku
-        }
-        
-        # Add product attributes if they exist
-        attributes = product.get_attributes()
-        if attributes:
-            for idx, (key, value) in enumerate(attributes.items()):
-                base_label[f"product_att_name_{idx}"] = key
-                base_label[f"product_att_name_{idx}_value"] = value
-            
-            # Update product_name_att with first attribute if it exists
-            first_attr_value = next(iter(attributes.values()))
-            base_label["product_name_att"] = f"{product.name}: {first_attr_value}"
-        
-        # Add label image if available
-        if product.label_image:
-            base_label["background"] = url_for('static', filename=product.label_image, _external=True)
-
-        # Create copies based on label_qty
         for _ in range(product.label_qty):
-            label_data.append(base_label.copy())
+            # Create base label with only actual product data
+            label = {
+                "name": product.name,
+                "batch_number": product.batch_number,
+                "barcode": product.barcode,
+                "sku": product.sku
+            }
+            
+            # Add label image if available
+            if product.label_image:
+                label["label_image"] = url_for('static', filename=product.label_image, _external=True)
+            
+            # Add existing attributes
+            attributes = product.get_attributes()
+            if attributes:
+                for attr_name, attr_value in attributes.items():
+                    if attr_name and attr_value:  # Only add if both name and value exist
+                        label[attr_name] = attr_value
+            
+            label_data.append(label)
         
-        # Return the data wrapped in "label_data" key
-        return jsonify({"label_data": label_data})
+        # Return the data based on quantity
+        if product.label_qty == 1:
+            return jsonify(label_data[0])
+        else:
+            return jsonify({"label_data": label_data})
         
     except Exception as e:
         app.logger.error(f"Error generating JSON: {str(e)}")
