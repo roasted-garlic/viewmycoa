@@ -41,47 +41,47 @@ class Product(db.Model):
     def to_json_data(self):
         """Convert product data to JSON format for CraftMyPDF API"""
         try:
-            # Build the base data structure exactly matching the required format
+            # Get product attributes
+            attributes = self.get_attributes()
+            first_attr_name = ""
+            first_attr_value = ""
+            if attributes:
+                first_item = list(attributes.items())[0]
+                first_attr_name = first_item[0]
+                first_attr_value = str(first_item[1])
+
+            # Format product name with attribute if available
+            product_name = self.name or ""
+            product_name_att = f"{product_name}: {first_attr_value}" if first_attr_value else product_name
+
+            # Format data exactly as shown in example files
             data = {
                 "cannabinoid": self.cannabinoid or "",
                 "mg_per_piece": self.mg_per_piece or "",
                 "count": self.count or "",
                 "per_piece_g": self.per_piece_g or "",
                 "net_weight_g": self.net_weight_g or "",
-                "background": "",  # Will be set in the API endpoint
-                "product_barcode": int(self.barcode) if self.barcode else None,
+                "background": "",  # Will be set by the API endpoint if label_image exists
+                "product_barcode": int(self.barcode) if self.barcode and self.barcode.isdigit() else None,
                 "sku": self.sku or "",
-                "product_name": self.name,
-                "product_name_att": "",  # Will be updated if attributes exist
-                "product_att_name_0": "",  # Will be updated if attributes exist
-                "product_att_name_0_value": "",  # Will be updated if attributes exist
+                "product_name": product_name,
+                "product_name_att": product_name_att,
+                "product_att_name_0": first_attr_name,
+                "product_att_name_0_value": first_attr_value,
                 "qr_code": self.qr_code or "",
-                "lot_barcode": self.batch_number,
+                "lot_barcode": self.batch_number or "",
                 "expire_date": self.expire_date or "",
                 "disclaimer": self.disclaimer or "",
                 "manufactured_by": self.manufactured_by or ""
             }
-
-            # Handle dynamic attributes
-            attributes = self.get_attributes()
-            if attributes:
-                # Take the first attribute for the main product name attribute
-                if len(attributes) > 0:
-                    first_attr = list(attributes.items())[0]
-                    data["product_att_name_0"] = first_attr[0]
-                    data["product_att_name_0_value"] = str(first_attr[1])
-                    data["product_name_att"] = f"{self.name}: {first_attr[1]}"
-
-            # Ensure all values are strings except product_barcode
-            cleaned_data = {}
-            for key, value in data.items():
-                if value is not None:
-                    if key != "product_barcode":
-                        cleaned_data[key] = str(value)
-                    else:
-                        cleaned_data[key] = value
-
-            return cleaned_data
+            
+            # Clean up None values to empty strings
+            for key in data:
+                if data[key] is None:
+                    data[key] = ""
+            
+            return data
+            
         except Exception as e:
             from flask import current_app
             current_app.logger.error(f"Error generating JSON data for product {self.id}: {str(e)}")

@@ -427,40 +427,20 @@ def delete_product(product_id):
 def generate_json(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
-        app.logger.debug(f"Generating JSON for product ID: {product_id}")
+        app.logger.debug(f"Generating JSON for product {product_id}")
         
         # Get base product data
         product_data = product.to_json_data()
-        app.logger.debug(f"Initial product data: {product_data}")
         
         # Update background URL if label image exists
         if product.label_image:
             product_data["background"] = url_for('static', filename=product.label_image, _external=True)
-            app.logger.debug(f"Updated background URL: {product_data['background']}")
         
-        # Add product attributes
-        attributes = product.get_attributes()
-        if attributes:
-            app.logger.debug(f"Processing attributes: {attributes}")
-            if len(attributes) > 0:
-                first_attr = list(attributes.items())[0]
-                product_data["product_att_name_0"] = first_attr[0]
-                product_data["product_att_name_0_value"] = str(first_attr[1])
-                product_data["product_name_att"] = f"{product.name}: {first_attr[1]}"
-                app.logger.debug(f"Updated with first attribute: {first_attr}")
+        # Always return in the label_data format to match example structure
+        label_data = {"label_data": [product_data.copy() for _ in range(product.label_qty or 4)]}
+        app.logger.debug(f"Generated label data with {len(label_data['label_data'])} labels")
         
-        app.logger.debug(f"Final product data: {product_data}")
-        
-        # Generate the specified number of labels
-        label_data = [product_data.copy() for _ in range(product.label_qty)]
-        
-        # Structure response based on number of labels
-        if product.label_qty == 1:
-            app.logger.debug("Returning single label data")
-            return jsonify(label_data[0])
-        else:
-            app.logger.debug(f"Returning multiple ({product.label_qty}) labels data")
-            return jsonify({"label_data": label_data})
+        return jsonify(label_data)
         
     except Exception as e:
         app.logger.error(f"Error generating JSON: {str(e)}")
