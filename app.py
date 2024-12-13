@@ -445,25 +445,30 @@ def delete_product(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
         
-        # Delete the product images if they exist
-        if product.product_image:
+        # Delete all associated PDFs
+        pdfs = models.GeneratedPDF.query.filter_by(product_id=product_id).all()
+        for pdf in pdfs:
             try:
-                image_path = os.path.join('static', product.product_image)
-                if os.path.exists(image_path):
-                    os.remove(image_path)
+                pdf_path = os.path.join('static', 'pdfs', pdf.filename)
+                if os.path.exists(pdf_path):
+                    os.remove(pdf_path)
             except OSError as e:
-                logging.error(f"Error deleting product image: {e}")
-                
-        if product.label_image:
-            try:
-                image_path = os.path.join('static', product.label_image)
-                if os.path.exists(image_path):
-                    os.remove(image_path)
-            except OSError as e:
-                logging.error(f"Error deleting label image: {e}")
+                logging.error(f"Error deleting PDF file: {e}")
+        
+        # Delete product images
+        for image_field in ['product_image', 'label_image']:
+            image_path = getattr(product, image_field)
+            if image_path:
+                try:
+                    full_path = os.path.join('static', image_path)
+                    if os.path.exists(full_path):
+                        os.remove(full_path)
+                except OSError as e:
+                    logging.error(f"Error deleting {image_field}: {e}")
         
         db.session.delete(product)
         db.session.commit()
+        
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
