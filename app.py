@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 import logging
@@ -29,6 +29,12 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 }
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+
+@app.route('/static/pdfs/<path:filename>')
+def serve_pdf(filename):
+    return send_from_directory('static/pdfs', filename, 
+                             mimetype='application/pdf',
+                             as_attachment=False)
 
 db.init_app(app)
 
