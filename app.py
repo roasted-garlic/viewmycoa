@@ -430,6 +430,46 @@ def delete_product(product_id):
         logging.error(f"Error deleting product: {e}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/generate_json/<int:product_id>')
+def generate_json(product_id):
+    try:
+        product = models.Product.query.get_or_404(product_id)
+        
+        # Create base label data structure
+        label_data = {
+            "batch_lot": product.batch_number,
+            "barcode": product.barcode,
+            "product_name": product.title
+        }
+        
+        # Add all product attributes
+        for key, value in product.get_attributes().items():
+            label_data[key.lower().replace(' ', '_')] = value
+        
+        # Structure the response based on label quantity
+        if product.label_qty > 1:
+            response_data = {
+                "template_id": product.craftmypdf_template_id,
+                "export_type": "pdf",
+                "cloud_storage": 1,
+                "data": {
+                    "label_data": [label_data.copy() for _ in range(product.label_qty)]
+                }
+            }
+        else:
+            response_data = {
+                "template_id": product.craftmypdf_template_id,
+                "export_type": "pdf",
+                "cloud_storage": 1,
+                "data": label_data
+            }
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        app.logger.error(f"Error generating JSON: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 
 def generate_batch_number():
     chars = string.ascii_uppercase + string.digits

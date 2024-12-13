@@ -48,9 +48,14 @@
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h3 class="mb-0">Generated PDFs</h3>
-                <button class="btn btn-primary" id="generatePDF" data-product-id="{{ product.id }}">
-                    <i class="fas fa-file-pdf"></i> Generate PDF
-                </button>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="generatePDF" data-product-id="{{ product.id }}">
+                        <i class="fas fa-file-pdf"></i> Generate PDF
+                    </button>
+                    <button class="btn btn-secondary" id="generateJSON" data-product-id="{{ product.id }}">
+                        <i class="fas fa-code"></i> Generate JSON
+                    </button>
+                </div>
             </div>
             <div class="card-body">
                 <ul class="list-group" id="pdfList">
@@ -63,6 +68,27 @@
                     </li>
                     {% endfor %}
                 </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- JSON Preview Modal -->
+<div class="modal fade" id="jsonModal" tabindex="-1" aria-labelledby="jsonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="jsonModalLabel">Template JSON Structure</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <p class="text-muted">Use this JSON structure to map fields in your CraftMyPDF template:</p>
+                    <pre class="bg-dark text-light p-3 rounded" id="jsonPreview" style="max-height: 500px; overflow-y: auto;">
+                    </pre>
+                </div>
+                <button class="btn btn-secondary" id="copyJSON">
+                    <i class="fas fa-copy"></i> Copy to Clipboard
+                </button>
             </div>
         </div>
     </div>
@@ -116,6 +142,36 @@ document.querySelectorAll('.delete-pdf').forEach(button => {
                 console.error('Error deleting PDF:', error);
             }
         }
+    });
+});
+
+// JSON Generation and Display
+document.getElementById('generateJSON').addEventListener('click', async function() {
+    const productId = this.dataset.productId;
+    try {
+        const response = await fetch(`/api/generate_json/${productId}`);
+        if (response.ok) {
+            const data = await response.json();
+            const jsonPreview = document.getElementById('jsonPreview');
+            jsonPreview.textContent = JSON.stringify(data, null, 2);
+            
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('jsonModal'));
+            modal.show();
+        }
+    } catch (error) {
+        console.error('Error generating JSON:', error);
+    }
+});
+
+// Copy JSON to clipboard
+document.getElementById('copyJSON').addEventListener('click', function() {
+    const jsonText = document.getElementById('jsonPreview').textContent;
+    navigator.clipboard.writeText(jsonText).then(() => {
+        this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(() => {
+            this.innerHTML = '<i class="fas fa-copy"></i> Copy to Clipboard';
+        }, 2000);
     });
 });
 </script>
