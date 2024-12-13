@@ -18,6 +18,7 @@ class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     batch_number = db.Column(db.String(8))
+    sku = db.Column(db.String(8), unique=True)  # SKU format similar to batch number
     barcode = db.Column(db.String(12), unique=True)  # UPC-A is 12 digits
     attributes = db.Column(db.Text)  # Stored as JSON
     product_image = db.Column(db.String(500))  # URL/path to image

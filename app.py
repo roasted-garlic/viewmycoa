@@ -113,11 +113,14 @@ def create_product():
 
         # Generate UPC-A barcode number
         barcode_number = utils.generate_upc_barcode()
+        batch_number = generate_batch_number()
+        sku = utils.generate_sku(batch_number) # Generate SKU based on batch number
 
         product = models.Product(
             title=title,
-            batch_number=generate_batch_number(),
+            batch_number=batch_number,
             barcode=barcode_number,
+            sku=sku, # Add SKU to the product
             craftmypdf_template_id=request.form.get('craftmypdf_template_id')
         )
         product.set_attributes(attributes)
@@ -438,6 +441,7 @@ def generate_json(product_id):
         # Create base label data structure
         label_data = {
             "batch_lot": product.batch_number,
+            "sku": product.sku,
             "barcode": product.barcode,
             "product_name": product.title,
             "label_image": url_for('static', filename=product.label_image, _external=True) if product.label_image else None

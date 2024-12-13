@@ -5,6 +5,7 @@
     <div class="col">
         <h1>{{ product.title }}</h1>
         <p class="lead">Batch Number: {{ product.batch_number }}</p>
+        <p class="lead">SKU: {{ product.sku }}</p>
         {% if product.barcode %}
             <p class="lead">UPC-A Barcode: {{ product.barcode }}</p>
         {% endif %}
