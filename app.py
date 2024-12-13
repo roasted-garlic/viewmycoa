@@ -347,6 +347,7 @@ def edit_product(product_id):
         try:
             product.title = request.form['title']
             product.batch_number = request.form['batch_number']
+            product.label_qty = int(request.form.get('label_qty', 4))
             
             # Handle attributes
             attributes = {}
