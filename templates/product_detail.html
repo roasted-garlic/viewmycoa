@@ -169,7 +169,7 @@ document.getElementById('deleteProduct').addEventListener('click', function() {
 });
 
 document.getElementById('confirmDelete').addEventListener('click', async function() {
-        const productId = this.dataset.productId;
+        const productId = document.getElementById('deleteProduct').dataset.productId;
         try {
             const response = await fetch(`/api/delete_product/${productId}`, {
                 method: 'DELETE'
@@ -188,7 +188,7 @@ document.getElementById('generatePDF').addEventListener('click', async function(
     const btn = this;
     const normalState = btn.querySelector('.normal-state');
     const loadingState = btn.querySelector('.loading-state');
-    const productId = this.dataset.productId;
+    const productId = btn.dataset.productId;
     
     // Show loading state
     normalState.classList.add('d-none');
@@ -210,14 +210,14 @@ document.getElementById('generatePDF').addEventListener('click', async function(
         normalState.classList.remove('d-none');
         loadingState.classList.add('d-none');
         btn.disabled = false;
-        alert('Failed to generate PDF. Please try again.');
+        showNotification('Failed to generate PDF. Please try again.', 'error');
     }
 });
 
 document.querySelectorAll('.delete-pdf').forEach(button => {
     button.addEventListener('click', async function() {
         const pdfId = this.dataset.pdfId;
-        if (confirm('Are you sure you want to delete this PDF?')) {
+        if (window.confirm('Are you sure you want to delete this PDF?')) {
             try {
                 const response = await fetch(`/api/delete_pdf/${pdfId}`, {
                     method: 'DELETE'
