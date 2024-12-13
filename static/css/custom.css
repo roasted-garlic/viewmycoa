@@ -87,3 +87,15 @@
 .template-card .btn {
     min-width: 100px;
 }
+
+/* Loading states */
+.btn .loading-state,
+.btn .normal-state {
+    display: inline-block;
+    min-width: 90px;
+}
+
+.btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.75;
+}

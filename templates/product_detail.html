@@ -78,7 +78,12 @@
                 <h3 class="mb-0">Generated PDFs</h3>
                 <div class="btn-group">
                     <button class="btn btn-primary" id="generatePDF" data-product-id="{{ product.id }}">
-                        <i class="fas fa-file-pdf"></i> Generate PDF
+                        <span class="normal-state">
+                            <i class="fas fa-file-pdf"></i> Generate PDF
+                        </span>
+                        <span class="loading-state d-none">
+                            <i class="fas fa-spinner fa-spin"></i> Generating...
+                        </span>
                     </button>
                     <button class="btn btn-secondary" id="generateJSON" data-product-id="{{ product.id }}">
                         <i class="fas fa-code"></i> Generate JSON
@@ -142,16 +147,32 @@ document.getElementById('deleteProduct').addEventListener('click', async functio
 });
 
 document.getElementById('generatePDF').addEventListener('click', async function() {
+    const btn = this;
+    const normalState = btn.querySelector('.normal-state');
+    const loadingState = btn.querySelector('.loading-state');
     const productId = this.dataset.productId;
+    
+    // Show loading state
+    normalState.classList.add('d-none');
+    loadingState.classList.remove('d-none');
+    btn.disabled = true;
+
     try {
         const response = await fetch(`/api/generate_pdf/${productId}`, {
             method: 'POST'
         });
         if (response.ok) {
             location.reload();
+        } else {
+            throw new Error('Failed to generate PDF');
         }
     } catch (error) {
         console.error('Error generating PDF:', error);
+        // Reset button state
+        normalState.classList.remove('d-none');
+        loadingState.classList.add('d-none');
+        btn.disabled = false;
+        alert('Failed to generate PDF. Please try again.');
     }
 });
 
