@@ -84,34 +84,7 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="card bg-dark border-secondary mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title text-info mb-3">
-                                <i class="fas fa-file-alt"></i> Template Selection
-                            </h5>
-                            <select class="form-select" id="template" name="template_id">
-                                <option value="">No Template</option>
-                                {% for template in templates %}
-                                <option value="{{ template.id }}" {% if product.template_id == template.id %}selected{% endif %}>{{ template.name }}</option>
-                                {% endfor %}
-                            </select>
-                            <small class="form-text text-muted mt-2">Select a template to apply predefined attributes</small>
-                        </div>
-                    </div>
-                    <div class="card bg-dark border-secondary mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title text-info mb-3">
-                                <i class="fas fa-file-alt"></i> Attribute Template
-                            </h5>
-                            <select class="form-select" id="template" name="template_id">
-                                <option value="">No Template</option>
-                                {% for template in templates %}
-                                <option value="{{ template.id }}" {% if product.template_id == template.id %}selected{% endif %}>{{ template.name }}</option>
-                                {% endfor %}
-                            </select>
-                            <small class="form-text text-muted mt-2">Select a template to apply predefined attributes</small>
-                        </div>
-                    </div>
+                    
 
                     <div class="card bg-dark border-secondary mb-3">
                         <div class="card-body">
