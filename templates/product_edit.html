@@ -64,6 +64,12 @@
                 <small class="form-text text-muted">Leave empty to keep the current image</small>
             </div>
 
+            <div class="mb-3">
+                <label for="labelQty" class="form-label">Number of Labels</label>
+                <input type="number" class="form-control" id="labelQty" name="label_qty" value="{{ product.label_qty }}" min="1" required>
+                <small class="form-text text-muted">Specify how many labels you need (default is 4)</small>
+            </div>
+
             <button type="submit" class="btn btn-primary">Update Product</button>
         </form>
     </div>

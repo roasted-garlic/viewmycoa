@@ -106,17 +106,38 @@ def generate_pdf(product_id):
             app.logger.error("API key not configured")
             return jsonify({'error': 'API key not configured'}), 500
 
-        # Prepare minimal data for API
+        # Prepare basic label data
+        single_label_data = {
+            "batch_lot": product.batch_number,
+            "barcode": product.barcode
+        }
+
+        # Structure API request data
         api_data = {
             "template_id": "05f77b2b18ad809a",
-            "data": {
-                "batch_lot": product.batch_number,
-                "barcode": product.barcode
-            },
             "export_type": "pdf",
-            "cloud_storage": 1
+            "cloud_storage": 1,
+            "data": {}
         }
-        
+
+        # Create basic label data
+        single_label_data = {
+            "batch_lot": product.batch_number,
+            "barcode": product.barcode
+        }
+
+        # Handle single vs multiple labels based on label_qty
+        if product.label_qty > 1:
+            api_data["data"] = {
+                "label_data": [single_label_data.copy() for _ in range(product.label_qty)]
+            }
+        else:
+            api_data["data"] = single_label_data
+
+        app.logger.debug(f"Final API Request Data: {api_data}")
+
+        app.logger.debug(f"API Request Payload: {api_data}")
+
         # Debug log the request payload
         app.logger.debug(f"Sending request to CraftMyPDF API with payload: {api_data}")
         
@@ -126,22 +147,30 @@ def generate_pdf(product_id):
             'Content-Type': 'application/json'
         }
         
+        # Make API request with detailed logging
         response = requests.post(
             'https://api.craftmypdf.com/v1/create',
             json=api_data,
-            headers=headers
+            headers=headers,
+            timeout=30
         )
         
-        # Debug log the response
-        app.logger.debug(f"CraftMyPDF API response status: {response.status_code}")
-        app.logger.debug(f"CraftMyPDF API response content: {response.text}")
+        # Log full request and response details for debugging
+        app.logger.debug(f"CraftMyPDF API Request URL: https://api.craftmypdf.com/v1/create")
+        app.logger.debug(f"CraftMyPDF API Headers: {headers}")
+        app.logger.debug(f"CraftMyPDF API Response Status: {response.status_code}")
+        app.logger.debug(f"CraftMyPDF API Response Content: {response.text}")
         
-        response.raise_for_status()
+        if response.status_code != 200:
+            error_msg = f"API Error (Status {response.status_code}): {response.text}"
+            app.logger.error(error_msg)
+            return jsonify({'error': error_msg}), response.status_code
         
         result = response.json()
         if not result.get('success'):
-            app.logger.error(f"API Error: {result.get('message', 'Unknown error')}")
-            return jsonify({'error': result.get('message', 'Unknown error')}), 400
+            error_msg = result.get('message', 'Unknown error')
+            app.logger.error(f"API Error: {error_msg}")
+            return jsonify({'error': error_msg}), 400
             
         pdf_url = result.get('file_url')
         if not pdf_url:

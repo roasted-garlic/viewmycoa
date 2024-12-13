@@ -50,6 +50,12 @@
                 <input type="file" class="form-control" id="labelImage" name="label_image" accept="image/*" required>
             </div>
 
+            <div class="mb-3">
+                <label for="labelQty" class="form-label">Number of Labels</label>
+                <input type="number" class="form-control" id="labelQty" name="label_qty" value="4" min="1" required>
+                <small class="form-text text-muted">Specify how many labels you need (default is 4)</small>
+            </div>
+
             <button type="submit" class="btn btn-primary">Create Product</button>
         </form>
     </div>
