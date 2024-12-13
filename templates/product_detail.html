@@ -178,18 +178,28 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Delete product confirmation modal
-    const deleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-    const pdfDeleteModal = new bootstrap.Modal(document.getElementById('pdfDeleteModal'));
+    // Initialize modals
+    const deleteConfirmModal = document.getElementById('deleteConfirmModal') ? 
+        new bootstrap.Modal(document.getElementById('deleteConfirmModal')) : null;
+    const pdfDeleteModal = document.getElementById('pdfDeleteModal') ? 
+        new bootstrap.Modal(document.getElementById('pdfDeleteModal')) : null;
+    const jsonModal = document.getElementById('jsonModal') ?
+        new bootstrap.Modal(document.getElementById('jsonModal')) : null;
     let pdfToDelete = null;
 
-    // Product delete button
-    document.getElementById('deleteProduct').addEventListener('click', function() {
-        deleteConfirmModal.show();
-    });
+    // Delete product button
+    const deleteBtn = document.getElementById('deleteProduct');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', function() {
+            deleteConfirmModal.show();
+        });
+    }
 
-document.getElementById('confirmDelete').addEventListener('click', async function() {
-    const productId = document.getElementById('deleteProduct').dataset.productId;
+    // Confirm delete button
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', async function() {
+            const productId = document.getElementById('deleteProduct').dataset.productId;
     try {
         const response = await fetch(`/api/delete_product/${productId}`, {
             method: 'DELETE'
@@ -205,15 +215,16 @@ document.getElementById('confirmDelete').addEventListener('click', async functio
         showNotification('Failed to delete product', 'danger');
     }
     deleteConfirmModal.hide();
-});
+        });
+    }
 
-// Generate PDF button
+    // Generate PDF button
     const generatePDFBtn = document.getElementById('generatePDF');
     if (generatePDFBtn) {
         generatePDFBtn.addEventListener('click', async function() {
-    const btn = this;
-    const normalState = btn.querySelector('.normal-state');
-    const loadingState = btn.querySelector('.loading-state');
+            const btn = this;
+            const normalState = btn.querySelector('.normal-state');
+            const loadingState = btn.querySelector('.loading-state');
     const productId = btn.dataset.productId;
     
     // Show loading state
@@ -242,9 +253,6 @@ document.getElementById('confirmDelete').addEventListener('click', async functio
 });
 
 // PDF Delete Modal and Handler
-const pdfDeleteModal = new bootstrap.Modal(document.getElementById('pdfDeleteModal'));
-let pdfToDelete = null;
-
 // PDF delete buttons
     document.querySelectorAll('.delete-pdf').forEach(button => {
         button.addEventListener('click', function() {
@@ -252,6 +260,7 @@ let pdfToDelete = null;
             pdfDeleteModal.show();
         });
     });
+});
 
 document.getElementById('confirmPdfDelete').addEventListener('click', async function() {
     if (pdfToDelete) {
