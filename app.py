@@ -160,37 +160,24 @@ def generate_pdf(product_id):
             app.logger.error("API key not configured")
             return jsonify({'error': 'API key not configured'}), 500
 
-        # Prepare basic label data
-        single_label_data = {
-            "batch_lot": product.batch_number,
-            "barcode": product.barcode
-        }
-
-        # Create complete label data structure
-        single_label_data = {
-            "batch_lot": product.batch_number,
-            "sku": product.sku,
-            "barcode": product.barcode,
-            "product_name": product.title,
-            "label_image": url_for('static', filename=product.label_image, _external=True) if product.label_image else None
-        }
-
-        # Add all product attributes
-        for key, value in product.get_attributes().items():
-            single_label_data[key.lower().replace(' ', '_')] = value
-
+        # Get the complete data structure from generate_json function
+        json_response = generate_json(product_id)
+        if isinstance(json_response, tuple):
+            return json_response  # This will return the error response if any
+        
+        # Get the data from json_response and ensure it's in the correct format
+        json_data = json_response.get_json() if hasattr(json_response, 'get_json') else json_response
+        
+        app.logger.debug(f"Final API Request Data: {json_data}")
+        
         # Structure API request data with all necessary parameters
         filename = f"{product.title}_{product.batch_number}.pdf"
         api_data = {
-            "data": {
-                "label_data": [single_label_data for _ in range(product.label_qty or 1)],
-                "date": utils.get_current_date(),
-                "currency": "USD"
-            },
+            "data": json_data,  # Complete data structure from generate_json
             "load_data_from": None,
             "template_id": product.craftmypdf_template_id,
             "version": 1,
-            "export_type": "file",  # Using 'file' as specified in API docs
+            "export_type": "json",  # Using 'json' as specified in the API docs
             "expiration": 60,
             "output_file": filename,
             "image_resample_res": 600,
@@ -206,14 +193,6 @@ def generate_pdf(product_id):
             "resize_format": "jpeg"
         }
 
-        # Debug log the final payload
-        app.logger.debug(f"Final API Request Data: {api_data}")
-
-        app.logger.debug(f"Final API Request Data: {api_data}")
-
-        app.logger.debug(f"API Request Payload: {api_data}")
-
-        # Debug log the request payload
         app.logger.debug(f"Sending request to CraftMyPDF API with payload: {api_data}")
         
         # Make API call
@@ -222,7 +201,6 @@ def generate_pdf(product_id):
             'Content-Type': 'application/json'
         }
         
-        # Make API request with detailed logging
         response = requests.post(
             'https://api.craftmypdf.com/v1/create',
             json=api_data,
@@ -230,9 +208,6 @@ def generate_pdf(product_id):
             timeout=30
         )
         
-        # Log full request and response details for debugging
-        app.logger.debug(f"CraftMyPDF API Request URL: https://api.craftmypdf.com/v1/create")
-        app.logger.debug(f"CraftMyPDF API Headers: {headers}")
         app.logger.debug(f"CraftMyPDF API Response Status: {response.status_code}")
         app.logger.debug(f"CraftMyPDF API Response Content: {response.text}")
         
