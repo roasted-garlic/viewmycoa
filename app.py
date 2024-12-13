@@ -231,12 +231,12 @@ def generate_pdf(product_id):
             return jsonify({'error': error_msg}), response.status_code
         
         result = response.json()
-        if not result.get('success'):
+        if result.get('status') != 'success':
             error_msg = result.get('message', 'Unknown error')
             app.logger.error(f"API Error: {error_msg}")
             return jsonify({'error': error_msg}), 400
             
-        pdf_url = result.get('file_url')
+        pdf_url = result.get('file')
         if not pdf_url:
             app.logger.error("No PDF URL in response")
             return jsonify({'error': 'No PDF URL in response'}), 500
