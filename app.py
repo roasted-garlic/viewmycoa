@@ -27,7 +27,7 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
 }
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 @app.route('/static/pdfs/<path:filename>')
@@ -285,9 +285,18 @@ def generate_pdf(product_id):
 @app.route('/api/delete_pdf/<int:pdf_id>', methods=['DELETE'])
 def delete_pdf(pdf_id):
     pdf = models.GeneratedPDF.query.get_or_404(pdf_id)
-    db.session.delete(pdf)
-    db.session.commit()
-    return jsonify({'success': True})
+    try:
+        # Delete physical PDF file
+        pdf_path = os.path.join('static', 'pdfs', pdf.filename)
+        if os.path.exists(pdf_path):
+            os.remove(pdf_path)
+        db.session.delete(pdf)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error deleting PDF: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/template/<int:template_id>')
 def get_template(template_id):
