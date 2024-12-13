@@ -439,7 +439,8 @@ def generate_json(product_id):
         label_data = {
             "batch_lot": product.batch_number,
             "barcode": product.barcode,
-            "product_name": product.title
+            "product_name": product.title,
+            "background": url_for('static', filename=product.label_image, _external=True) if product.label_image else None
         }
         
         # Add all product attributes
