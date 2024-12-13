@@ -26,7 +26,7 @@
             <img src="{{ url_for('static', filename=product.product_image) }}" class="card-img-top" alt="{{ product.title }}">
             {% endif %}
             <div class="card-body">
-                <h5 class="card-title">{{ product.title }}</h5>
+                <h5 class="card-title">{{ product.name }}</h5>
                 <p class="card-text">Batch: {{ product.batch_number }}</p>
                 <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-primary">View Details</a>
             </div>

@@ -1,6 +1,7 @@
 import os
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from sqlalchemy.orm import DeclarativeBase
 import logging
 from werkzeug.utils import secure_filename
@@ -30,6 +31,7 @@ app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 db.init_app(app)
+migrate = Migrate(app, db)
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -99,7 +101,7 @@ def create_product():
     pdf_templates = fetch_craftmypdf_templates()
     
     if request.method == 'POST':
-        title = request.form.get('title')
+        name = request.form.get('name')  # Changed from title to name
         attributes = {}
         
         # Process dynamic attributes
@@ -115,8 +117,9 @@ def create_product():
         barcode_number = utils.generate_upc_barcode()
 
         product = models.Product(
-            title=title,
+            name=name,
             batch_number=generate_batch_number(),
+            sku=generate_batch_number(),  # Using same format as batch_number for SKU
             barcode=barcode_number,
             craftmypdf_template_id=request.form.get('craftmypdf_template_id')
         )
@@ -162,27 +165,17 @@ def generate_pdf(product_id):
             "barcode": product.barcode
         }
 
+        # Get the label data in the correct format
+        json_response = generate_json(product_id)
+        label_data = json_response.get_json()
+        
         # Structure API request data
         api_data = {
             "template_id": product.craftmypdf_template_id,
             "export_type": "pdf",
             "cloud_storage": 1,
-            "data": {}
+            "data": label_data
         }
-
-        # Create basic label data
-        single_label_data = {
-            "batch_lot": product.batch_number,
-            "barcode": product.barcode
-        }
-
-        # Handle single vs multiple labels based on label_qty
-        if product.label_qty > 1:
-            api_data["data"] = {
-                "label_data": [single_label_data.copy() for _ in range(product.label_qty)]
-            }
-        else:
-            api_data["data"] = single_label_data
 
         # Debug log the final payload
         app.logger.debug(f"Final API Request Data: {api_data}")
@@ -233,7 +226,7 @@ def generate_pdf(product_id):
         # Create PDF record
         pdf = models.GeneratedPDF(
             product_id=product.id,
-            filename=f"{product.title}_{product.batch_number}.pdf",
+            filename=f"{product.name}_{product.batch_number}.pdf",
             pdf_url=pdf_url
         )
         db.session.add(pdf)
@@ -342,7 +335,7 @@ def edit_product(product_id):
     
     if request.method == 'POST':
         try:
-            product.title = request.form['title']
+            product.name = request.form['name']
             product.batch_number = request.form['batch_number']
             
             # Handle attributes
@@ -435,34 +428,47 @@ def generate_json(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
         
-        # Create base label data structure with actual product data
-        label_data = {
-            "product_barcode": product.barcode,
-            "sku": product.batch_number,
-            "product_name": product.title,
-            "lot_barcode": product.batch_number,
-            "product_name_att": product.title  # Will be updated if we have attributes
-        }
+        # Create label data array
+        label_data = []
         
-        # Add all product attributes dynamically
-        attributes = product.get_attributes()
-        for idx, (key, value) in enumerate(attributes.items()):
-            # Add attribute name and value
-            label_data[f"product_att_name_{idx}"] = key
-            label_data[f"product_att_name_{idx}_value"] = value
+        # Base label data using only existing product fields
+        base_label = {}
+        
+        # Add product name and identifiers
+        base_label["product_name"] = product.name
+        if product.barcode:
+            base_label["product_barcode"] = product.barcode
+        if product.batch_number:
+            base_label["lot_barcode"] = product.batch_number
+        if product.sku:
+            base_label["sku"] = product.sku
             
-            # For the first attribute, update product_name_att
-            if idx == 0:
-                label_data["product_name_att"] = f"{product.title}: {value}"
+        # Add product attributes if they exist
+        attributes = product.get_attributes()
+        if attributes:
+            for idx, (key, value) in enumerate(attributes.items()):
+                base_label[f"product_att_name_{idx}"] = key
+                base_label[f"product_att_name_{idx}_value"] = value
+            
+            # Create product_name_att using first attribute
+            first_attr_value = next(iter(attributes.values()))
+            base_label["product_name_att"] = f"{product.name}: {first_attr_value}"
+        else:
+            base_label["product_name_att"] = product.name
 
-        # Add image if available
+        # Add label image if available
         if product.label_image:
-            label_data["background"] = url_for('static', filename=product.label_image, _external=True)
+            base_label["background"] = url_for('static', filename=product.label_image, _external=True)
 
-        # Return the array of label data based on quantity
-        return jsonify({
-            "label_data": [label_data.copy() for _ in range(product.label_qty)]
-        })
+        # Create the requested number of label copies
+        for _ in range(product.label_qty):
+            label_data.append(base_label.copy())
+        
+        return jsonify({"label_data": label_data})
+        
+    except Exception as e:
+        app.logger.error(f"Error generating JSON: {str(e)}")
+        return jsonify({'error': str(e)}), 500
         
     except Exception as e:
         app.logger.error(f"Error generating JSON: {str(e)}")
