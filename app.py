@@ -151,7 +151,7 @@ def create_product():
 @app.route('/product/<int:product_id>')
 def product_detail(product_id):
     product = models.Product.query.get_or_404(product_id)
-    pdfs = models.GeneratedPDF.query.filter_by(product_id=product_id).all()
+    pdfs = models.GeneratedPDF.query.filter_by(product_id=product_id).order_by(models.GeneratedPDF.created_at.desc()).all()
     return render_template('product_detail.html', product=product, pdfs=pdfs)
 
 @app.route('/api/generate_batch', methods=['POST'])
@@ -452,7 +452,7 @@ def delete_product(product_id):
         product = models.Product.query.get_or_404(product_id)
         
         # Delete all associated PDFs
-        pdfs = models.GeneratedPDF.query.filter_by(product_id=product_id).all()
+        pdfs = models.GeneratedPDF.query.filter_by(product_id=product_id).order_by(models.GeneratedPDF.created_at.desc()).all()
         for pdf in pdfs:
             try:
                 pdf_path = os.path.join('static', 'pdfs', pdf.filename)
