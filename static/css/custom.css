@@ -2,8 +2,8 @@
 
 /* Navbar styling */
 .navbar {
-    background: linear-gradient(to right, #1a1e21, #2c3034) !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    background: linear-gradient(to right, #2b3035, #373b3e) !important;
+    box-shadow: 0 2px 4px rgba(13, 202, 240, 0.1);
     padding: 1rem 0;
 }
 
