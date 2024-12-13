@@ -9,17 +9,14 @@ logger = logging.getLogger(__name__)
 def init_app():
     """Initialize the application"""
     try:
-        # Create upload directory if it doesn't exist
-        upload_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
-        if not os.path.exists(upload_dir):
-            os.makedirs(upload_dir)
-            logger.info(f"Created upload directory at {upload_dir}")
-
-        # Create static directory if it doesn't exist
+        # Create static and uploads directories if they don't exist
         static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
-        if not os.path.exists(static_dir):
-            os.makedirs(static_dir)
-            logger.info(f"Created static directory at {static_dir}")
+        uploads_dir = os.path.join(static_dir, 'uploads')
+        
+        for directory in [static_dir, uploads_dir]:
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+                logger.info(f"Created directory at {directory}")
 
         # Initialize database
         with app.app_context():
