@@ -190,7 +190,7 @@ def generate_pdf(product_id):
         api_data = {
             "template_id": product.craftmypdf_template_id,
             "export_type": "json",
-            "output_file": f"{product.title}_{product.batch_number}.pdf",
+            "output_file": f"{product.title.replace(' ', '_')}_{product.batch_number}.pdf",
             "expiration": 10,
             "data": json.dumps(final_data)
         }

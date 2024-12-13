@@ -138,7 +138,8 @@ document.getElementById('deleteProduct').addEventListener('click', async functio
                 method: 'DELETE'
             });
             if (response.ok) {
-                window.location.href = '/';
+                showNotification('Product deleted successfully!', 'success');
+                setTimeout(() => window.location.href = '/', 1000);
             }
         } catch (error) {
             console.error('Error deleting product:', error);

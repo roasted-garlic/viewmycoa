@@ -7,10 +7,22 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Tooltip(tooltipTriggerEl)
     });
 
-    // Initialize alert dismissal
-    var alertList = document.querySelectorAll('.alert')
-    alertList.forEach(function (alert) {
-        new bootstrap.Alert(alert)
+    // Initialize alerts with auto-dismiss
+    document.querySelectorAll('.alert').forEach(function(alert) {
+        // Add close button if not present
+        if (!alert.querySelector('.btn-close')) {
+            const closeButton = document.createElement('button');
+            closeButton.className = 'btn-close';
+            closeButton.setAttribute('data-bs-dismiss', 'alert');
+            closeButton.setAttribute('aria-label', 'Close');
+            alert.appendChild(closeButton);
+        }
+        
+        // Auto dismiss after 3 seconds
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }, 3000);
     });
 });
 
