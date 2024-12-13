@@ -106,20 +106,57 @@ def generate_pdf(product_id):
         'label_image': product.label_image
     }
     
-    # Call CraftMyPDF API (placeholder - implement actual API call)
-    # response = requests.post('https://api.craftmypdf.com/v1/generate', json=pdf_data)
-    # pdf_url = response.json()['pdf_url']
+    # Prepare data for CraftMyPDF API
+    api_key = os.environ.get('CRAFTMYPDF_API_KEY')
+    if not api_key:
+        return jsonify({'error': 'API key not configured'}), 500
+
+    api_data = {
+        "data": {
+            "batch_lot": product.batch_number,
+            "barcode": product.barcode
+        },
+        "template_id": "05f77b2b18ad809a",  # Replace with your actual template ID
+        "export_type": "json",
+        "cloud_storage": 1
+    }
     
-    # For demonstration, create a PDF record
-    pdf = models.GeneratedPDF(
-        product_id=product.id,
-        filename=f"{product.title}_{product.batch_number}.pdf",
-        pdf_url="https://example.com/sample.pdf"  # Replace with actual URL
-    )
-    db.session.add(pdf)
-    db.session.commit()
-    
-    return jsonify({'success': True})
+    try:
+        # Make API call to CraftMyPDF
+        headers = {
+            'X-API-KEY': api_key,
+            'Content-Type': 'application/json'
+        }
+        response = requests.post(
+            'https://api.craftmypdf.com/v1/generate',
+            json=api_data,
+            headers=headers
+        )
+        response.raise_for_status()  # Raise exception for non-200 status codes
+        
+        # Extract PDF URL from response
+        result = response.json()
+        if not result.get('success'):
+            raise Exception(f"API Error: {result.get('message', 'Unknown error')}")
+            
+        pdf_url = result.get('file_url')
+        if not pdf_url:
+            raise Exception("No PDF URL in response")
+            
+        # Create PDF record
+        pdf = models.GeneratedPDF(
+            product_id=product.id,
+            filename=f"{product.title}_{product.batch_number}.pdf",
+            pdf_url=pdf_url
+        )
+        db.session.add(pdf)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'pdf_url': pdf_url})
+        
+    except Exception as e:
+        app.logger.error(f"PDF generation error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/delete_pdf/<int:pdf_id>', methods=['DELETE'])
 def delete_pdf(pdf_id):
