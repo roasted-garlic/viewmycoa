@@ -159,8 +159,11 @@
 }
 
 .btn i {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     margin-right: 4px;
+    vertical-align: middle;
 }
 
 .btn-danger i {
@@ -177,6 +180,9 @@
     .btn {
         padding: 0.5rem 0.75rem;
         font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .btn i {
