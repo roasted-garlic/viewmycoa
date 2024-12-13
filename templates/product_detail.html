@@ -169,26 +169,27 @@ document.getElementById('deleteProduct').addEventListener('click', function() {
 });
 
 document.getElementById('confirmDelete').addEventListener('click', async function() {
-        const productId = document.getElementById('deleteProduct').dataset.productId;
-        try {
-            const response = await fetch(`/api/delete_product/${productId}`, {
-                method: 'DELETE'
-            });
-            if (response.ok) {
-                showNotification('Product deleted successfully!', 'success');
-                setTimeout(() => window.location.href = '/', 1000);
-            }
-        } catch (error) {
-            console.error('Error deleting product:', error);
+    const productId = document.getElementById('deleteProduct').dataset.productId;
+    try {
+        const response = await fetch(`/api/delete_product/${productId}`, {
+            method: 'DELETE'
+        });
+        if (response.ok) {
+            window.location.href = '/';
+        } else {
+            console.error('Failed to delete product');
         }
+    } catch (error) {
+        console.error('Error deleting product:', error);
     }
+    deleteModal.hide();
 });
 
 document.getElementById('generatePDF').addEventListener('click', async function() {
     const btn = this;
     const normalState = btn.querySelector('.normal-state');
     const loadingState = btn.querySelector('.loading-state');
-    const productId = btn.dataset.productId;
+    const productId = document.getElementById('deleteProduct').dataset.productId;
     
     // Show loading state
     normalState.classList.add('d-none');
