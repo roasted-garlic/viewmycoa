@@ -12,6 +12,7 @@ import io
 import base64
 
 import utils
+
 class Base(DeclarativeBase):
     pass
 
@@ -96,55 +97,56 @@ def generate_batch():
 
 @app.route('/api/generate_pdf/<int:product_id>', methods=['POST'])
 def generate_pdf(product_id):
-    product = models.Product.query.get_or_404(product_id)
-    
-    # Prepare data for CraftMyPDF API
-    pdf_data = {
-        'title': product.title,
-        'batch_number': product.batch_number,
-        'attributes': product.get_attributes(),
-        'label_image': product.label_image
-    }
-    
-    # Prepare data for CraftMyPDF API
-    api_key = os.environ.get('CRAFTMYPDF_API_KEY')
-    if not api_key:
-        return jsonify({'error': 'API key not configured'}), 500
-
-    api_data = {
-        "data": {
-            "batch_lot": product.batch_number,
-            "barcode": product.barcode
-        },
-        "template_id": "05f77b2b18ad809a",
-        "export_type": "json",
-        "cloud_storage": 1,
-        "direct_download": 0,
-        "image_resample_res": 300,
-        "resize_images": "0"
-    }
-    
     try:
-        # Make API call to CraftMyPDF
+        product = models.Product.query.get_or_404(product_id)
+        
+        # Get API key from environment
+        api_key = os.environ.get('CRAFTMYPDF_API_KEY')
+        if not api_key:
+            app.logger.error("API key not configured")
+            return jsonify({'error': 'API key not configured'}), 500
+
+        # Prepare minimal data for API
+        api_data = {
+            "template_id": "05f77b2b18ad809a",
+            "data": {
+                "batch_lot": product.batch_number,
+                "barcode": product.barcode
+            },
+            "export_type": "pdf",
+            "cloud_storage": 1
+        }
+        
+        # Debug log the request payload
+        app.logger.debug(f"Sending request to CraftMyPDF API with payload: {api_data}")
+        
+        # Make API call
         headers = {
             'X-API-KEY': api_key,
             'Content-Type': 'application/json'
         }
+        
         response = requests.post(
             'https://api.craftmypdf.com/v1/create',
             json=api_data,
             headers=headers
         )
-        response.raise_for_status()  # Raise exception for non-200 status codes
         
-        # Extract PDF URL from response
+        # Debug log the response
+        app.logger.debug(f"CraftMyPDF API response status: {response.status_code}")
+        app.logger.debug(f"CraftMyPDF API response content: {response.text}")
+        
+        response.raise_for_status()
+        
         result = response.json()
         if not result.get('success'):
-            raise Exception(f"API Error: {result.get('message', 'Unknown error')}")
+            app.logger.error(f"API Error: {result.get('message', 'Unknown error')}")
+            return jsonify({'error': result.get('message', 'Unknown error')}), 400
             
         pdf_url = result.get('file_url')
         if not pdf_url:
-            raise Exception("No PDF URL in response")
+            app.logger.error("No PDF URL in response")
+            return jsonify({'error': 'No PDF URL in response'}), 500
             
         # Create PDF record
         pdf = models.GeneratedPDF(
@@ -157,6 +159,9 @@ def generate_pdf(product_id):
         
         return jsonify({'success': True, 'pdf_url': pdf_url})
         
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f"API request error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
     except Exception as e:
         app.logger.error(f"PDF generation error: {str(e)}")
         return jsonify({'error': str(e)}), 500
@@ -164,6 +169,10 @@ def generate_pdf(product_id):
 @app.route('/api/delete_pdf/<int:pdf_id>', methods=['DELETE'])
 def delete_pdf(pdf_id):
     pdf = models.GeneratedPDF.query.get_or_404(pdf_id)
+    db.session.delete(pdf)
+    db.session.commit()
+    return jsonify({'success': True})
+
 @app.route('/api/template/<int:template_id>')
 def get_template(template_id):
     template = models.ProductTemplate.query.get_or_404(template_id)
@@ -172,8 +181,7 @@ def get_template(template_id):
         'name': template.name,
         'attributes': template.get_attributes()
     })
-    db.session.delete(pdf)
-    db.session.commit()
+
 @app.route('/templates')
 def template_list():
     templates = models.ProductTemplate.query.all()
@@ -245,7 +253,7 @@ def delete_template(template_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
-    return jsonify({'success': True})
+
 @app.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
 def edit_product(product_id):
     product = models.Product.query.get_or_404(product_id)
@@ -309,6 +317,7 @@ def edit_product(product_id):
             return render_template('product_edit.html', product=product)
     
     return render_template('product_edit.html', product=product)
+
 @app.route('/api/delete_product/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
     try:
