@@ -31,6 +31,16 @@
             </div>
 
             <div class="mb-3">
+                <label for="craftmypdf_template" class="form-label">PDF Template</label>
+                <select class="form-select" id="craftmypdf_template" name="craftmypdf_template_id" required>
+                    <option value="">Select a PDF Template</option>
+                    {% for template in pdf_templates %}
+                    <option value="{{ template.template_id }}">{{ template.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
                 <label class="form-label">Product Attributes</label>
                 <div id="attributesContainer">
                     <!-- Attributes will be added here dynamically -->

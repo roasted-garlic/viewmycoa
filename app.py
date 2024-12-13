@@ -45,9 +45,58 @@ def index():
     products = models.Product.query.all()
     return render_template('product_list.html', products=products)
 
+def fetch_craftmypdf_templates():
+    """Fetch templates from CraftMyPDF API"""
+    api_key = os.environ.get('CRAFTMYPDF_API_KEY')
+    if not api_key:
+        app.logger.error("CraftMyPDF API key not configured")
+        return []
+    
+    headers = {
+        'X-API-KEY': api_key,
+        'Content-Type': 'application/json'
+    }
+    
+    try:
+        app.logger.debug("Fetching templates from CraftMyPDF API")
+        app.logger.debug(f"Using API endpoint: https://api.craftmypdf.com/v1/list-templates")
+        
+        response = requests.get(
+            'https://api.craftmypdf.com/v1/list-templates',
+            headers=headers,
+            params={'limit': 300, 'offset': 0},
+            timeout=30
+        )
+        
+        app.logger.debug(f"API Response Status: {response.status_code}")
+        app.logger.debug(f"API Response Headers: {response.headers}")
+        app.logger.debug(f"API Response Content: {response.text}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            templates = data.get('templates', [])
+            app.logger.info(f"Successfully fetched {len(templates)} templates")
+            
+            # Log template IDs for debugging
+            for template in templates:
+                app.logger.debug(f"Template ID: {template.get('template_id')}, Name: {template.get('name')}")
+            
+            return templates
+        else:
+            app.logger.error(f"Failed to fetch templates. Status: {response.status_code}, Response: {response.text}")
+            return []
+            
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f"Request error fetching templates: {str(e)}")
+        return []
+    except Exception as e:
+        app.logger.error(f"Unexpected error fetching templates: {str(e)}")
+        return []
+
 @app.route('/product/new', methods=['GET', 'POST'])
 def create_product():
     templates = models.ProductTemplate.query.all()
+    pdf_templates = fetch_craftmypdf_templates()
     
     if request.method == 'POST':
         title = request.form.get('title')
@@ -68,7 +117,8 @@ def create_product():
         product = models.Product(
             title=title,
             batch_number=generate_batch_number(),
-            barcode=barcode_number
+            barcode=barcode_number,
+            craftmypdf_template_id=request.form.get('craftmypdf_template_id')
         )
         product.set_attributes(attributes)
 
@@ -83,7 +133,7 @@ def create_product():
         flash('Product created successfully!', 'success')
         return redirect(url_for('product_detail', product_id=product.id))
 
-    return render_template('product_create.html', templates=templates)
+    return render_template('product_create.html', templates=templates, pdf_templates=pdf_templates)
 
 @app.route('/product/<int:product_id>')
 def product_detail(product_id):
@@ -114,7 +164,7 @@ def generate_pdf(product_id):
 
         # Structure API request data
         api_data = {
-            "template_id": "05f77b2b18ad809a",
+            "template_id": product.craftmypdf_template_id,
             "export_type": "pdf",
             "cloud_storage": 1,
             "data": {}
@@ -133,6 +183,9 @@ def generate_pdf(product_id):
             }
         else:
             api_data["data"] = single_label_data
+
+        # Debug log the final payload
+        app.logger.debug(f"Final API Request Data: {api_data}")
 
         app.logger.debug(f"Final API Request Data: {api_data}")
 
