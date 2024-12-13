@@ -156,14 +156,21 @@
 
 {% block scripts %}
 <script>
-// Delete product confirmation modal
-const deleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-const pdfDeleteModal = new bootstrap.Modal(document.getElementById('pdfDeleteModal'));
-let pdfToDelete = null;
+document.addEventListener('DOMContentLoaded', function() {
+    // Delete product confirmation modal
+    const deleteConfirmModal = document.getElementById('deleteConfirmModal') ? 
+        new bootstrap.Modal(document.getElementById('deleteConfirmModal')) : null;
+    const pdfDeleteModal = document.getElementById('pdfDeleteModal') ? 
+        new bootstrap.Modal(document.getElementById('pdfDeleteModal')) : null;
+    let pdfToDelete = null;
 
-document.getElementById('deleteProduct')?.addEventListener('click', function() {
-    deleteConfirmModal.show();
-});
+    // Product delete button
+    const deleteProductBtn = document.getElementById('deleteProduct');
+    if (deleteProductBtn) {
+        deleteProductBtn.addEventListener('click', function() {
+            deleteConfirmModal.show();
+        });
+    }
 
 document.getElementById('confirmDelete').addEventListener('click', async function() {
     const productId = document.getElementById('deleteProduct').dataset.productId;
@@ -184,8 +191,10 @@ document.getElementById('confirmDelete').addEventListener('click', async functio
     deleteConfirmModal.hide();
 });
 
-// Generate PDF
-document.getElementById('generatePDF').addEventListener('click', async function() {
+// Generate PDF button
+    const generatePDFBtn = document.getElementById('generatePDF');
+    if (generatePDFBtn) {
+        generatePDFBtn.addEventListener('click', async function() {
     const btn = this;
     const normalState = btn.querySelector('.normal-state');
     const loadingState = btn.querySelector('.loading-state');
@@ -220,12 +229,13 @@ document.getElementById('generatePDF').addEventListener('click', async function(
 const pdfDeleteModal = new bootstrap.Modal(document.getElementById('pdfDeleteModal'));
 let pdfToDelete = null;
 
-document.querySelectorAll('.delete-pdf').forEach(button => {
-    button.addEventListener('click', function() {
-        pdfToDelete = this;
-        pdfDeleteModal.show();
+// PDF delete buttons
+    document.querySelectorAll('.delete-pdf').forEach(button => {
+        button.addEventListener('click', function() {
+            pdfToDelete = this;
+            pdfDeleteModal.show();
+        });
     });
-});
 
 document.getElementById('confirmPdfDelete').addEventListener('click', async function() {
     if (pdfToDelete) {
