@@ -165,18 +165,25 @@ def generate_pdf(product_id):
             "barcode": product.barcode
         }
 
+        # Create complete label data structure
+        single_label_data = {
+            "batch_lot": product.batch_number,
+            "sku": product.sku,
+            "barcode": product.barcode,
+            "product_name": product.title,
+            "label_image": url_for('static', filename=product.label_image, _external=True) if product.label_image else None
+        }
+
+        # Add all product attributes
+        for key, value in product.get_attributes().items():
+            single_label_data[key.lower().replace(' ', '_')] = value
+
         # Structure API request data
         api_data = {
             "template_id": product.craftmypdf_template_id,
-            "export_type": "pdf",
+            "export_type": "file",
             "cloud_storage": 1,
             "data": {}
-        }
-
-        # Create basic label data
-        single_label_data = {
-            "batch_lot": product.batch_number,
-            "barcode": product.barcode
         }
 
         # Handle single vs multiple labels based on label_qty
