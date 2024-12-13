@@ -243,7 +243,7 @@ def generate_pdf(product_id):
             
         # Create PDF record
         # Download and save PDF locally
-        pdf_filename = f"{product.title}_{product.batch_number}.pdf"
+        pdf_filename = f"{product.title.replace(' ', '_')}_{product.batch_number}.pdf"
         pdf_filepath = os.path.join('static', 'pdfs', pdf_filename)
         
         # Ensure pdfs directory exists
