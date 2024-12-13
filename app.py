@@ -459,23 +459,10 @@ def generate_json(product_id):
         if product.label_image:
             label_data["background"] = url_for('static', filename=product.label_image, _external=True)
 
-        # Prepare the API response structure
-        response_data = {
-            "template_id": product.craftmypdf_template_id,
-            "export_type": "pdf",
-            "cloud_storage": 1
-        }
-
-        # Handle single vs multiple labels
-        if product.label_qty > 1:
-            response_data["data"] = {
-                "label_data": [label_data.copy() for _ in range(product.label_qty)]
-            }
-        else:
-            # For single label, don't wrap in label_data array
-            response_data["data"] = label_data
-
-        return jsonify(response_data)
+        # Return the array of label data based on quantity
+        return jsonify({
+            "label_data": [label_data.copy() for _ in range(product.label_qty)]
+        })
         
     except Exception as e:
         app.logger.error(f"Error generating JSON: {str(e)}")
