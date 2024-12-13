@@ -84,6 +84,50 @@
                     </div>
                 </div>
                 <div class="col-md-6">
+                    <div class="card bg-dark border-secondary mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title text-info mb-3">
+                                <i class="fas fa-file-alt"></i> Template Selection
+                            </h5>
+                            <select class="form-select" id="template" name="template_id">
+                                <option value="">No Template</option>
+                                {% for template in templates %}
+                                <option value="{{ template.id }}" {% if product.template_id == template.id %}selected{% endif %}>{{ template.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted mt-2">Select a template to apply predefined attributes</small>
+                        </div>
+                    </div>
+                    <div class="card bg-dark border-secondary mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title text-info mb-3">
+                                <i class="fas fa-file-alt"></i> Attribute Template
+                            </h5>
+                            <select class="form-select" id="template" name="template_id">
+                                <option value="">No Template</option>
+                                {% for template in templates %}
+                                <option value="{{ template.id }}" {% if product.template_id == template.id %}selected{% endif %}>{{ template.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted mt-2">Select a template to apply predefined attributes</small>
+                        </div>
+                    </div>
+
+                    <div class="card bg-dark border-secondary mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title text-info mb-3">
+                                <i class="fas fa-file-pdf"></i> PDF Template
+                            </h5>
+                            <select class="form-select" id="craftmypdf_template" name="craftmypdf_template_id" required>
+                                <option value="">Select a PDF Template</option>
+                                {% for template in pdf_templates %}
+                                <option value="{{ template.template_id }}" {% if product.craftmypdf_template_id == template.template_id %}selected{% endif %}>{{ template.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted mt-2">Select a template for PDF generation</small>
+                        </div>
+                    </div>
+
                     <div class="card bg-dark border-secondary">
                         <div class="card-body">
                             <h5 class="card-title text-info mb-3">

@@ -342,12 +342,17 @@ def delete_template(template_id):
 @app.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
 def edit_product(product_id):
     product = models.Product.query.get_or_404(product_id)
+    templates = models.ProductTemplate.query.all()
+    pdf_templates = fetch_craftmypdf_templates()
     
     if request.method == 'POST':
         try:
             product.title = request.form['title']
             product.batch_number = request.form['batch_number']
             product.label_qty = int(request.form.get('label_qty', 4))
+            product.template_id = request.form.get('template_id', None)
+            if request.form.get('craftmypdf_template_id'):
+                product.craftmypdf_template_id = request.form['craftmypdf_template_id']
             
             # Handle attributes
             attributes = {}
@@ -357,9 +362,6 @@ def edit_product(product_id):
                 if name and value:  # Only add if both name and value are provided
                     attributes[name] = value
             product.set_attributes(attributes)
-            
-            # Generate and save barcode
-            barcode_number = utils.generate_upc_barcode()
             
             # Handle product image
             if 'product_image' in request.files and request.files['product_image'].filename:
@@ -400,9 +402,9 @@ def edit_product(product_id):
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating product: {str(e)}', 'danger')
-            return render_template('product_edit.html', product=product)
+            return render_template('product_edit.html', product=product, templates=templates, pdf_templates=pdf_templates)
     
-    return render_template('product_edit.html', product=product)
+    return render_template('product_edit.html', product=product, templates=templates, pdf_templates=pdf_templates)
 
 @app.route('/api/delete_product/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
