@@ -118,8 +118,8 @@ def create_product():
 
         product = models.Product(
             name=name,
-            batch_number=generate_batch_number(),
-            sku=generate_batch_number(),  # Using same format as batch_number for SKU
+            batch_number=utils.generate_batch_number(),
+            sku=utils.generate_sku(),  # Use dedicated SKU generator
             barcode=barcode_number,
             craftmypdf_template_id=request.form.get('craftmypdf_template_id')
         )
@@ -159,22 +159,21 @@ def generate_pdf(product_id):
             app.logger.error("API key not configured")
             return jsonify({'error': 'API key not configured'}), 500
 
-        # Prepare basic label data
-        single_label_data = {
-            "batch_lot": product.batch_number,
-            "barcode": product.barcode
-        }
-
         # Get the label data in the correct format
         json_response = generate_json(product_id)
-        label_data = json_response.get_json()
-        
-        # Structure API request data
+        if isinstance(json_response, tuple):  # Error case
+            return json_response
+            
+        response_data = json_response.json
+        if not response_data or 'label_data' not in response_data:
+            return jsonify({'error': 'Failed to generate label data'}), 500
+            
+        # Structure API request data with correct format
         api_data = {
             "template_id": product.craftmypdf_template_id,
             "export_type": "pdf",
             "cloud_storage": 1,
-            "data": label_data
+            "data": response_data  # Use the response data directly since it's already properly structured
         }
 
         # Debug log the final payload
@@ -431,18 +430,15 @@ def generate_json(product_id):
         # Create label data array
         label_data = []
         
-        # Base label data using only existing product fields
-        base_label = {}
+        # Base label data with only actual product fields
+        base_label = {
+            "product_name": product.name,
+            "product_name_att": product.name,  # Will be updated if attributes exist
+            "product_barcode": product.barcode,
+            "lot_barcode": product.batch_number,
+            "sku": product.sku
+        }
         
-        # Add product name and identifiers
-        base_label["product_name"] = product.name
-        if product.barcode:
-            base_label["product_barcode"] = product.barcode
-        if product.batch_number:
-            base_label["lot_barcode"] = product.batch_number
-        if product.sku:
-            base_label["sku"] = product.sku
-            
         # Add product attributes if they exist
         attributes = product.get_attributes()
         if attributes:
@@ -450,25 +446,20 @@ def generate_json(product_id):
                 base_label[f"product_att_name_{idx}"] = key
                 base_label[f"product_att_name_{idx}_value"] = value
             
-            # Create product_name_att using first attribute
+            # Update product_name_att with first attribute if it exists
             first_attr_value = next(iter(attributes.values()))
             base_label["product_name_att"] = f"{product.name}: {first_attr_value}"
-        else:
-            base_label["product_name_att"] = product.name
-
+        
         # Add label image if available
         if product.label_image:
             base_label["background"] = url_for('static', filename=product.label_image, _external=True)
 
-        # Create the requested number of label copies
+        # Create copies based on label_qty
         for _ in range(product.label_qty):
             label_data.append(base_label.copy())
         
+        # Return the data wrapped in "label_data" key
         return jsonify({"label_data": label_data})
-        
-    except Exception as e:
-        app.logger.error(f"Error generating JSON: {str(e)}")
-        return jsonify({'error': str(e)}), 500
         
     except Exception as e:
         app.logger.error(f"Error generating JSON: {str(e)}")
