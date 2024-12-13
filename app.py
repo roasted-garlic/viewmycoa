@@ -449,20 +449,10 @@ def generate_json(product_id):
         # Structure the response based on label quantity
         if product.label_qty > 1:
             response_data = {
-                "template_id": product.craftmypdf_template_id,
-                "export_type": "pdf",
-                "cloud_storage": 1,
-                "data": {
-                    "label_data": [label_data.copy() for _ in range(product.label_qty)]
-                }
+                "label_data": [label_data.copy() for _ in range(product.label_qty)]
             }
         else:
-            response_data = {
-                "template_id": product.craftmypdf_template_id,
-                "export_type": "pdf",
-                "cloud_storage": 1,
-                "data": label_data
-            }
+            response_data = label_data
         
         return jsonify(response_data)
         
