@@ -49,16 +49,6 @@
             </div>
 
             <div class="mb-3">
-                <label for="craftmypdf_template" class="form-label">PDF Template</label>
-                <select class="form-select" id="craftmypdf_template" name="craftmypdf_template_id" required>
-                    <option value="">Select a PDF Template</option>
-                    {% for template in pdf_templates %}
-                    <option value="{{ template.template_id }}">{{ template.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="mb-3">
                 <label class="form-label">Product Attributes</label>
                 <div id="attributesContainer">
                     <!-- Attributes will be added here dynamically -->
@@ -83,10 +73,22 @@
                     <div class="card bg-dark border-secondary">
                         <div class="card-body">
                             <h5 class="card-title text-info mb-3">
-                                <i class="fas fa-copy"></i> Number of Labels
+                                <i class="fas fa-copy"></i> PDF Settings
                             </h5>
-                            <input type="number" class="form-control" id="labelQty" name="label_qty" value="4" min="1" required>
-                            <small class="form-text text-muted mt-2">Specify how many labels you need (default is 4)</small>
+                            <div class="mb-3">
+                                <label class="form-label">PDF Template</label>
+                                <select class="form-select" id="craftmypdf_template" name="craftmypdf_template_id" required>
+                                    <option value="">Select a PDF Template</option>
+                                    {% for template in pdf_templates %}
+                                    <option value="{{ template.template_id }}">{{ template.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Number of Labels</label>
+                                <input type="number" class="form-control" id="labelQty" name="label_qty" value="4" min="1" required>
+                                <small class="form-text text-muted mt-2">Specify how many labels you need (default is 4)</small>
+                            </div>
                         </div>
                     </div>
                 </div>
