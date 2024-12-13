@@ -179,20 +179,15 @@ def generate_pdf(product_id):
             single_label_data[key.lower().replace(' ', '_')] = value
 
         # Structure API request data
+        # Create the API request data structure
         api_data = {
             "template_id": product.craftmypdf_template_id,
             "export_type": "file",
             "cloud_storage": 1,
-            "data": {}
-        }
-
-        # Handle single vs multiple labels based on label_qty
-        if product.label_qty > 1:
-            api_data["data"] = {
-                "label_data": [single_label_data.copy() for _ in range(product.label_qty)]
+            "data": {
+                "label_data": [single_label_data for _ in range(product.label_qty)]
             }
-        else:
-            api_data["data"] = single_label_data
+        }
 
         # Debug log the final payload
         app.logger.debug(f"Final API Request Data: {api_data}")
@@ -229,16 +224,22 @@ def generate_pdf(product_id):
             app.logger.error(error_msg)
             return jsonify({'error': error_msg}), response.status_code
         
-        result = response.json()
-        if not result.get('success'):
-            error_msg = result.get('message', 'Unknown error')
-            app.logger.error(f"API Error: {error_msg}")
-            return jsonify({'error': error_msg}), 400
+        try:
+            result = response.json()
+            if response.status_code != 200:
+                error_msg = result.get('message', 'Unknown API error')
+                app.logger.error(f"API Error: {error_msg}")
+                return jsonify({'error': error_msg}), response.status_code
             
-        pdf_url = result.get('file_url')
-        if not pdf_url:
-            app.logger.error("No PDF URL in response")
-            return jsonify({'error': 'No PDF URL in response'}), 500
+            pdf_url = result.get('file_url')
+            if not pdf_url:
+                app.logger.error("No PDF URL in response")
+                return jsonify({'error': 'No PDF URL in response'}), 500
+                
+            app.logger.info(f"Successfully generated PDF: {pdf_url}")
+        except ValueError as e:
+            app.logger.error(f"Failed to parse API response: {str(e)}")
+            return jsonify({'error': 'Invalid API response format'}), 500
             
         # Create PDF record
         pdf = models.GeneratedPDF(
