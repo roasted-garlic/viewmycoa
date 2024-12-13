@@ -10,13 +10,9 @@
                     <div class="card bg-dark border-secondary h-100">
                         <div class="card-body">
                             <h5 class="card-title text-info mb-3">
-                                <i class="fas fa-image"></i> Product Image
+                                <i class="fas fa-tag"></i> Product Title
                             </h5>
-                            {% if product.product_image %}
-                            <img src="{{ url_for('static', filename=product.product_image) }}" class="img-thumbnail mb-3" alt="{{ product.title }}">
-                            {% endif %}
-                            <input type="file" class="form-control" id="productImage" name="product_image" accept="image/*">
-                            <small class="form-text text-muted mt-2">Leave empty to keep the current image</small>
+                            <input type="text" class="form-control" id="title" name="title" value="{{ product.title }}" required>
                         </div>
                     </div>
                 </div>
@@ -24,9 +20,13 @@
                     <div class="card bg-dark border-secondary h-100">
                         <div class="card-body">
                             <h5 class="card-title text-info mb-3">
-                                <i class="fas fa-tag"></i> Product Title
+                                <i class="fas fa-image"></i> Product Image
                             </h5>
-                            <input type="text" class="form-control" id="title" name="title" value="{{ product.title }}" required>
+                            {% if product.product_image %}
+                            <img src="{{ url_for('static', filename=product.product_image) }}" class="img-thumbnail mb-3" alt="{{ product.title }}">
+                            {% endif %}
+                            <input type="file" class="form-control" id="productImage" name="product_image" accept="image/*">
+                            <small class="form-text text-muted mt-2">Leave empty to keep the current image</small>
                         </div>
                     </div>
                 </div>
