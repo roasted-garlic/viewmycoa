@@ -95,13 +95,23 @@
     min-width: 90px;
 }
 
-.fa-spin {
-    animation: fa-spin 1s infinite linear;
-}
-
 @keyframes fa-spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+.fa-spin {
+    animation: fa-spin 1s linear infinite;
+    display: inline-block;
+}
+
+.btn i {
+    display: inline-block;
+    margin-right: 4px;
+}
+
+.btn-danger i {
+    color: #fff;
 }
 
 .btn:disabled {
