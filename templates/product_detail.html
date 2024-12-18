@@ -166,12 +166,11 @@
                                     <i class="fas fa-file-pdf"></i> View COA
                                 </a>
                                 {% endif %}
-                                {% for pdf in pdfs %}
-                                    {% if 'history_' + history.batch_number in pdf.filename and not 'history_coa_' in pdf.filename %}
-                                    <a href="{{ url_for('serve_pdf', filename=pdf.filename) }}" class="btn btn-primary btn-sm">
-                                        <i class="fas fa-file-pdf"></i> View Label
-                                    </a>
-                                    {% endif %}
+                                {% set history_label = 'history_' + history.batch_number + '_' %}
+                                {% for pdf in pdfs if history_label in pdf.filename %}
+                                <a href="{{ url_for('serve_pdf', filename=pdf.filename) }}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-file-pdf"></i> View Label
+                                </a>
                                 {% endfor %}
                                 <a href="{{ url_for('public_product_detail', batch_number=history.batch_number) }}" class="btn btn-secondary btn-sm">
                                     <i class="fas fa-external-link-alt"></i> View Public Page
