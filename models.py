@@ -11,18 +11,18 @@ class ProductTemplate(db.Model):
 
     def set_attributes(self, attrs):
         if attrs is None:
-            self.attributes = '{}'
+            self.attributes = json.dumps({})
         elif isinstance(attrs, (dict, list)):
             self.attributes = json.dumps(attrs)
         elif isinstance(attrs, str):
             try:
-                json.loads(attrs)  # Validate JSON string
-                self.attributes = attrs
+                # Parse string to ensure it's valid JSON and convert back
+                parsed = json.loads(attrs)
+                self.attributes = json.dumps(parsed)
             except json.JSONDecodeError:
-                self.attributes = '{}'
+                self.attributes = json.dumps({})
         else:
-            self.attributes = '{}'
-            self.attributes = '{}'
+            self.attributes = json.dumps({})
 
     def get_attributes(self):
         if not self.attributes:
@@ -50,18 +50,18 @@ class Product(db.Model):
 
     def set_attributes(self, attrs):
         if attrs is None:
-            self.attributes = '{}'
+            self.attributes = json.dumps({})
         elif isinstance(attrs, (dict, list)):
             self.attributes = json.dumps(attrs)
         elif isinstance(attrs, str):
             try:
-                json.loads(attrs)  # Validate JSON string
-                self.attributes = attrs
+                # Parse string to ensure it's valid JSON and convert back
+                parsed = json.loads(attrs)
+                self.attributes = json.dumps(parsed)
             except json.JSONDecodeError:
-                self.attributes = '{}'
+                self.attributes = json.dumps({})
         else:
-            self.attributes = '{}'
-            self.attributes = '{}'
+            self.attributes = json.dumps({})
 
     def get_attributes(self):
         if not self.attributes:
