@@ -351,7 +351,7 @@ def generate_pdf(product_id):
 
         # Create PDF record with timestamp
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        pdf_filename = f"{product.batch_number}_{timestamp}.pdf"
+        pdf_filename = f"label_{product.batch_number}_{timestamp}.pdf"
         pdf_filepath = os.path.join('static', 'pdfs', pdf_filename)
 
         # Ensure pdfs directory exists
