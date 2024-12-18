@@ -352,19 +352,26 @@ def generate_pdf(product_id):
         # Ensure pdfs directory exists
         os.makedirs(os.path.join('static', 'pdfs'), exist_ok=True)
 
-        # Download PDF
-        pdf_response = requests.get(pdf_url)
+        # Download PDF with proper headers
+        pdf_response = requests.get(pdf_url, headers={'Accept': 'application/pdf'})
         if pdf_response.status_code == 200:
+            # Ensure directory exists with proper permissions
+            os.makedirs(os.path.dirname(pdf_filepath), exist_ok=True)
+            
+            # Save PDF with proper permissions
             with open(pdf_filepath, 'wb') as f:
                 f.write(pdf_response.content)
+            
+            # Set file permissions to be readable
+            os.chmod(pdf_filepath, 0o644)
 
             # Create PDF record with local path
             pdf = models.GeneratedPDF(product_id=product.id,
-                                      filename=pdf_filename,
-                                      pdf_url=url_for(
-                                          'static',
-                                          filename=f'pdfs/{pdf_filename}',
-                                          _external=True))
+                                    filename=pdf_filename,
+                                    pdf_url=url_for(
+                                        'static',
+                                        filename=f'pdfs/{pdf_filename}',
+                                        _external=True))
             db.session.add(pdf)
             db.session.commit()
 
