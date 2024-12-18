@@ -230,13 +230,7 @@ def generate_pdf(product_id):
             app.logger.error("API key not configured")
             return jsonify({'error': 'API key not configured'}), 500
 
-        # Prepare basic label data
-        single_label_data = {
-            "batch_lot": product.batch_number,
-            "barcode": product.barcode
-        }
-
-        # Get the same JSON structure as generate_json endpoint
+        # Get the JSON structure as generate_json endpoint
         label_data = {
             "batch_lot":
             product.batch_number,
