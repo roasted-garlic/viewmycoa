@@ -227,10 +227,12 @@ def create_product():
 @app.route('/product/<int:product_id>')
 def product_detail(product_id):
     product = models.Product.query.get_or_404(product_id)
-    # Get all PDFs for this product and eagerly load batch_history relationship
-    pdfs = models.GeneratedPDF.query.filter_by(product_id=product_id)\
-        .order_by(models.GeneratedPDF.created_at.desc())\
-        .all()
+    # Get only current PDFs (non-historical) for this product
+    pdfs = models.GeneratedPDF.query.filter_by(
+        product_id=product_id,
+        batch_history_id=None
+    ).order_by(models.GeneratedPDF.created_at.desc()).all()
+    
     return render_template('product_detail.html', 
                          product=product, 
                          pdfs=pdfs, 
