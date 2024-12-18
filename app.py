@@ -34,28 +34,27 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 def serve_pdf(filename):
     try:
         pdf_dir = os.path.join('static', 'pdfs')
-        if not os.path.exists(os.path.join(pdf_dir, filename)):
+        file_path = os.path.join(pdf_dir, filename)
+        
+        if not os.path.exists(file_path):
             return "PDF not found", 404
-
-        download = request.args.get('download', '0') == '1'
-        response = send_from_directory(
-            pdf_dir,
-            filename,
-            mimetype='application/pdf',
-            as_attachment=download
-        )
-        
-        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '0'
-        
-        if not download:
-            response.headers['Content-Disposition'] = 'inline'
             
-        return response
+        download = request.args.get('download', '0') == '1'
+        
+        with open(file_path, 'rb') as f:
+            response = app.make_response(f.read())
+            response.headers['Content-Type'] = 'application/pdf'
+            response.headers['Content-Length'] = os.path.getsize(file_path)
+            
+            if download:
+                response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+            else:
+                response.headers['Content-Disposition'] = f'inline; filename="{filename}"'
+            
+            return response
     except Exception as e:
         app.logger.error(f"Error serving PDF {filename}: {str(e)}")
-        return str(e), 404
+        return str(e), 500
 
 db.init_app(app)
 
