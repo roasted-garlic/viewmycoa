@@ -1,0 +1,64 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="mb-4">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Search
+        </a>
+    </div>
+
+    <h1 class="mb-4">{{ product.title }}</h1>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card bg-dark border-secondary h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-info">
+                        <i class="fas fa-hashtag"></i> Batch Number
+                    </h5>
+                    <p class="card-text h4">{{ product.batch_number }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-5">
+            {% if product.product_image %}
+            <img src="{{ url_for('static', filename=product.product_image) }}" class="img-fluid mb-4" alt="{{ product.title }}">
+            {% endif %}
+            
+            <h3 class="mb-3">Product Attributes</h3>
+            <div class="row g-3">
+                {% for name, value in product.get_attributes().items() %}
+                <div class="col-md-6">
+                    <div class="card bg-dark border-secondary h-100">
+                        <div class="card-body">
+                            <h5 class="card-title text-info">
+                                <i class="fas fa-tag"></i> {{ name }}
+                            </h5>
+                            <p class="card-text h5">{{ value }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <h3 class="mb-4">Certificate of Analysis</h3>
+                    <a href="{{ url_for('static', filename='pdfs/' + product.batch_number + '_COA.pdf') }}" 
+                       class="btn btn-primary btn-lg" target="_blank">
+                        <i class="fas fa-download fa-2x mb-2"></i><br>
+                        Download COA
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

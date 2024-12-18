@@ -61,6 +61,26 @@ with app.app_context():
 
 @app.route('/')
 def index():
+    return render_template('public/search.html')
+
+@app.route('/search')
+def search():
+    query = request.args.get('q', '').strip()
+    if query:
+        products = models.Product.query.filter(
+            (models.Product.batch_number.ilike(f'%{query}%')) |
+            (models.Product.title.ilike(f'%{query}%'))
+        ).all()
+        return render_template('public/search_results.html', products=products, query=query)
+    return render_template('public/search.html')
+
+@app.route('/<batch_number>')
+def public_product_detail(batch_number):
+    product = models.Product.query.filter_by(batch_number=batch_number).first_or_404()
+    return render_template('public/product_detail.html', product=product)
+
+@app.route('/admin')
+def admin():
     products = models.Product.query.all()
     return render_template('product_list.html', products=products)
 
