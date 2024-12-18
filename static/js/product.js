@@ -1,4 +1,25 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Delete COA handler
+    document.querySelectorAll('.delete-coa').forEach(button => {
+        button.addEventListener('click', async function() {
+            if (confirm('Are you sure you want to delete this COA?')) {
+                const productId = this.dataset.productId;
+                try {
+                    const response = await fetch(`/api/delete_coa/${productId}`, {
+                        method: 'DELETE'
+                    });
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Failed to delete COA');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error deleting COA');
+                }
+            }
+        });
+    });
     const generateBatchBtn = document.getElementById('generateBatch');
     const addAttributeBtn = document.getElementById('addAttribute');
     const attributesContainer = document.getElementById('attributesContainer');

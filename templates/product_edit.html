@@ -121,6 +121,9 @@
                                 <a href="{{ url_for('static', filename=product.coa_pdf) }}" class="btn btn-info btn-sm" target="_blank">
                                     <i class="fas fa-file-pdf"></i> View PDF
                                 </a>
+                                <button type="button" class="btn btn-danger btn-sm delete-coa" data-product-id="{{ product.id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
                             {% endif %}
                             <input type="file" class="form-control" id="coaPdf" name="coa_pdf" accept="application/pdf">

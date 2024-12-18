@@ -582,6 +582,23 @@ def edit_product(product_id):
                            pdf_templates=pdf_templates)
 
 
+@app.route('/api/delete_coa/<int:product_id>', methods=['DELETE'])
+def delete_coa(product_id):
+    try:
+        product = models.Product.query.get_or_404(product_id)
+        if product.coa_pdf:
+            # Delete physical file
+            file_path = os.path.join('static', product.coa_pdf)
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            # Clear database reference
+            product.coa_pdf = None
+            db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/delete_product/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
     try:
