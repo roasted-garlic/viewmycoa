@@ -64,6 +64,13 @@ def index():
     return render_template('search_home.html')
 
 @app.route('/search')
+def search_results():
+    query = request.args.get('q', '')
+    products = models.Product.query.filter(
+        (models.Product.title.ilike(f'%{query}%')) |
+        (models.Product.batch_number.ilike(f'%{query}%'))
+    ).all()
+    return render_template('search_results.html', products=products, query=query)
 
 @app.route('/batch/<batch_number>')
 def public_product_detail(batch_number):
