@@ -29,7 +29,7 @@
                         <div class="card-body">
                             <h5 class="card-title">{{ product.title }}</h5>
                             <p class="card-text">Batch: {{ product.batch_number }}</p>
-                            <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-primary">View Details</a>
+                            <a href="{{ url_for('public_product_detail', batch_number=product.batch_number) }}" class="btn btn-primary">View Details</a>
                         </div>
                     </div>
                 </div>

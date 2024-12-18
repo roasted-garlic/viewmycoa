@@ -64,6 +64,12 @@ def index():
     return render_template('search_home.html')
 
 @app.route('/search')
+
+@app.route('/batch/<batch_number>')
+def public_product_detail(batch_number):
+    product = models.Product.query.filter_by(batch_number=batch_number).first_or_404()
+    return render_template('public_product_detail.html', product=product)
+
 def search_results():
     query = request.args.get('q', '')
     products = models.Product.query.filter(
