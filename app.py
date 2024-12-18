@@ -228,14 +228,15 @@ def create_product():
 def product_detail(product_id):
     product = models.Product.query.get_or_404(product_id)
     # Get only current PDFs (non-historical) for this product
-    pdfs = models.GeneratedPDF.query.filter_by(
-        product_id=product_id,
-        batch_history_id=None
+    current_pdfs = models.GeneratedPDF.query.filter(
+        models.GeneratedPDF.product_id == product_id,
+        models.GeneratedPDF.batch_history_id.is_(None),
+        ~models.GeneratedPDF.filename.like('history_%')
     ).order_by(models.GeneratedPDF.created_at.desc()).all()
     
     return render_template('product_detail.html', 
                          product=product, 
-                         pdfs=pdfs, 
+                         pdfs=current_pdfs, 
                          BatchHistory=models.BatchHistory)
 
 
