@@ -25,7 +25,7 @@
                         <h5 class="card-title text-info">
                             <i class="fas fa-hashtag"></i> Batch Number
                         </h5>
-                        <p class="card-text h4">{{ product.batch_number }}</p>
+                        <p class="card-text h4">{% if is_historical %}{{ batch_history.batch_number }}{% else %}{{ product.batch_number }}{% endif %}</p>
                     </div>
                 </div>
             </div>
