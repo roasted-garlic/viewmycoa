@@ -19,17 +19,15 @@
                 <form action="{{ url_for('search_results') }}" method="get" onsubmit="return validateSearch()">
                     <div class="d-flex flex-column flex-md-row gap-3">
                         <div class="flex-grow-1">
-                            <input type="text" name="q" class="form-control form-control-lg rounded-pill w-100" 
+                            <input type="text" name="q" class="form-control form-control-lg rounded-pill" 
                                    placeholder="Enter batch number or product name..." 
                                    aria-label="Search products"
                                    required
                                    minlength="1">
                         </div>
-                        <div class="d-grid d-md-block">
-                            <button type="submit" class="btn btn-primary btn-lg rounded-pill px-4 w-100 w-md-auto">
-                                <i class="fas fa-search"></i> Search
-                            </button>
-                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill px-4 w-100 w-md-auto">
+                            <i class="fas fa-search"></i> Search
+                        </button>
                     </div>
                 </form>
                 <script>
