@@ -126,10 +126,15 @@
                 <ul class="list-group" id="pdfList">
                     {% for pdf in pdfs %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <a href="{{ pdf.pdf_url }}" download="{{ pdf.filename }}" target="_blank">{{ pdf.filename }}</a>
-                        <button class="btn btn-danger btn-sm delete-pdf" data-pdf-id="{{ pdf.id }}">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <a href="{{ pdf.pdf_url }}" target="_blank">{{ pdf.filename }}</a>
+                        <div class="btn-group">
+                            <a href="{{ pdf.pdf_url }}?download=1" class="btn btn-primary btn-sm">
+                                <i class="fas fa-download"></i>
+                            </a>
+                            <button class="btn btn-danger btn-sm delete-pdf" data-pdf-id="{{ pdf.id }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </li>
                     {% endfor %}
                 </ul>

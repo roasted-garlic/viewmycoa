@@ -32,14 +32,12 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 @app.route('/static/pdfs/<path:filename>')
 def serve_pdf(filename):
+    as_attachment = request.args.get('download', '0') == '1'
     response = send_from_directory('static/pdfs', filename, 
-                                 mimetype='application/pdf',
-                                 as_attachment=True)
-    response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+                                 mimetype='application/pdf')
+    disposition = 'attachment' if as_attachment else 'inline'
+    response.headers['Content-Disposition'] = f'{disposition}; filename="{filename}"'
     response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Security-Policy'] = 'default-src *'
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.direct_passthrough = True
     return response
 
 db.init_app(app)
