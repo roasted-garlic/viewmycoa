@@ -33,21 +33,18 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 @app.route('/static/pdfs/<path:filename>')
 def serve_pdf(filename):
     try:
-        # Force download when download=1 parameter is present
-        as_attachment = request.args.get('download', '0') == '1'
-        response = send_from_directory('static/pdfs', filename, 
-                                     mimetype='application/pdf',
-                                     as_attachment=as_attachment)
+        path = os.path.join('static', 'pdfs')
+        download = request.args.get('download', '0') == '1'
+        response = send_from_directory(path, filename, mimetype='application/pdf')
         
-        # Set content type and disposition
-        response.headers['Content-Type'] = 'application/pdf'
-        if as_attachment:
+        if download:
             response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
-        
-        # Set cache control headers
+        else:
+            response.headers['Content-Disposition'] = 'inline'
+            
+        response.headers['Content-Type'] = 'application/pdf'
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '0'
         response.headers['Expires'] = '0'
         return response
     except Exception as e:
