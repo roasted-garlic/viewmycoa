@@ -51,13 +51,15 @@
                             <p class="card-text">
                                 Creation Date: {{ history.created_at.strftime('%Y-%m-%d') }}
                             </p>
-                            <div class="d-flex justify-content-end gap-3 mt-3">
-                                {% if history.coa_pdf %}
-                                <a href="{{ url_for('static', filename=history.coa_pdf) }}" class="btn btn-info btn-sm" target="_blank">
-                                    <i class="fas fa-file-pdf"></i> View COA
-                                </a>
-                                {% endif %}
-                                <a href="{{ url_for('public_product_detail', batch_number=history.batch_number) }}" class="btn btn-secondary btn-sm">View Public Page</a>
+                            <div class="text-end mt-3">
+                                <div class="d-inline-flex gap-3">
+                                    {% if history.coa_pdf %}
+                                    <a href="{{ url_for('static', filename=history.coa_pdf) }}" class="btn btn-info btn-sm" target="_blank">
+                                        <i class="fas fa-file-pdf"></i> View COA
+                                    </a>
+                                    {% endif %}
+                                    <a href="{{ url_for('public_product_detail', batch_number=history.batch_number) }}" class="btn btn-secondary btn-sm">View Public Page</a>
+                                </div>
                             </div>
                         </div>
                     </div>
