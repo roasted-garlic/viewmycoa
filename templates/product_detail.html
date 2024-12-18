@@ -168,9 +168,14 @@
                                 {% endif %}
                                 {% for pdf in pdfs %}
                                     {% if pdf.batch_history_id == history.id and pdf.filename.startswith('history_label_') %}
-                                    <a href="{{ url_for('serve_pdf', filename=pdf.filename) }}" class="btn btn-primary btn-sm">
-                                        <i class="fas fa-file-pdf"></i> View Label
-                                    </a>
+                                    <div class="btn-group">
+                                        <a href="{{ url_for('serve_pdf', filename=pdf.filename) }}" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-file-pdf"></i> View Label
+                                        </a>
+                                        <a href="{{ url_for('serve_pdf', filename=pdf.filename, download=1) }}" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    </div>
                                     {% endif %}
                                 {% endfor %}
                                 <a href="{{ url_for('public_product_detail', batch_number=history.batch_number) }}" class="btn btn-secondary btn-sm">
