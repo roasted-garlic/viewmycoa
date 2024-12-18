@@ -354,11 +354,12 @@ def generate_pdf(product_id):
 
         # Create PDF record with timestamp
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        batch_dir = os.path.join('static', 'pdfs', product.batch_number)
         pdf_filename = f"label_{product.batch_number}_{timestamp}.pdf"
-        pdf_filepath = os.path.join('static', 'pdfs', pdf_filename)
+        pdf_filepath = os.path.join(batch_dir, pdf_filename)
 
-        # Ensure pdfs directory exists
-        os.makedirs(os.path.join('static', 'pdfs'), exist_ok=True)
+        # Ensure batch directory exists
+        os.makedirs(batch_dir, exist_ok=True)
 
         # Download PDF
         pdf_response = requests.get(pdf_url, headers={'Accept': 'application/pdf'})
@@ -374,7 +375,7 @@ def generate_pdf(product_id):
             pdf = models.GeneratedPDF()
             pdf.product_id = product.id
             pdf.filename = pdf_filename
-            pdf.pdf_url = url_for('serve_pdf', filename=pdf_filename, _external=True)
+            pdf.pdf_url = url_for('serve_pdf', filename=os.path.join(product.batch_number, pdf_filename), _external=True)
             db.session.add(pdf)
             db.session.commit()
 
