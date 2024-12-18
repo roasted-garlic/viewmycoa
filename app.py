@@ -43,17 +43,22 @@ def serve_pdf(filename):
             
         download = request.args.get('download', '0') == '1'
         
+        # Ensure file is readable
+        if not os.access(file_path, os.R_OK):
+            os.chmod(file_path, 0o644)
+            
         response = send_from_directory(
             pdf_dir,
             filename,
             mimetype='application/pdf',
-            as_attachment=download,
-            download_name=filename
+            as_attachment=download
         )
         
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
-        response.headers.add('X-Content-Type-Options', 'nosniff')
+        # Set headers for downloading
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
         
         if download:
             response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
