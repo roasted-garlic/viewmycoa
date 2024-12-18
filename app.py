@@ -45,17 +45,13 @@ def serve_pdf(filename):
             return "PDF not found", 404
 
         download = request.args.get('download', '0') == '1'
-
-        # Read file directly
-        with open(file_path, 'rb') as f:
-            response = app.make_response(f.read())
-            
-        # Set essential headers
-        response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = f'{"attachment" if download else "inline"}; filename="{filename}"'
-        response.headers['Content-Length'] = os.path.getsize(file_path)
         
-        return response
+        return send_from_directory(
+            pdf_dir, 
+            filename,
+            as_attachment=download,
+            mimetype='application/pdf'
+        )
     except Exception as e:
         app.logger.error(f"Error serving PDF {filename}: {str(e)}")
         return f"Error accessing PDF: {str(e)}", 500
