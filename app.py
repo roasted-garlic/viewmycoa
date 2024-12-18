@@ -505,11 +505,31 @@ def edit_product(product_id):
                 batch_history.product_id = product.id
                 batch_history.batch_number = product.batch_number
                 batch_history.set_attributes(product.get_attributes())
+                
+                # Move generated PDFs to history
+                pdfs = models.GeneratedPDF.query.filter_by(product_id=product.id).all()
+                for pdf in pdfs:
+                    if pdf.filename.startswith(product.batch_number):
+                        # Create historical version of the PDF
+                        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                        new_filename = f"history_{pdf.filename}"
+                        new_filepath = os.path.join('static', 'pdfs', new_filename)
+                        old_filepath = os.path.join('static', 'pdfs', pdf.filename)
+                        
+                        try:
+                            if os.path.exists(old_filepath):
+                                import shutil
+                                shutil.copy2(old_filepath, new_filepath)
+                                os.remove(old_filepath)  # Remove from current batch
+                        except Exception as e:
+                            app.logger.error(f"Error moving PDF file: {str(e)}")
+                        
+                        db.session.delete(pdf)  # Remove PDF record
+
                 if product.coa_pdf:
-                    # Copy the COA file to a new location
+                    # Copy the COA file to history
                     old_coa = product.coa_pdf
                     if old_coa:
-                        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
                         new_filename = f"history_{os.path.basename(old_coa)}"
                         new_filepath = os.path.join('pdfs', new_filename)
                         try:
