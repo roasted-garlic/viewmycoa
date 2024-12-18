@@ -611,6 +611,21 @@ def edit_product(product_id):
                            pdf_templates=pdf_templates)
 
 
+@app.route('/api/delete_batch_history/<int:history_id>', methods=['DELETE'])
+def delete_batch_history(history_id):
+    try:
+        history = models.BatchHistory.query.get_or_404(history_id)
+        if history.coa_pdf:
+            file_path = os.path.join('static', history.coa_pdf)
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        db.session.delete(history)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/delete_coa/<int:product_id>', methods=['DELETE'])
 def delete_coa(product_id):
     try:
