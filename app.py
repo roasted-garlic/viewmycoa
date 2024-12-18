@@ -522,12 +522,16 @@ def edit_product(product_id):
                                 shutil.copy2(old_filepath, new_filepath)
                                 os.remove(old_filepath)  # Remove original file
                                 # Create new PDF record for historical label
+                                # Delete the old PDF record first
+                                db.session.delete(pdf)
+                                
+                                # Create historical PDF record with batch history reference
                                 historical_pdf = models.GeneratedPDF()
                                 historical_pdf.product_id = product.id
+                                historical_pdf.batch_history_id = batch_history.id
                                 historical_pdf.filename = new_filename
                                 historical_pdf.pdf_url = url_for('serve_pdf', filename=new_filename, _external=True)
                                 db.session.add(historical_pdf)
-                                db.session.delete(pdf)  # Remove old PDF record
                         except Exception as e:
                             app.logger.error(f"Error moving PDF file: {str(e)}")
 
