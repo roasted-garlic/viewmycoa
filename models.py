@@ -10,10 +10,18 @@ class ProductTemplate(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     def set_attributes(self, attrs):
-        self.attributes = json.dumps(attrs)
+        if isinstance(attrs, str):
+            self.attributes = attrs
+        else:
+            self.attributes = json.dumps(attrs) if attrs else '{}'
 
     def get_attributes(self):
-        return json.loads(self.attributes) if self.attributes else {}
+        if not self.attributes:
+            return {}
+        try:
+            return json.loads(self.attributes)
+        except json.JSONDecodeError:
+            return {}
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -32,10 +40,18 @@ class Product(db.Model):
     generated_pdfs = db.relationship('GeneratedPDF', backref='product', lazy='dynamic')
 
     def set_attributes(self, attrs):
-        self.attributes = json.dumps(attrs)
+        if isinstance(attrs, str):
+            self.attributes = attrs
+        else:
+            self.attributes = json.dumps(attrs) if attrs else '{}'
 
     def get_attributes(self):
-        return json.loads(self.attributes) if self.attributes else {}
+        if not self.attributes:
+            return {}
+        try:
+            return json.loads(self.attributes)
+        except json.JSONDecodeError:
+            return {}
 
 class GeneratedPDF(db.Model):
     id = db.Column(db.Integer, primary_key=True)
