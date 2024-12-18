@@ -190,12 +190,14 @@
                                 </div>
                             </div>
                             {% endfor %}
-                                {% for pdf in pdfs if pdf.batch_history_id == history.id %}
+                                </div>
+                            {% for pdf in pdfs if pdf.batch_history_id == history.id %}
+                            <div class="mt-2">
                                 <a href="{{ url_for('serve_pdf', filename=pdf.filename) }}" class="btn btn-primary btn-sm">
                                     <i class="fas fa-file-pdf"></i> View Label
                                 </a>
-                                {% endfor %}
                             </div>
+                            {% endfor %}
                         </div>
                     </div>
                     {% endfor %}
