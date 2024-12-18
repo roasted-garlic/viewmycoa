@@ -190,12 +190,11 @@
                                 </div>
                             </div>
                             {% endfor %}
-                                <a href="{{ url_for('public_product_detail', batch_number=history.batch_number) }}" class="btn btn-secondary btn-sm">
-                                    <i class="fas fa-external-link-alt"></i> View Public Page
+                                {% for pdf in pdfs if pdf.batch_history_id == history.id %}
+                                <a href="{{ url_for('serve_pdf', filename=pdf.filename) }}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-file-pdf"></i> View Label
                                 </a>
-                                <button class="btn btn-danger btn-sm delete-history" data-history-id="{{ history.id }}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
