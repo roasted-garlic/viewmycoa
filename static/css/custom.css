@@ -153,6 +153,13 @@
     100% { transform: rotate(360deg); }
 }
 
+@media (min-width: 768px) {
+    .w-md-auto {
+        width: auto !important;
+    }
+}
+
+
 .fa-spin {
     animation: fa-spin 1s linear infinite;
     display: inline-block;
