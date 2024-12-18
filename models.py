@@ -10,21 +10,18 @@ class ProductTemplate(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     def set_attributes(self, attrs):
-        if isinstance(attrs, list):
-            self.attributes = json.dumps(attrs)
-        elif isinstance(attrs, dict):
+        if attrs is None:
+            self.attributes = '{}'
+        elif isinstance(attrs, (dict, list)):
             self.attributes = json.dumps(attrs)
         elif isinstance(attrs, str):
             try:
-                # Validate it's a valid JSON string
-                parsed_attrs = json.loads(attrs)
-                if isinstance(parsed_attrs, (dict, list)):
-                    self.attributes = attrs
-                else:
-                    self.attributes = '{}'
+                json.loads(attrs)  # Validate JSON string
+                self.attributes = attrs
             except json.JSONDecodeError:
                 self.attributes = '{}'
         else:
+            self.attributes = '{}'
             self.attributes = '{}'
 
     def get_attributes(self):
@@ -52,21 +49,18 @@ class Product(db.Model):
     generated_pdfs = db.relationship('GeneratedPDF', backref='product', lazy='dynamic')
 
     def set_attributes(self, attrs):
-        if isinstance(attrs, list):
-            self.attributes = json.dumps(attrs)
-        elif isinstance(attrs, dict):
+        if attrs is None:
+            self.attributes = '{}'
+        elif isinstance(attrs, (dict, list)):
             self.attributes = json.dumps(attrs)
         elif isinstance(attrs, str):
             try:
-                # Validate it's a valid JSON string
-                parsed_attrs = json.loads(attrs)
-                if isinstance(parsed_attrs, (dict, list)):
-                    self.attributes = attrs
-                else:
-                    self.attributes = '{}'
+                json.loads(attrs)  # Validate JSON string
+                self.attributes = attrs
             except json.JSONDecodeError:
                 self.attributes = '{}'
         else:
+            self.attributes = '{}'
             self.attributes = '{}'
 
     def get_attributes(self):
