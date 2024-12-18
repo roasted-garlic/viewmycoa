@@ -229,7 +229,10 @@ def product_detail(product_id):
     product = models.Product.query.get_or_404(product_id)
     pdfs = models.GeneratedPDF.query.filter_by(product_id=product_id).order_by(
         models.GeneratedPDF.created_at.desc()).all()
-    return render_template('product_detail.html', product=product, pdfs=pdfs)
+    return render_template('product_detail.html', 
+                         product=product, 
+                         pdfs=pdfs, 
+                         BatchHistory=models.BatchHistory)
 
 
 @app.route('/api/generate_batch', methods=['POST'])
