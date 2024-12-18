@@ -11,6 +11,7 @@ import json
 from PIL import Image
 import io
 import base64
+import datetime
 
 import utils
 
@@ -317,9 +318,9 @@ def generate_pdf(product_id):
             app.logger.error("No PDF URL in response")
             return jsonify({'error': 'No PDF URL in response'}), 500
             
-        # Create PDF record
-        # Download and save PDF locally
-        pdf_filename = f"{product.batch_number}.pdf"
+        # Create PDF record with timestamp
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        pdf_filename = f"{product.batch_number}_{timestamp}.pdf"
         pdf_filepath = os.path.join('static', 'pdfs', pdf_filename)
         
         # Ensure pdfs directory exists
