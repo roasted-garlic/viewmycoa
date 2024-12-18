@@ -520,11 +520,12 @@ def edit_product(product_id):
                             os.remove(os.path.join('static', product.coa_pdf))
                         except OSError:
                             pass
-                    filename = secure_filename(coa_pdf.filename)
-                    filepath = os.path.join('pdfs', filename)
-                    os.makedirs(os.path.join('static', 'pdfs'), exist_ok=True)
-                    coa_pdf.save(os.path.join('static', filepath))
-                    product.coa_pdf = filepath
+                    if coa_pdf.filename:
+                        filename = secure_filename(coa_pdf.filename)
+                        filepath = os.path.join('pdfs', filename)
+                        os.makedirs(os.path.join('static', 'pdfs'), exist_ok=True)
+                        coa_pdf.save(os.path.join('static', filepath))
+                        product.coa_pdf = filepath
 
             # Handle label image
             if 'label_image' in request.files and request.files[
