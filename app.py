@@ -208,8 +208,9 @@ def create_product():
         coa_pdf = request.files.get('coa_pdf')
         if coa_pdf and coa_pdf.filename:
             filename = secure_filename(coa_pdf.filename)
-            filepath = os.path.join('pdfs', filename)
-            os.makedirs(os.path.join('static', 'pdfs'), exist_ok=True)
+            batch_dir = os.path.join('pdfs', product.batch_number)
+            filepath = os.path.join(batch_dir, filename)
+            os.makedirs(os.path.join('static', batch_dir), exist_ok=True)
             coa_pdf.save(os.path.join('static', filepath))
             product.coa_pdf = filepath
 
@@ -603,8 +604,9 @@ def edit_product(product_id):
                             pass
                     if coa_pdf.filename:
                         filename = secure_filename(coa_pdf.filename)
-                        filepath = os.path.join('pdfs', filename)
-                        os.makedirs(os.path.join('static', 'pdfs'), exist_ok=True)
+                        batch_dir = os.path.join('pdfs', product.batch_number)
+                        filepath = os.path.join(batch_dir, filename)
+                        os.makedirs(os.path.join('static', batch_dir), exist_ok=True)
                         coa_pdf.save(os.path.join('static', filepath))
                         product.coa_pdf = filepath
 
