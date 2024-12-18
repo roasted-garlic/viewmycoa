@@ -127,11 +127,11 @@
                     {% for pdf in pdfs %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <a href="{{ pdf.pdf_url }}" target="_blank">{{ pdf.filename }}</a>
-                        <div class="btn-group">
-                            <a href="{{ pdf.pdf_url }}?download=1" class="btn btn-primary btn-sm">
+                        <div class="d-flex gap-2">
+                            <a href="{{ pdf.pdf_url }}?download=1" class="btn btn-primary btn-sm" title="Download PDF">
                                 <i class="fas fa-download"></i>
                             </a>
-                            <button class="btn btn-danger btn-sm delete-pdf" data-pdf-id="{{ pdf.id }}">
+                            <button class="btn btn-danger btn-sm delete-pdf" data-pdf-id="{{ pdf.id }}" title="Delete PDF">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
