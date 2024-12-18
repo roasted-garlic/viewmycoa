@@ -61,6 +61,10 @@ with app.app_context():
 
 @app.route('/')
 def index():
+    return redirect(url_for('products'))
+
+@app.route('/products')
+def products():
     products = models.Product.query.all()
     return render_template('product_list.html', products=products)
 
