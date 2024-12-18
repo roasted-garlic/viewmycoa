@@ -32,14 +32,22 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 @app.route('/static/pdfs/<path:filename>')
 def serve_pdf(filename):
-    as_attachment = request.args.get('download', '0') == '1'
     try:
         response = send_from_directory('static/pdfs', filename, 
-                                     mimetype='application/pdf')
-        if as_attachment:
+                                     mimetype='application/pdf',
+                                     as_attachment=request.args.get('download', '0') == '1')
+        
+        # Set security headers
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['Content-Security-Policy'] = "default-src 'self'"
+        
+        # Set download headers
+        if request.args.get('download', '0') == '1':
             response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
         else:
             response.headers['Content-Disposition'] = f'inline; filename="{filename}"'
+            
         response.headers['Content-Type'] = 'application/pdf'
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
