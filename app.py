@@ -635,10 +635,21 @@ def edit_product(product_id):
 def delete_batch_history(history_id):
     try:
         history = models.BatchHistory.query.get_or_404(history_id)
+        # Delete historical COA if exists
         if history.coa_pdf:
-            file_path = os.path.join('static', history.coa_pdf)
-            if os.path.exists(file_path):
-                os.remove(file_path)
+            coa_path = os.path.join('static', history.coa_pdf)
+            if os.path.exists(coa_path):
+                os.remove(coa_path)
+                
+        # Delete historical label PDFs
+        pdfs = models.GeneratedPDF.query.filter_by(product_id=history.product_id).all()
+        for pdf in pdfs:
+            if pdf.filename.startswith(f"history_{history.batch_number}"):
+                pdf_path = os.path.join('static', 'pdfs', pdf.filename)
+                if os.path.exists(pdf_path):
+                    os.remove(pdf_path)
+                db.session.delete(pdf)
+                
         db.session.delete(history)
         db.session.commit()
         return jsonify({'success': True})
