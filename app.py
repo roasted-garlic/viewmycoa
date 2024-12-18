@@ -173,12 +173,12 @@ def create_product():
         batch_number = generate_batch_number()
         sku = utils.generate_sku()  # Generate unique SKU
 
-        product = models.Product(
-            title=title,
-            batch_number=batch_number,
-            barcode=barcode_number,
-            sku=sku,  # Add SKU to the product
-            craftmypdf_template_id=request.form.get('craftmypdf_template_id'))
+        product = models.Product()
+        product.title = title
+        product.batch_number = batch_number
+        product.barcode = barcode_number
+        product.sku = sku
+        product.craftmypdf_template_id = request.form.get('craftmypdf_template_id')
         product.set_attributes(attributes)
 
         if product_image:
