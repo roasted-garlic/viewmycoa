@@ -227,8 +227,10 @@ def create_product():
 @app.route('/product/<int:product_id>')
 def product_detail(product_id):
     product = models.Product.query.get_or_404(product_id)
-    pdfs = models.GeneratedPDF.query.filter_by(product_id=product_id).order_by(
-        models.GeneratedPDF.created_at.desc()).all()
+    # Get all PDFs for this product and eagerly load batch_history relationship
+    pdfs = models.GeneratedPDF.query.filter_by(product_id=product_id)\
+        .order_by(models.GeneratedPDF.created_at.desc())\
+        .all()
     return render_template('product_detail.html', 
                          product=product, 
                          pdfs=pdfs, 
@@ -521,21 +523,15 @@ def edit_product(product_id):
                                 import shutil
                                 shutil.copy2(old_filepath, new_filepath)
                                 os.remove(old_filepath)  # Remove original file
-                                # Delete the old PDF record
-                                db.session.delete(pdf)
-                                db.session.flush()  # Ensure the delete is processed
                                 
-                                # Create historical PDF record
-                                historical_pdf = models.GeneratedPDF(
-                                    product_id=product.id,
-                                    batch_history_id=batch_history.id,
-                                    filename=new_filename,
-                                    pdf_url=url_for('serve_pdf', filename=new_filename, _external=True)
-                                )
-                                db.session.add(historical_pdf)
-                                db.session.flush()  # Ensure the new record is created
+                                # Update the existing PDF record instead of creating a new one
+                                pdf.batch_history_id = batch_history.id
+                                pdf.filename = new_filename
+                                pdf.pdf_url = url_for('serve_pdf', filename=new_filename, _external=True)
+                                db.session.flush()  # Ensure the update is processed
                         except Exception as e:
                             app.logger.error(f"Error moving PDF file: {str(e)}")
+                            continue
 
                 if product.coa_pdf:
                     # Move COA to history
