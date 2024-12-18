@@ -171,7 +171,7 @@
                                     </a>
                                     {% endif %}
                                     {% for pdf in pdfs %}
-                                        {% if 'history_' + history.batch_number in pdf.filename and not pdf.filename.startswith('history_coa_') %}
+                                        {% if pdf.filename.startswith('history_' + history.batch_number) and not pdf.filename.startswith('history_coa_') %}
                                         <a href="{{ url_for('serve_pdf', filename=pdf.filename) }}" class="btn btn-primary btn-sm">
                                             <i class="fas fa-file-pdf"></i> View Label PDF
                                         </a>
