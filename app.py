@@ -517,19 +517,21 @@ def edit_product(product_id):
                     if pdf.filename.startswith('label_' + product.batch_number):
                         # Create historical version of the label PDF
                         new_filename = f"history_label_{batch_history.batch_number}_{timestamp}.pdf"
-                        new_filepath = os.path.join('static', 'pdfs', new_filename)
-                        old_filepath = os.path.join('static', 'pdfs', pdf.filename)
+                        history_dir = os.path.join('static', 'pdfs', batch_history.batch_number)
+                        new_filepath = os.path.join(history_dir, new_filename)
+                        old_filepath = os.path.join('static', 'pdfs', product.batch_number, pdf.filename)
                         
                         try:
                             if os.path.exists(old_filepath):
+                                os.makedirs(history_dir, exist_ok=True)
                                 import shutil
                                 shutil.copy2(old_filepath, new_filepath)
                                 os.remove(old_filepath)  # Remove original file
                                 
                                 # Update the existing PDF record instead of creating a new one
                                 pdf.batch_history_id = batch_history.id
-                                pdf.filename = new_filename
-                                pdf.pdf_url = url_for('serve_pdf', filename=new_filename, _external=True)
+                                pdf.filename = os.path.join(batch_history.batch_number, new_filename)
+                                pdf.pdf_url = url_for('serve_pdf', filename=os.path.join(batch_history.batch_number, new_filename), _external=True)
                                 db.session.flush()  # Ensure the update is processed
                         except Exception as e:
                             app.logger.error(f"Error moving PDF file: {str(e)}")
