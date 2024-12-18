@@ -115,15 +115,25 @@
                                 <i class="fas fa-file"></i> Certificate of Analysis (COA)
                             </h5>
                             {% if product.coa_pdf %}
-                            <div class="mb-3 d-flex align-items-center gap-2">
-                                <i class="fas fa-check-circle text-success"></i>
-                                <span>Current COA: </span>
-                                <a href="{{ url_for('static', filename=product.coa_pdf) }}" class="btn btn-info btn-sm" target="_blank">
-                                    <i class="fas fa-eye"></i> View File
-                                </a>
-                                <button type="button" class="btn btn-danger btn-sm delete-coa" data-product-id="{{ product.id }}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    <span>Current COA: </span>
+                                    <a href="{{ url_for('static', filename=product.coa_pdf) }}" class="btn btn-info btn-sm" target="_blank">
+                                        <i class="fas fa-eye"></i> View File
+                                    </a>
+                                    <button type="button" class="btn btn-danger btn-sm delete-coa" data-product-id="{{ product.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                {% if product.coa_pdf.lower().endswith(('.jpg', '.jpeg', '.png', '.gif')) %}
+                                    <img src="{{ url_for('static', filename=product.coa_pdf) }}" class="img-thumbnail mt-2" style="max-height: 200px" alt="COA Preview">
+                                {% else %}
+                                    <div class="text-center p-3 bg-light rounded">
+                                        <i class="fas fa-file-pdf fa-3x text-danger"></i>
+                                        <div class="mt-2">PDF Document</div>
+                                    </div>
+                                {% endif %}
                             </div>
                             {% endif %}
                             <input type="file" class="form-control" id="coaPdf" name="coa_pdf" accept=".pdf,.jpg,.jpeg,.png">
