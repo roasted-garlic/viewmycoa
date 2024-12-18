@@ -9,8 +9,6 @@ import random
 import requests
 import json
 from PIL import Image
-import io
-import base64
 import datetime
 
 import utils
@@ -92,15 +90,6 @@ def public_product_detail(batch_number):
     return render_template('public_product_detail.html', product=product)
 
 
-def search_results():
-    query = request.args.get('q', '')
-    products = models.Product.query.filter(
-        (models.Product.title.ilike(f'%{query}%'))
-        | (models.Product.batch_number.ilike(f'%{query}%'))).all()
-    return render_template('search_results.html',
-                           products=products,
-                           query=query)
-
 
 @app.route('/products')
 def products():
@@ -120,7 +109,7 @@ def fetch_craftmypdf_templates():
     try:
         app.logger.debug("Fetching templates from CraftMyPDF API")
         app.logger.debug(
-            f"Using API endpoint: https://api.craftmypdf.com/v1/list-templates"
+            "Using API endpoint: https://api.craftmypdf.com/v1/list-templates"
         )
 
         response = requests.get('https://api.craftmypdf.com/v1/list-templates',
