@@ -512,19 +512,27 @@ def edit_product(product_id):
                     if pdf.filename.startswith(product.batch_number):
                         # Create historical version of the PDF
                         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                        new_filename = f"history_{pdf.filename}"
-                        new_filepath = os.path.join('static', 'pdfs', new_filename)
-                        old_filepath = os.path.join('static', 'pdfs', pdf.filename)
+                        # Handle label PDFs
+                        if pdf.filename.startswith('label_'):
+                            new_filename = f"history_{history.batch_number}_{timestamp}.pdf"
+                            new_filepath = os.path.join('static', 'pdfs', new_filename)
+                            old_filepath = os.path.join('static', 'pdfs', pdf.filename)
+                            
+                            try:
+                                if os.path.exists(old_filepath):
+                                    import shutil
+                                    shutil.copy2(old_filepath, new_filepath)
+                                    os.remove(old_filepath)  # Remove original
+                                    # Create new PDF record for historical label
+                                    historical_pdf = models.GeneratedPDF()
+                                    historical_pdf.product_id = product.id
+                                    historical_pdf.filename = new_filename
+                                    historical_pdf.pdf_url = url_for('serve_pdf', filename=new_filename, _external=True)
+                                    db.session.add(historical_pdf)
+                            except Exception as e:
+                                app.logger.error(f"Error moving PDF file: {str(e)}")
                         
-                        try:
-                            if os.path.exists(old_filepath):
-                                import shutil
-                                shutil.copy2(old_filepath, new_filepath)
-                                os.remove(old_filepath)  # Remove from current batch
-                        except Exception as e:
-                            app.logger.error(f"Error moving PDF file: {str(e)}")
-                        
-                        db.session.delete(pdf)  # Remove PDF record
+                        db.session.delete(pdf)  # Remove old PDF record
 
                 if product.coa_pdf:
                     # Move COA to history
