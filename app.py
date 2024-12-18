@@ -396,7 +396,8 @@ def template_list():
 def create_template():
     if request.method == 'POST':
         try:
-            template = models.ProductTemplate(name=request.form['name'])
+            template = models.ProductTemplate()
+            template.name = request.form['name']
 
             # Handle attributes
             attributes = {}
