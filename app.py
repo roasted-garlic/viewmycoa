@@ -263,7 +263,7 @@ def generate_pdf(product_id):
         api_data = {
             "template_id": product.craftmypdf_template_id,
             "export_type": "json",
-            "output_file": f"{product.title.replace(' ', '_')}_{product.batch_number}.pdf",
+            "output_file": f"{product.batch_number}.pdf",
             "expiration": 10,
             "data": json.dumps(final_data)
         }
@@ -316,7 +316,7 @@ def generate_pdf(product_id):
             
         # Create PDF record
         # Download and save PDF locally
-        pdf_filename = f"{product.title.replace(' ', '_')}_{product.batch_number}.pdf"
+        pdf_filename = f"{product.batch_number}.pdf"
         pdf_filepath = os.path.join('static', 'pdfs', pdf_filename)
         
         # Ensure pdfs directory exists
