@@ -171,8 +171,8 @@
                                     </a>
                                     {% endif %}
                                     {% for pdf in pdfs %}
-                                        {% if pdf.filename.startswith(history.batch_number) %}
-                                        <a href="{{ pdf.pdf_url }}?download=1" class="btn btn-primary btn-sm">
+                                        {% if pdf.filename.startswith('history_' + history.batch_number) %}
+                                        <a href="{{ url_for('serve_pdf', filename=pdf.filename) }}" class="btn btn-primary btn-sm">
                                             <i class="fas fa-file-pdf"></i> View Label PDF
                                         </a>
                                         {% endif %}
