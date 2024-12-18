@@ -47,6 +47,7 @@ class Product(db.Model):
     label_qty = db.Column(db.Integer, default=4, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     generated_pdfs = db.relationship('GeneratedPDF', backref='product', lazy='dynamic')
+    batch_history = db.relationship('BatchHistory', backref='product', lazy='dynamic')
 
     def set_attributes(self, attrs):
         if attrs is None:
@@ -56,6 +57,36 @@ class Product(db.Model):
         elif isinstance(attrs, str):
             try:
                 # Parse string to ensure it's valid JSON and convert back
+                parsed = json.loads(attrs)
+                self.attributes = json.dumps(parsed)
+            except json.JSONDecodeError:
+                self.attributes = json.dumps({})
+        else:
+            self.attributes = json.dumps({})
+
+    def get_attributes(self):
+        if not self.attributes:
+            return {}
+        try:
+            return json.loads(self.attributes)
+        except json.JSONDecodeError:
+            return {}
+
+class BatchHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id', ondelete='CASCADE'), nullable=False)
+    batch_number = db.Column(db.String(8), nullable=False)
+    attributes = db.Column(db.Text)  # Stored as JSON
+    coa_pdf = db.Column(db.String(500))  # URL/path to COA PDF
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    
+    def set_attributes(self, attrs):
+        if attrs is None:
+            self.attributes = json.dumps({})
+        elif isinstance(attrs, (dict, list)):
+            self.attributes = json.dumps(attrs)
+        elif isinstance(attrs, str):
+            try:
                 parsed = json.loads(attrs)
                 self.attributes = json.dumps(parsed)
             except json.JSONDecodeError:

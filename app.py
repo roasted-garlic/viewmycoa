@@ -75,19 +75,37 @@ def index():
 @app.route('/search')
 def search_results():
     query = request.args.get('q', '')
+    # Search current products
     products = models.Product.query.filter(
         (models.Product.title.ilike(f'%{query}%'))
         | (models.Product.batch_number.ilike(f'%{query}%'))).all()
+    
+    # Search batch history
+    batch_history = models.BatchHistory.query.filter(
+        models.BatchHistory.batch_number.ilike(f'%{query}%')
+    ).all()
+    
     return render_template('search_results.html',
                            products=products,
+                           batch_history=batch_history,
                            query=query)
 
 
 @app.route('/batch/<batch_number>')
 def public_product_detail(batch_number):
-    product = models.Product.query.filter_by(
-        batch_number=batch_number).first_or_404()
-    return render_template('public_product_detail.html', product=product)
+    # First try to find a current product
+    product = models.Product.query.filter_by(batch_number=batch_number).first()
+    if product:
+        return render_template('public_product_detail.html', 
+                             product=product, 
+                             is_historical=False)
+    
+    # If not found, look for historical record
+    history = models.BatchHistory.query.filter_by(batch_number=batch_number).first_or_404()
+    return render_template('public_product_detail.html', 
+                         product=history.product,
+                         batch_history=history,
+                         is_historical=True)
 
 
 
@@ -477,7 +495,34 @@ def edit_product(product_id):
     if request.method == 'POST':
         try:
             product.title = request.form['title']
-            product.batch_number = request.form['batch_number']
+            new_batch_number = request.form['batch_number']
+            if new_batch_number != product.batch_number:
+                # Create batch history record
+                batch_history = models.BatchHistory()
+                batch_history.product_id = product.id
+                batch_history.batch_number = product.batch_number
+                batch_history.set_attributes(product.get_attributes())
+                if product.coa_pdf:
+                    # Copy the COA file to a new location
+                    old_coa = product.coa_pdf
+                    if old_coa:
+                        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                        new_filename = f"history_{os.path.basename(old_coa)}"
+                        new_filepath = os.path.join('pdfs', new_filename)
+                        try:
+                            if os.path.exists(os.path.join('static', old_coa)):
+                                os.makedirs(os.path.join('static', 'pdfs'), exist_ok=True)
+                                import shutil
+                                shutil.copy2(
+                                    os.path.join('static', old_coa),
+                                    os.path.join('static', new_filepath)
+                                )
+                                batch_history.coa_pdf = new_filepath
+                        except Exception as e:
+                            app.logger.error(f"Error copying COA file: {str(e)}")
+                
+                db.session.add(batch_history)
+                product.batch_number = new_batch_number
             product.label_qty = int(request.form.get('label_qty', 4))
             product.template_id = request.form.get('template_id', None)
             if request.form.get('craftmypdf_template_id'):
