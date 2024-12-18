@@ -166,8 +166,7 @@
                                     <i class="fas fa-file-pdf"></i> View COA
                                 </a>
                                 {% endif %}
-                                {% set history_label = 'history_' + history.batch_number + '_' %}
-                                {% for pdf in pdfs if history_label in pdf.filename %}
+                                {% for pdf in pdfs if pdf.batch_history_id == history.id %}
                                 <div class="btn-group">
                                     <a href="{{ url_for('serve_pdf', filename=pdf.filename) }}" class="btn btn-primary btn-sm">
                                         <i class="fas fa-file-pdf"></i> View Label
