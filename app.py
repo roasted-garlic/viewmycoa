@@ -527,7 +527,7 @@ def edit_product(product_id):
                         db.session.delete(pdf)  # Remove PDF record
 
                 if product.coa_pdf:
-                    # Copy the COA file to history
+                    # Move COA to history
                     old_coa = product.coa_pdf
                     if old_coa:
                         new_filename = f"history_{os.path.basename(old_coa)}"
@@ -536,16 +536,18 @@ def edit_product(product_id):
                             if os.path.exists(os.path.join('static', old_coa)):
                                 os.makedirs(os.path.join('static', 'pdfs'), exist_ok=True)
                                 import shutil
-                                shutil.copy2(
+                                shutil.move(
                                     os.path.join('static', old_coa),
                                     os.path.join('static', new_filepath)
                                 )
                                 batch_history.coa_pdf = new_filepath
+                                product.coa_pdf = None
                         except Exception as e:
-                            app.logger.error(f"Error copying COA file: {str(e)}")
-                
+                            app.logger.error(f"Error moving COA file: {str(e)}")
+
                 db.session.add(batch_history)
                 product.batch_number = new_batch_number
+                product.coa_pdf = None  # Clear current COA
             product.label_qty = int(request.form.get('label_qty', 4))
             product.template_id = request.form.get('template_id', None)
             if request.form.get('craftmypdf_template_id'):
