@@ -35,18 +35,21 @@ def serve_pdf(filename):
     try:
         path = os.path.join('static', 'pdfs')
         download = request.args.get('download', '0') == '1'
-        response = send_from_directory(path, filename, mimetype='application/pdf')
         
-        if download:
-            response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
-        else:
-            response.headers['Content-Disposition'] = 'inline'
+        # Serve file directly with correct headers
+        with open(os.path.join(path, filename), 'rb') as f:
+            response = app.make_response(f.read())
+            response.headers['Content-Type'] = 'application/pdf'
             
-        response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '0'
-        return response
+            if download:
+                response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+            else:
+                response.headers['Content-Disposition'] = 'inline'
+                
+            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+            return response
     except Exception as e:
         return str(e), 404
 
