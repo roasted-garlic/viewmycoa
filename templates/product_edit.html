@@ -129,9 +129,9 @@
                                 {% if product.coa_pdf.lower().endswith(('.jpg', '.jpeg', '.png', '.gif')) %}
                                     <img src="{{ url_for('static', filename=product.coa_pdf) }}" class="img-thumbnail mt-2" style="max-height: 200px" alt="COA Preview">
                                 {% else %}
-                                    <div class="text-center p-3 bg-light rounded">
-                                        <i class="fas fa-file-pdf fa-3x text-danger"></i>
-                                        <div class="mt-2">PDF Document</div>
+                                    <div class="text-center p-3 bg-secondary rounded">
+                                        <i class="fas fa-file-pdf fa-3x text-white"></i>
+                                        <div class="mt-2 text-white">PDF Document</div>
                                     </div>
                                 {% endif %}
                             </div>
