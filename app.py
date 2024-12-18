@@ -513,8 +513,8 @@ def edit_product(product_id):
                         # Create historical version of the PDF
                         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
                         # Handle label PDFs
-                        if pdf.filename.startswith('label_'):
-                            new_filename = f"history_{history.batch_number}_{timestamp}.pdf"
+                        if 'label_' in pdf.filename:
+                            new_filename = f"history_label_{batch_history.batch_number}_{timestamp}.pdf"
                             new_filepath = os.path.join('static', 'pdfs', new_filename)
                             old_filepath = os.path.join('static', 'pdfs', pdf.filename)
                             
