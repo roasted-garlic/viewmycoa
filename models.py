@@ -28,6 +28,7 @@ class Product(db.Model):
     craftmypdf_template_id = db.Column(db.String(255))
     label_qty = db.Column(db.Integer, default=4, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    generated_pdfs = db.relationship('GeneratedPDF', backref='product', lazy='dynamic')
 
     def set_attributes(self, attrs):
         self.attributes = json.dumps(attrs)
