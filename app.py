@@ -33,30 +33,22 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 @app.route('/static/pdfs/<path:filename>')
 def serve_pdf(filename):
     try:
-        path = os.path.join('static', 'pdfs')
         download = request.args.get('download', '0') == '1'
         
-        # Check if file exists
-        file_path = os.path.join(path, filename)
-        if not os.path.exists(file_path):
-            return "File not found", 404
-            
-        # Serve file directly with correct headers
-        with open(file_path, 'rb') as f:
-            response = app.make_response(f.read())
-            response.headers['Content-Type'] = 'application/pdf'
-            
-            # Set filename with quotes to handle special characters
-            safe_filename = filename.replace('"', '\\"')
-            if download:
-                response.headers['Content-Disposition'] = f'attachment; filename="{safe_filename}"'
-            else:
-                response.headers['Content-Disposition'] = f'inline; filename="{safe_filename}"'
-                
-            # Set content length
-            response.headers['Content-Length'] = os.path.getsize(file_path)
-            response.headers['Accept-Ranges'] = 'bytes'
-            response.headers['Cache-Control'] = 'public, max-age=0'
+        if download:
+            return send_from_directory(
+                os.path.join('static', 'pdfs'),
+                filename,
+                as_attachment=True,
+                mimetype='application/pdf'
+            )
+        else:
+            response = send_from_directory(
+                os.path.join('static', 'pdfs'),
+                filename,
+                mimetype='application/pdf'
+            )
+            response.headers['Content-Disposition'] = 'inline'
             return response
     except Exception as e:
         return str(e), 404
