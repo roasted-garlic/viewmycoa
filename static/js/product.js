@@ -140,9 +140,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Image preview
-    const imageInputs = document.querySelectorAll('input[type="file"]');
-    imageInputs.forEach(input => {
+    // File preview
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    fileInputs.forEach(input => {
         input.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -152,21 +152,31 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.createElement('img');
-                    preview.src = e.target.result;
-                    preview.className = 'img-thumbnail mt-2';
-                    preview.style.maxHeight = '200px';
-                    
-                    const previewContainer = input.parentElement;
-                    const existingPreview = previewContainer.querySelector('img');
-                    if (existingPreview) {
-                        existingPreview.remove();
-                    }
-                    previewContainer.appendChild(preview);
-                };
-                reader.readAsDataURL(file);
+                const previewContainer = input.parentElement;
+                const existingPreview = previewContainer.querySelector('.preview-element');
+                if (existingPreview) {
+                    existingPreview.remove();
+                }
+
+                if (file.type === 'application/pdf') {
+                    const pdfPreview = document.createElement('div');
+                    pdfPreview.className = 'preview-element text-center p-3 bg-secondary rounded mt-2';
+                    pdfPreview.innerHTML = `
+                        <i class="fas fa-file-pdf fa-3x text-white"></i>
+                        <div class="mt-2 text-white">${file.name}</div>
+                    `;
+                    previewContainer.appendChild(pdfPreview);
+                } else if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const preview = document.createElement('img');
+                        preview.src = e.target.result;
+                        preview.className = 'preview-element img-thumbnail mt-2';
+                        preview.style.maxHeight = '200px';
+                        previewContainer.appendChild(preview);
+                    };
+                    reader.readAsDataURL(file);
+                }
             }
         });
     });
