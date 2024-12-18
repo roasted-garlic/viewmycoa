@@ -305,7 +305,7 @@ def generate_pdf(product_id):
 
         # Log full request and response details for debugging
         app.logger.debug(
-            f"CraftMyPDF API Request URL: https://api.craftmypdf.com/v1/create"
+            "CraftMyPDF API Request URL: https://api.craftmypdf.com/v1/create"
         )
         app.logger.debug(f"CraftMyPDF API Headers: {headers}")
         app.logger.debug(
