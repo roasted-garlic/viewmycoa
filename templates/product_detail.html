@@ -126,7 +126,7 @@
                 <ul class="list-group" id="pdfList">
                     {% for pdf in pdfs %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <a href="{{ pdf.pdf_url }}" target="_blank" rel="noopener noreferrer">{{ pdf.filename }}</a>
+                        <a href="{{ pdf.pdf_url }}" download="{{ pdf.filename }}" target="_blank">{{ pdf.filename }}</a>
                         <button class="btn btn-danger btn-sm delete-pdf" data-pdf-id="{{ pdf.id }}">
                             <i class="fas fa-trash"></i>
                         </button>
