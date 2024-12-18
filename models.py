@@ -24,6 +24,7 @@ class Product(db.Model):
     attributes = db.Column(db.Text)  # Stored as JSON
     product_image = db.Column(db.String(500))  # URL/path to image
     label_image = db.Column(db.String(500))    # URL/path to image
+    coa_pdf = db.Column(db.String(500))      # URL/path to COA PDF
     template_id = db.Column(db.Integer, db.ForeignKey('product_template.id', ondelete='SET NULL'), nullable=True)
     craftmypdf_template_id = db.Column(db.String(255))
     label_qty = db.Column(db.Integer, default=4, nullable=False)

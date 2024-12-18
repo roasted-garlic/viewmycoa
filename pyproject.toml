@@ -15,4 +15,5 @@ dependencies = [
     "python-barcode>=0.15.1",
     "barcode>=1.0.4",
     "flask-migrate>=4.0.7",
+    "alembic>=1.14.0",
 ]

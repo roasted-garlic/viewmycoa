@@ -174,6 +174,15 @@ def create_product():
             product.product_image = save_image(product_image)
         if label_image:
             product.label_image = save_image(label_image)
+            
+        # Handle COA PDF upload
+        coa_pdf = request.files.get('coa_pdf')
+        if coa_pdf and coa_pdf.filename:
+            filename = secure_filename(coa_pdf.filename)
+            filepath = os.path.join('pdfs', filename)
+            os.makedirs(os.path.join('static', 'pdfs'), exist_ok=True)
+            coa_pdf.save(os.path.join('static', filepath))
+            product.coa_pdf = filepath
 
         db.session.add(product)
         db.session.commit()
@@ -460,6 +469,21 @@ def edit_product(product_id):
                     with open(os.path.join('static', filepath), 'wb') as f:
                         f.write(processed_image.getvalue())
                     product.product_image = filepath
+                    
+            # Handle COA PDF upload
+            if 'coa_pdf' in request.files and request.files['coa_pdf'].filename:
+                coa_pdf = request.files['coa_pdf']
+                if coa_pdf:
+                    if product.coa_pdf:  # Delete old PDF if it exists
+                        try:
+                            os.remove(os.path.join('static', product.coa_pdf))
+                        except OSError:
+                            pass
+                    filename = secure_filename(coa_pdf.filename)
+                    filepath = os.path.join('pdfs', filename)
+                    os.makedirs(os.path.join('static', 'pdfs'), exist_ok=True)
+                    coa_pdf.save(os.path.join('static', filepath))
+                    product.coa_pdf = filepath
             
             # Handle label image
             if 'label_image' in request.files and request.files['label_image'].filename:
