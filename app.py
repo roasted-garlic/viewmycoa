@@ -231,6 +231,13 @@ def generate_pdf(product_id):
         else:
             final_data = label_data
 
+        # Add batch_url to each label's data
+        if isinstance(final_data, dict) and "label_data" in final_data:
+            for label in final_data["label_data"]:
+                label["batch_url"] = url_for('public_product_detail', batch_number=product.batch_number, _external=True)
+        else:
+            final_data["batch_url"] = url_for('public_product_detail', batch_number=product.batch_number, _external=True)
+
         api_data = {
             "template_id": product.craftmypdf_template_id,
             "export_type": "json",
@@ -527,7 +534,8 @@ def generate_json(product_id):
             "sku": product.sku,
             "barcode": product.barcode,
             "product_name": product.title,
-            "label_image": url_for('static', filename=product.label_image, _external=True) if product.label_image else None
+            "label_image": url_for('static', filename=product.label_image, _external=True) if product.label_image else None,
+            "batch_url": url_for('public_product_detail', batch_number=product.batch_number, _external=True)
         }
         
         # Add all product attributes
