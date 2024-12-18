@@ -10,10 +10,17 @@ class ProductTemplate(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     def set_attributes(self, attrs):
-        if isinstance(attrs, str):
-            self.attributes = attrs
+        if isinstance(attrs, dict):
+            self.attributes = json.dumps(attrs)
+        elif isinstance(attrs, str):
+            try:
+                # Validate it's a valid JSON string
+                json.loads(attrs)
+                self.attributes = attrs
+            except json.JSONDecodeError:
+                self.attributes = '{}'
         else:
-            self.attributes = json.dumps(attrs) if attrs else '{}'
+            self.attributes = '{}'
 
     def get_attributes(self):
         if not self.attributes:
@@ -40,10 +47,17 @@ class Product(db.Model):
     generated_pdfs = db.relationship('GeneratedPDF', backref='product', lazy='dynamic')
 
     def set_attributes(self, attrs):
-        if isinstance(attrs, str):
-            self.attributes = attrs
+        if isinstance(attrs, dict):
+            self.attributes = json.dumps(attrs)
+        elif isinstance(attrs, str):
+            try:
+                # Validate it's a valid JSON string
+                json.loads(attrs)
+                self.attributes = attrs
+            except json.JSONDecodeError:
+                self.attributes = '{}'
         else:
-            self.attributes = json.dumps(attrs) if attrs else '{}'
+            self.attributes = '{}'
 
     def get_attributes(self):
         if not self.attributes:
