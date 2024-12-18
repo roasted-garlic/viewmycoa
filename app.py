@@ -61,7 +61,7 @@ with app.app_context():
 
 @app.route('/')
 def index():
-    return redirect(url_for('products'))
+    return render_template('search_home.html')
 
 @app.route('/products')
 def products():
