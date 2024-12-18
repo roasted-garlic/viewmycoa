@@ -60,29 +60,9 @@ with app.app_context():
     db.create_all()
 
 @app.route('/')
-def admin():
+def index():
     products = models.Product.query.all()
     return render_template('product_list.html', products=products)
-
-@app.route('/search')
-def public_search():
-    return render_template('public/search.html')
-
-@app.route('/search/results')
-def search_results():
-    query = request.args.get('q', '').strip()
-    if query:
-        products = models.Product.query.filter(
-            (models.Product.batch_number.ilike(f'%{query}%')) |
-            (models.Product.title.ilike(f'%{query}%'))
-        ).all()
-        return render_template('public/search_results.html', products=products, query=query)
-    return render_template('public/search.html')
-
-@app.route('/product/<batch_number>')
-def public_product_detail(batch_number):
-    product = models.Product.query.filter_by(batch_number=batch_number).first_or_404()
-    return render_template('public/product_detail.html', product=product)
 
 def fetch_craftmypdf_templates():
     """Fetch templates from CraftMyPDF API"""
