@@ -1,3 +1,4 @@
+
 from app import db
 import datetime
 import json
@@ -7,7 +8,7 @@ class ProductTemplate(db.Model):
     name = db.Column(db.String(200), nullable=False)
     attributes = db.Column(db.Text)  # Stored as JSON
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-generated_pdfs = db.relationship('GeneratedPDF', backref='product', lazy='dynamic', cascade='all, delete-orphan')
+    generated_pdfs = db.relationship('GeneratedPDF', backref='product', lazy='dynamic', cascade='all, delete-orphan')
 
     def set_attributes(self, attrs):
         self.attributes = json.dumps(attrs)
@@ -27,9 +28,8 @@ class Product(db.Model):
     template_id = db.Column(db.Integer, db.ForeignKey('product_template.id', ondelete='SET NULL'), nullable=True)
     craftmypdf_template_id = db.Column(db.String(255))
     label_qty = db.Column(db.Integer, default=4, nullable=False)
-    craftmypdf_template_id = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-generated_pdfs = db.relationship('GeneratedPDF', backref='product', lazy='dynamic', cascade='all, delete-orphan')
+    generated_pdfs = db.relationship('GeneratedPDF', backref='product', lazy='dynamic', cascade='all, delete-orphan')
 
     def set_attributes(self, attrs):
         self.attributes = json.dumps(attrs)
@@ -42,5 +42,4 @@ class GeneratedPDF(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey('product.id', ondelete='CASCADE'), nullable=False)
     filename = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-generated_pdfs = db.relationship('GeneratedPDF', backref='product', lazy='dynamic', cascade='all, delete-orphan')
     pdf_url = db.Column(db.String(500))
