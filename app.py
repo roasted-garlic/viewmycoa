@@ -175,6 +175,14 @@ def create_product():
         if label_image:
             product.label_image = save_image(label_image)
 
+        # Handle COA PDF upload
+        coa_pdf = request.files.get('coa_pdf')
+        if coa_pdf and coa_pdf.filename:
+            filename = secure_filename(coa_pdf.filename)
+            filepath = os.path.join('static', 'pdfs', filename)
+            coa_pdf.save(filepath)
+            product.coa_pdf = filepath
+
         db.session.add(product)
         db.session.commit()
         
