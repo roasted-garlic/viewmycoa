@@ -16,11 +16,13 @@
         </div>
         <div class="row justify-content-center">
             <div class="col-md-6">
-                <form action="{{ url_for('search_results') }}" method="get">
+                <form action="{{ url_for('search_results') }}" method="get" onsubmit="return validateSearch()">
                     <div class="input-group mb-3">
                         <input type="text" name="q" class="form-control form-control-lg rounded-pill" 
                                placeholder="Enter batch number or product name..." 
-                               aria-label="Search products">
+                               aria-label="Search products"
+                               required
+                               minlength="1">
                     </div>
                     <div class="text-center">
                         <button type="submit" class="btn btn-primary btn-lg rounded-pill px-4">
@@ -28,6 +30,16 @@
                         </button>
                     </div>
                 </form>
+                <script>
+                    function validateSearch() {
+                        const searchInput = document.querySelector('input[name="q"]');
+                        if (!searchInput.value.trim()) {
+                            alert('Please enter a search term');
+                            return false;
+                        }
+                        return true;
+                    }
+                </script>
             </div>
         </div>
     </div>
