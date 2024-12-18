@@ -348,11 +348,10 @@ def generate_pdf(product_id):
                 f.write(pdf_response.content)
 
             # Create PDF record
-            pdf = models.GeneratedPDF(
-                product_id=product.id,
-                filename=pdf_filename,
-                pdf_url=url_for('serve_pdf', filename=pdf_filename, _external=True)
-            )
+            pdf = models.GeneratedPDF()
+            pdf.product_id = product.id
+            pdf.filename = pdf_filename
+            pdf.pdf_url = url_for('serve_pdf', filename=pdf_filename, _external=True)
             db.session.add(pdf)
             db.session.commit()
 
