@@ -1,3 +1,20 @@
+
+/* File input styling */
+.form-control[type="file"] {
+    padding: 0.375rem 0.75rem;
+    background-color: #2b3035;
+    border-color: #495057;
+    color: #fff;
+}
+
+.form-control[type="file"]::-webkit-file-upload-button {
+    display: none;
+}
+
+.form-control[type="file"]::file-selector-button {
+    display: none;
+}
+
 /* Custom styles to complement Bootstrap */
 
 /* Navbar styling */
