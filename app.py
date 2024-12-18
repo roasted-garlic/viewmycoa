@@ -37,24 +37,32 @@ def serve_pdf(filename):
         file_path = os.path.join(pdf_dir, filename)
         
         if not os.path.exists(file_path):
+            app.logger.error(f"PDF not found at path: {file_path}")
             return "PDF not found", 404
             
         download = request.args.get('download', '0') == '1'
         
-        with open(file_path, 'rb') as f:
-            response = app.make_response(f.read())
-            response.headers['Content-Type'] = 'application/pdf'
-            response.headers['Content-Length'] = os.path.getsize(file_path)
+        response = send_from_directory(
+            pdf_dir,
+            filename,
+            mimetype='application/pdf',
+            as_attachment=download,
+            download_name=filename
+        )
+        
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+        response.headers.add('X-Content-Type-Options', 'nosniff')
+        
+        if download:
+            response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+        else:
+            response.headers['Content-Disposition'] = f'inline; filename="{filename}"'
             
-            if download:
-                response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
-            else:
-                response.headers['Content-Disposition'] = f'inline; filename="{filename}"'
-            
-            return response
+        return response
     except Exception as e:
         app.logger.error(f"Error serving PDF {filename}: {str(e)}")
-        return str(e), 500
+        return f"Error accessing PDF: {str(e)}", 500
 
 db.init_app(app)
 
