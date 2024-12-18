@@ -17,15 +17,15 @@
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <form action="{{ url_for('search_results') }}" method="get" onsubmit="return validateSearch()">
-                    <div class="d-flex flex-column flex-md-row gap-3">
-                        <div class="flex-grow-1">
+                    <div class="d-flex flex-column gap-3">
+                        <div class="w-100">
                             <input type="text" name="q" class="form-control form-control-lg rounded-pill" 
                                    placeholder="Enter batch number or product name..." 
                                    aria-label="Search products"
                                    required
                                    minlength="1">
                         </div>
-                        <button type="submit" class="btn btn-primary btn-lg rounded-pill px-4 w-100 w-md-auto">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill px-4 w-100">
                             <i class="fas fa-search"></i> Search
                         </button>
                     </div>
