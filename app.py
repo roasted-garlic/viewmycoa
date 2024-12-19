@@ -551,6 +551,22 @@ def edit_template(template_id):
     return render_template('template_edit.html', template=template)
 
 
+@app.route('/api/duplicate_template/<int:template_id>', methods=['POST'])
+def duplicate_template(template_id):
+    try:
+        original = models.ProductTemplate.query.get_or_404(template_id)
+        new_template = models.ProductTemplate()
+        new_template.name = f"{original.name} - Copy"
+        new_template.set_attributes(original.get_attributes())
+        
+        db.session.add(new_template)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'new_template_id': new_template.id})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/delete_template/<int:template_id>', methods=['DELETE'])
 def delete_template(template_id):
     try:
