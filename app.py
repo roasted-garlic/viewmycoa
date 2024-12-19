@@ -109,6 +109,50 @@ def public_product_detail(batch_number):
 
 
 
+@app.route('/categories')
+def categories():
+    categories = models.Category.query.order_by(models.Category.name).all()
+    return render_template('category_list.html', categories=categories)
+
+@app.route('/api/categories', methods=['POST'])
+def create_category():
+    try:
+        data = request.get_json()
+        category = models.Category(
+            name=data['name'],
+            description=data.get('description', '')
+        )
+        db.session.add(category)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/categories/<int:category_id>', methods=['PUT'])
+def update_category(category_id):
+    try:
+        category = models.Category.query.get_or_404(category_id)
+        data = request.get_json()
+        category.name = data['name']
+        category.description = data.get('description', '')
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/categories/<int:category_id>', methods=['DELETE'])
+def delete_category(category_id):
+    try:
+        category = models.Category.query.get_or_404(category_id)
+        db.session.delete(category)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+
 @app.route('/products')
 def products():
     products = models.Product.query.all()
@@ -171,11 +215,15 @@ def fetch_craftmypdf_templates():
 @app.route('/product/new', methods=['GET', 'POST'])
 def create_product():
     templates = models.ProductTemplate.query.all()
+    categories = models.Category.query.order_by(models.Category.name).all()
     pdf_templates = fetch_craftmypdf_templates()
 
     if request.method == 'POST':
         title = request.form.get('title')
         attributes = {}
+        
+        # Get selected category IDs
+        category_ids = request.form.getlist('category_ids')
 
         # Process dynamic attributes
         attr_names = request.form.getlist('attr_name[]')
@@ -214,6 +262,11 @@ def create_product():
             coa_pdf.save(os.path.join('static', filepath))
             product.coa_pdf = filepath
 
+        # Assign categories
+        if category_ids:
+            selected_categories = models.Category.query.filter(models.Category.id.in_(category_ids)).all()
+            product.categories = selected_categories
+
         db.session.add(product)
         db.session.commit()
 
@@ -222,6 +275,7 @@ def create_product():
 
     return render_template('product_create.html',
                            templates=templates,
+                           categories=categories,
                            pdf_templates=pdf_templates)
 
 

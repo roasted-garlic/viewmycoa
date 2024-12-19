@@ -49,6 +49,16 @@
             </div>
 
             <div class="mb-3">
+                <label for="categories" class="form-label">Categories</label>
+                <select class="form-select" id="categories" name="category_ids" multiple>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+                <small class="form-text text-muted">Hold Ctrl/Cmd to select multiple categories</small>
+            </div>
+
+            <div class="mb-3">
                 <label class="form-label">Product Attributes</label>
                 <div id="attributesContainer">
                     <!-- Attributes will be added here dynamically -->

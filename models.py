@@ -1,4 +1,3 @@
-
 from app import db
 import datetime
 import json
@@ -32,6 +31,19 @@ class ProductTemplate(db.Model):
         except json.JSONDecodeError:
             return {}
 
+# Association table for Product-Category relationship
+product_categories = db.Table('product_categories',
+    db.Column('product_id', db.Integer, db.ForeignKey('product.id', ondelete='CASCADE')),
+    db.Column('category_id', db.Integer, db.ForeignKey('category.id', ondelete='CASCADE'))
+)
+
+class Category(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True)
+    description = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    products = db.relationship('Product', secondary=product_categories, backref=db.backref('categories', lazy='dynamic'))
+
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
@@ -48,6 +60,7 @@ class Product(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     generated_pdfs = db.relationship('GeneratedPDF', backref='product', lazy='dynamic')
     batch_history = db.relationship('BatchHistory', backref='product', lazy='dynamic')
+    # Categories relationship is handled through the backref in Category model
 
     def set_attributes(self, attrs):
         if attrs is None:
