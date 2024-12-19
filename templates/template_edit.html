@@ -3,6 +3,11 @@
 {% block content %}
 <div class="row">
     <div class="col-md-8 offset-md-2">
+        <div class="mb-4">
+            <a href="{{ url_for('template_list') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Templates
+            </a>
+        </div>
         <h1>Edit Product Template</h1>
         <form method="POST" id="templateForm">
             <div class="mb-3">
