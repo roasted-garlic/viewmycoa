@@ -233,6 +233,11 @@ def product_detail(product_id):
         models.GeneratedPDF.product_id == product_id
     ).order_by(models.GeneratedPDF.created_at.desc()).all()
     
+    # Debug logging
+    app.logger.debug(f"Found {len(pdfs)} PDFs for product {product_id}")
+    for pdf in pdfs:
+        app.logger.debug(f"PDF ID: {pdf.id}, Filename: {pdf.filename}, Batch History ID: {pdf.batch_history_id}")
+    
     return render_template('product_detail.html', 
                          product=product, 
                          pdfs=pdfs, 
