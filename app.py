@@ -924,8 +924,9 @@ def generate_json(product_id):
 
 def save_image(file, product_id, image_type):
     # Create product-specific directory
-    product_dir = os.path.join(app.config['UPLOAD_FOLDER'], str(product_id))
-    os.makedirs(product_dir, exist_ok=True)
+    product_dir = os.path.join('uploads', str(product_id))
+    full_dir = os.path.join('static', product_dir)
+    os.makedirs(full_dir, exist_ok=True)
 
     # Get file extension
     ext = os.path.splitext(secure_filename(file.filename))[1]
