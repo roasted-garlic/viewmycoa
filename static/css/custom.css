@@ -107,14 +107,44 @@
 /* PDF list styles */
 .list-group-item {
     transition: background-color 0.2s;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     padding: 0.75rem 1rem;
 }
 
 .list-group-item:hover {
     background-color: var(--bs-secondary-bg);
+}
+
+.list-group-item > span {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+@media (min-width: 1200px) {
+    .list-group-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .list-group-item > span {
+        margin-bottom: 0;
+    }
+    
+    .list-group-item .d-flex.gap-2 {
+        width: auto;
+    }
+}
+
+@media (max-width: 1199px) {
+    .list-group-item .d-flex.gap-2 {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .list-group-item .btn {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
 }
 
 .list-group-item .btn {
