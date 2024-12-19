@@ -45,6 +45,20 @@
     letter-spacing: 0.3px;
 }
 
+
+/* Responsive button styles for Historical Batches */
+@media (max-width: 767px) {
+    .list-group-item .btn {
+        width: 100%;
+    }
+}
+
+@media (min-width: 768px) {
+    .list-group-item .d-flex.flex-column.flex-md-row {
+        width: auto;
+    }
+}
+
 .nav-link:hover {
     background-color: rgba(13, 202, 240, 0.1);
     color: #0dcaf0 !important;
