@@ -542,11 +542,12 @@ def edit_product(product_id):
                     # Move COA to history
                     old_coa = product.coa_pdf
                     if old_coa:
-                        new_filename = f"history_{os.path.basename(old_coa)}"
-                        new_filepath = os.path.join('pdfs', new_filename)
+                        new_filename = f"history_coa_{batch_history.batch_number}.pdf"
+                        history_dir = os.path.join('pdfs', batch_history.batch_number)
+                        new_filepath = os.path.join(history_dir, new_filename)
                         try:
                             if os.path.exists(os.path.join('static', old_coa)):
-                                os.makedirs(os.path.join('static', 'pdfs'), exist_ok=True)
+                                os.makedirs(os.path.join('static', history_dir), exist_ok=True)
                                 import shutil
                                 shutil.move(
                                     os.path.join('static', old_coa),
