@@ -176,6 +176,16 @@
     }
 }
 
+@media (min-width: 1400px) {
+    .ms-xxl-4 {
+        margin-left: 1.5rem !important;
+    }
+    
+    .mb-xxl-0 {
+        margin-bottom: 0 !important;
+    }
+}
+
 
 .fa-spin {
     animation: fa-spin 1s linear infinite;
