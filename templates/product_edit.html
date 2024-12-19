@@ -11,45 +11,13 @@
         </div>
         <form method="POST" enctype="multipart/form-data" id="productForm">
             <div class="row mb-4">
-                <div class="col-md-12">
+                <div class="col-md-6">
                     <div class="card bg-dark border-secondary h-100">
                         <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <h5 class="card-title text-info mb-3">
-                                        <i class="fas fa-tag"></i> Product Name
-                                    </h5>
-                                    <input type="text" class="form-control" id="title" name="title" value="{{ product.title }}" required>
-                                </div>
-                                <div class="col-md-4">
-                                    <h5 class="card-title text-info mb-3">
-                                        <i class="fas fa-folder"></i> Category
-                                    </h5>
-                                    <select class="form-select" id="category" name="category_id">
-                                        <option value="">Select a category</option>
-                                        {% for category in categories %}
-                                        <option value="{{ category.id }}" {% if product.categories.first() and product.categories.first().id == category.id %}selected{% endif %}>{{ category.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <h5 class="card-title text-info mb-3">
-                                        <i class="fas fa-hashtag"></i> Batch Number
-                                    </h5>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="batchNumber" name="batch_number" value="{{ product.batch_number }}" readonly>
-                                        <button type="button" class="btn btn-secondary" id="generateBatch">
-                                            <i class="fas fa-random"></i> Generate
-                                        </button>
-                                    </div>
-                                    <div class="form-check mt-2">
-                                        <input class="form-check-input" type="checkbox" id="enableBatchEdit">
-                                        <label class="form-check-label" for="enableBatchEdit">
-                                            Enable manual editing
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
+                            <h5 class="card-title text-info mb-3">
+                                <i class="fas fa-tag"></i> Product Title
+                            </h5>
+                            <input type="text" class="form-control" id="title" name="title" value="{{ product.title }}" required>
                         </div>
                     </div>
                 </div>
@@ -69,7 +37,31 @@
                 </div>
             </div>
 
-            
+            <div class="mb-3">
+                <label for="category" class="form-label">Category</label>
+                <select class="form-select" id="category" name="category_id">
+                    <option value="">Select a category</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if product.categories.first() and product.categories.first().id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="batchNumber" class="form-label">Batch Number</label>
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control" id="batchNumber" name="batch_number" value="{{ product.batch_number }}" readonly>
+                    <button type="button" class="btn btn-secondary" id="generateBatch">
+                        <i class="fas fa-random"></i> Generate New
+                    </button>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="enableBatchEdit">
+                    <label class="form-check-label" for="enableBatchEdit">
+                        Enable manual batch number editing
+                    </label>
+                </div>
+            </div>
 
             <div class="mb-3">
                 <label class="form-label">Product Attributes</label>
