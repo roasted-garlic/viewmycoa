@@ -222,8 +222,8 @@ def create_product():
         title = request.form.get('title')
         attributes = {}
         
-        # Get selected category IDs
-        category_ids = request.form.getlist('category_ids')
+        # Get selected category ID
+        category_id = request.form.get('category_id')
 
         # Process dynamic attributes
         attr_names = request.form.getlist('attr_name[]')
@@ -262,10 +262,11 @@ def create_product():
             coa_pdf.save(os.path.join('static', filepath))
             product.coa_pdf = filepath
 
-        # Assign categories
-        if category_ids:
-            selected_categories = models.Category.query.filter(models.Category.id.in_(category_ids)).all()
-            product.categories = selected_categories
+        # Assign category
+        if category_id:
+            category = models.Category.query.get(category_id)
+            if category:
+                product.categories = [category]
 
         db.session.add(product)
         db.session.commit()
@@ -632,8 +633,16 @@ def edit_product(product_id):
             product.label_qty = int(request.form.get('label_qty', 4))
             product.template_id = request.form.get('template_id', None)
             if request.form.get('craftmypdf_template_id'):
-                product.craftmypdf_template_id = request.form[
-                    'craftmypdf_template_id']
+                product.craftmypdf_template_id = request.form['craftmypdf_template_id']
+
+            # Handle category assignment
+            category_id = request.form.get('category_id')
+            if category_id:
+                category = models.Category.query.get(category_id)
+                if category:
+                    product.categories = [category]
+            else:
+                product.categories = []  # Clear categories if none selected
 
             # Handle attributes
             attributes = {}

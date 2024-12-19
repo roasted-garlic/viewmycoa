@@ -49,13 +49,13 @@
             </div>
 
             <div class="mb-3">
-                <label for="categories" class="form-label">Categories</label>
-                <select class="form-select" id="categories" name="category_ids" multiple>
+                <label for="category" class="form-label">Category</label>
+                <select class="form-select" id="category" name="category_id">
+                    <option value="">Select a category</option>
                     {% for category in categories %}
                     <option value="{{ category.id }}">{{ category.name }}</option>
                     {% endfor %}
                 </select>
-                <small class="form-text text-muted">Hold Ctrl/Cmd to select multiple categories</small>
             </div>
 
             <div class="mb-3">

@@ -38,6 +38,16 @@
             </div>
 
             <div class="mb-3">
+                <label for="category" class="form-label">Category</label>
+                <select class="form-select" id="category" name="category_id">
+                    <option value="">Select a category</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if product.categories.first() and product.categories.first().id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
                 <label for="batchNumber" class="form-label">Batch Number</label>
                 <div class="input-group mb-2">
                     <input type="text" class="form-control" id="batchNumber" name="batch_number" value="{{ product.batch_number }}" readonly>
