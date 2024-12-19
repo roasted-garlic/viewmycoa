@@ -170,7 +170,7 @@
                                         <i class="fas fa-file-pdf"></i> View COA
                                     </a>
                                     {% endif %}
-                                    <a href="{{ url_for('public_product_detail', batch_number=history.batch_number) }}" class="btn btn-secondary btn-sm">
+                                    <a href="{{ url_for('public_product_detail', batch_number=history.batch_number) }}" class="btn btn-secondary btn-sm" target="_blank">
                                         <i class="fas fa-external-link-alt"></i> View Public Page
                                     </a>
                                     <button class="btn btn-danger btn-sm delete-history" data-history-id="{{ history.id }}">
