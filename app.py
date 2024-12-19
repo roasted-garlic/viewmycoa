@@ -502,10 +502,10 @@ def create_template():
             # Handle attributes
             attributes = {}
             attr_names = request.form.getlist('attr_name[]')
-            for name in attr_names:
+            attr_values = request.form.getlist('attr_value[]')
+            for name, value in zip(attr_names, attr_values):
                 if name:  # Only add if name is provided
-                    attributes[
-                        name] = ""  # Empty value as it's just a template
+                    attributes[name] = value
             template.set_attributes(attributes)
 
             db.session.add(template)
@@ -533,10 +533,10 @@ def edit_template(template_id):
             # Handle attributes
             attributes = {}
             attr_names = request.form.getlist('attr_name[]')
-            for name in attr_names:
+            attr_values = request.form.getlist('attr_value[]')
+            for name, value in zip(attr_names, attr_values):
                 if name:  # Only add if name is provided
-                    attributes[
-                        name] = ""  # Empty value as it's just a template
+                    attributes[name] = value
             template.set_attributes(attributes)
 
             db.session.commit()
