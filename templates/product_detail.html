@@ -1,3 +1,23 @@
+
+<!-- Duplicate Confirmation Modal -->
+<div class="modal fade" id="duplicateConfirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Duplication</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to duplicate this product?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmDuplicate">Duplicate</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% extends "base.html" %}
 
 {% block content %}
@@ -296,9 +316,19 @@
 <script>
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize duplicate confirmation modal
+    const duplicateModal = new bootstrap.Modal(document.getElementById('duplicateConfirmModal'));
+    
     // Handle product duplication
-    document.querySelector('.duplicate-product').addEventListener('click', async function() {
-        const productId = this.dataset.productId;
+    document.querySelector('.duplicate-product').addEventListener('click', function() {
+        duplicateModal.show();
+    });
+    
+    // Handle duplicate confirmation
+    document.getElementById('confirmDuplicate').addEventListener('click', async function() {
+        const productId = document.querySelector('.duplicate-product').dataset.productId;
+        duplicateModal.hide();
+        
         try {
             const response = await fetch(`/api/duplicate_product/${productId}`, {
                 method: 'POST'

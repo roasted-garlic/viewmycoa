@@ -802,9 +802,30 @@ def duplicate_product(product_id):
         new_product.batch_number = utils.generate_batch_number()
         new_product.sku = utils.generate_sku()
         new_product.barcode = utils.generate_upc_barcode()
-        new_product.set_attributes(original.get_attributes())  # Use getter/setter methods
-        new_product.product_image = original.product_image
-        new_product.label_image = original.label_image
+        new_product.set_attributes(original.get_attributes())
+
+        # Handle product image duplication
+        if original.product_image:
+            original_path = os.path.join('static', original.product_image)
+            if os.path.exists(original_path):
+                ext = os.path.splitext(original.product_image)[1]
+                new_filename = f'product_image_{new_product.batch_number}{ext}'
+                new_path = os.path.join('static', 'uploads', new_filename)
+                import shutil
+                shutil.copy2(original_path, new_path)
+                new_product.product_image = os.path.join('uploads', new_filename)
+
+        # Handle label image duplication
+        if original.label_image:
+            original_path = os.path.join('static', original.label_image)
+            if os.path.exists(original_path):
+                ext = os.path.splitext(original.label_image)[1]
+                new_filename = f'label_image_{new_product.batch_number}{ext}'
+                new_path = os.path.join('static', 'uploads', new_filename)
+                import shutil
+                shutil.copy2(original_path, new_path)
+                new_product.label_image = os.path.join('uploads', new_filename)
+
         new_product.template_id = original.template_id
         new_product.craftmypdf_template_id = original.craftmypdf_template_id
         new_product.label_qty = original.label_qty

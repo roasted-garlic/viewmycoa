@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', function() {
     // Delete COA handler
     document.querySelectorAll('.delete-coa').forEach(button => {
