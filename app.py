@@ -230,13 +230,9 @@ def create_product():
         attr_values = request.form.getlist('attr_value[]')
         attributes = dict(zip(attr_names, attr_values))
 
-        # Handle file uploads
-        product_image = request.files.get('product_image')
-        label_image = request.files.get('label_image')
-
         # Generate UPC-A barcode number
         barcode_number = utils.generate_upc_barcode()
-        batch_number = generate_batch_number()
+        batch_number = utils.generate_batch_number()
         sku = utils.generate_sku()  # Generate unique SKU
 
         product = models.Product()
@@ -246,11 +242,19 @@ def create_product():
         product.sku = sku
         product.craftmypdf_template_id = request.form.get('craftmypdf_template_id')
         product.set_attributes(attributes)
+        
+        # Add to database to get product ID
+        db.session.add(product)
+        db.session.flush()
+
+        # Handle file uploads
+        product_image = request.files.get('product_image')
+        label_image = request.files.get('label_image')
 
         if product_image:
-            product.product_image = save_image(product_image)
+            product.product_image = save_image(product_image, product.id, 'product_image')
         if label_image:
-            product.label_image = save_image(label_image)
+            product.label_image = save_image(label_image, product.id, 'label_image')
 
         # Handle COA PDF upload
         coa_pdf = request.files.get('coa_pdf')
@@ -671,22 +675,16 @@ def edit_product(product_id):
             product.set_attributes(attributes)
 
             # Handle product image
-            if 'product_image' in request.files and request.files[
-                    'product_image'].filename:
+            # Handle product image
+            if 'product_image' in request.files and request.files['product_image'].filename:
                 file = request.files['product_image']
                 if file and utils.is_valid_image(file):
                     if product.product_image:  # Delete old image if it exists
                         try:
-                            os.remove(
-                                os.path.join('static', product.product_image))
+                            os.remove(os.path.join('static', product.product_image))
                         except OSError:
                             pass
-                    filename = utils.clean_filename(file.filename)
-                    filepath = os.path.join('uploads', filename)
-                    processed_image = utils.process_image(file)
-                    with open(os.path.join('static', filepath), 'wb') as f:
-                        f.write(processed_image.getvalue())
-                    product.product_image = filepath
+                    product.product_image = save_image(file, product.id, 'product_image')
 
             # Handle COA PDF upload
             if 'coa_pdf' in request.files and request.files['coa_pdf'].filename:
@@ -706,22 +704,15 @@ def edit_product(product_id):
                         product.coa_pdf = filepath
 
             # Handle label image
-            if 'label_image' in request.files and request.files[
-                    'label_image'].filename:
+            if 'label_image' in request.files and request.files['label_image'].filename:
                 file = request.files['label_image']
                 if file and utils.is_valid_image(file):
                     if product.label_image:  # Delete old image if it exists
                         try:
-                            os.remove(
-                                os.path.join('static', product.label_image))
+                            os.remove(os.path.join('static', product.label_image))
                         except OSError:
                             pass
-                    filename = utils.clean_filename(file.filename)
-                    filepath = os.path.join('uploads', filename)
-                    processed_image = utils.process_image(file)
-                    with open(os.path.join('static', filepath), 'wb') as f:
-                        f.write(processed_image.getvalue())
-                    product.label_image = filepath
+                    product.label_image = save_image(file, product.id, 'label_image')
 
             db.session.commit()
             flash('Product updated successfully!', 'success')
@@ -804,27 +795,31 @@ def duplicate_product(product_id):
         new_product.barcode = utils.generate_upc_barcode()
         new_product.set_attributes(original.get_attributes())
 
+        # Create product directory
+        product_dir = os.path.join('static', 'uploads', str(new_product.id))
+        os.makedirs(product_dir, exist_ok=True)
+
         # Handle product image duplication
         if original.product_image:
             original_path = os.path.join('static', original.product_image)
             if os.path.exists(original_path):
                 ext = os.path.splitext(original.product_image)[1]
-                new_filename = f'product_image_{new_product.batch_number}{ext}'
-                new_path = os.path.join('static', 'uploads', new_filename)
+                new_filename = f'product_image_{new_product.id}{ext}'
+                new_path = os.path.join(product_dir, new_filename)
                 import shutil
                 shutil.copy2(original_path, new_path)
-                new_product.product_image = os.path.join('uploads', new_filename)
+                new_product.product_image = os.path.join('uploads', str(new_product.id), new_filename)
 
         # Handle label image duplication
         if original.label_image:
             original_path = os.path.join('static', original.label_image)
             if os.path.exists(original_path):
                 ext = os.path.splitext(original.label_image)[1]
-                new_filename = f'label_image_{new_product.batch_number}{ext}'
-                new_path = os.path.join('static', 'uploads', new_filename)
+                new_filename = f'label_image_{new_product.id}{ext}'
+                new_path = os.path.join(product_dir, new_filename)
                 import shutil
                 shutil.copy2(original_path, new_path)
-                new_product.label_image = os.path.join('uploads', new_filename)
+                new_product.label_image = os.path.join('uploads', str(new_product.id), new_filename)
 
         new_product.template_id = original.template_id
         new_product.craftmypdf_template_id = original.craftmypdf_template_id
@@ -927,14 +922,21 @@ def generate_json(product_id):
         return jsonify({'error': str(e)}), 500
 
 
-def save_image(file):
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+def save_image(file, product_id, image_type):
+    # Create product-specific directory
+    product_dir = os.path.join(app.config['UPLOAD_FOLDER'], str(product_id))
+    os.makedirs(product_dir, exist_ok=True)
+
+    # Get file extension
+    ext = os.path.splitext(secure_filename(file.filename))[1]
+    
+    # Create filename based on product_id and type
+    filename = f"{image_type}_{product_id}{ext}"
+    filepath = os.path.join(product_dir, filename)
 
     # Process and save image
     img = Image.open(file)
     img.thumbnail((800, 800))  # Resize if needed
-    img.save(filepath)
+    img.save(os.path.join('static', filepath))
 
-    # Return relative path from static folder
-    return filepath.replace('static/', '', 1)
+    return filepath
