@@ -97,6 +97,9 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem 1rem;
+    max-width: 100%;
+    margin: 0;
+    overflow: hidden;
 }
 
 .list-group-item:hover {
