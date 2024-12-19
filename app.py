@@ -567,6 +567,7 @@ def delete_template(template_id):
 def edit_product(product_id):
     product = models.Product.query.get_or_404(product_id)
     templates = models.ProductTemplate.query.all()
+    categories = models.Category.query.order_by(models.Category.name).all()
     pdf_templates = fetch_craftmypdf_templates()
 
     if request.method == 'POST':
@@ -721,6 +722,7 @@ def edit_product(product_id):
     return render_template('product_edit.html',
                            product=product,
                            templates=templates,
+                           categories=categories,
                            pdf_templates=pdf_templates)
 
 
