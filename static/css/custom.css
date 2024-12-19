@@ -202,37 +202,34 @@
     opacity: 0.75;
 }
 
-/* Mobile-friendly button styles */
-/* Responsive text sizes */
+/* Responsive styles */
 @media (max-width: 768px) {
     h1 {
-        font-size: calc(1.5rem + 1vw);
+        font-size: 1.75rem;
     }
     
     h3 {
-        font-size: calc(1.2rem + 0.5vw);
+        font-size: 1.5rem;
     }
     
     h5 {
-        font-size: calc(1rem + 0.3vw);
+        font-size: 1.25rem;
     }
     
     .card-text {
-        font-size: calc(0.9rem + 0.2vw);
+        font-size: 1rem;
     }
 
     .btn {
-        padding: 0.4rem 0.6rem;
-        font-size: calc(0.8rem + 0.3vw);
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: auto;
     }
     
     .btn i {
-        margin-right: 4px;
-        font-size: calc(0.8rem + 0.2vw);
+        margin-right: 0.5rem;
     }
 
     .product-actions {
@@ -244,38 +241,70 @@
 
     .product-actions .btn {
         width: 100%;
+    }
+
+    .list-group-item {
+        padding: 1rem;
+    }
+
+    .list-group-item .row {
         margin: 0;
     }
-    
-    .list-group-item {
-        font-size: calc(0.85rem + 0.2vw);
+
+    .list-group-item .col-md-6 {
+        padding: 0;
     }
-    
-    .history-buttons {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
+
+    .list-group-item .d-flex.flex-column {
         gap: 0.5rem;
     }
 
     .btn-sm {
-        min-width: 95px;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        width: auto;
+        min-width: auto;
     }
-    
-    @media (max-width: 768px) {
-        .list-group-item .d-flex {
-            width: 100%;
-        }
-        
-        .list-group-item .btn {
-            flex: 1;
-        }
+}
+
+/* Desktop styles */
+@media (min-width: 769px) {
+    .list-group-item {
+        padding: 1.25rem;
     }
-    
+
+    .list-group-item .col-md-6 {
+        display: flex;
+        align-items: center;
+    }
+
+    .list-group-item .col-md-6:last-child {
+        justify-content: flex-end;
+    }
+
     .btn-sm {
-        padding: 0.3rem 0.5rem;
-        font-size: calc(0.75rem + 0.2vw);
+        min-width: 120px;
     }
+
+    .product-actions .btn {
+        width: auto;
+    }
+}
+
+/* Common styles */
+.list-group-item {
+    border: 1px solid rgba(255, 255, 255, 0.125);
+    margin-bottom: 1rem;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.btn-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.delete-history {
+    margin-top: 0.5rem;
 }
 
 /* Larger screen adjustments */
