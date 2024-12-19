@@ -221,6 +221,12 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        width: 100%;
+    }
+    
+    .list-group-item .d-flex.flex-column.gap-2 {
+        width: 100%;
+        max-width: 100% !important;
     }
     
     .btn i {
