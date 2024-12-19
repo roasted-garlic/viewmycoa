@@ -858,16 +858,14 @@ def delete_product(product_id):
             except OSError as e:
                 logging.error(f"Error deleting PDF file: {e}")
 
-        # Delete product images
-        for image_field in ['product_image', 'label_image']:
-            image_path = getattr(product, image_field)
-            if image_path:
-                try:
-                    full_path = os.path.join('static', image_path)
-                    if os.path.exists(full_path):
-                        os.remove(full_path)
-                except OSError as e:
-                    logging.error(f"Error deleting {image_field}: {e}")
+        # Delete product directory with all images
+        product_dir = os.path.join('static', 'uploads', str(product.id))
+        if os.path.exists(product_dir):
+            try:
+                import shutil
+                shutil.rmtree(product_dir)
+            except OSError as e:
+                logging.error(f"Error deleting product directory: {e}")
 
         db.session.delete(product)
         db.session.commit()
