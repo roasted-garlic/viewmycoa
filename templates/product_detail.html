@@ -242,13 +242,17 @@
     </div>
 </div>
 
+{% endblock %}
+
 {% block scripts %}
 <script>
-// Delete product confirmation modal
-const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-document.getElementById('deleteProduct').addEventListener('click', function() {
-    deleteModal.show();
-});
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Delete product confirmation modal
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+    document.getElementById('deleteProduct').addEventListener('click', function() {
+        deleteModal.show();
+    });
 
 document.getElementById('confirmDelete').addEventListener('click', async function() {
     const productId = document.getElementById('deleteProduct').dataset.productId;
@@ -380,7 +384,6 @@ document.querySelectorAll('.delete-history').forEach(button => {
         }
     });
 });
+});
 </script>
-{% endblock %}
-
 {% endblock %}
