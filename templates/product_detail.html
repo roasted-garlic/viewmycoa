@@ -180,7 +180,7 @@
                                             <i class="fas fa-file-pdf"></i> View COA
                                         </a>
                                         {% endif %}
-                                        {% for pdf in pdfs if pdf.batch_history_id == history.id %}
+                                        {% for pdf in history.pdfs %}
                                         <a href="{{ pdf.pdf_url }}" class="btn btn-primary btn-sm" target="_blank">
                                             <i class="fas fa-file-pdf"></i> View Label
                                         </a>
