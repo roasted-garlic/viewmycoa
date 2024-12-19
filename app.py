@@ -399,16 +399,19 @@ def generate_pdf(product_id):
 def delete_pdf(pdf_id):
     pdf = models.GeneratedPDF.query.get_or_404(pdf_id)
     try:
-        # Delete physical PDF file
-        pdf_path = os.path.join('static', 'pdfs', pdf.filename)
-        if os.path.exists(pdf_path):
-            os.remove(pdf_path)
-            
-            # Check if directory is empty and delete it
-            pdf_dir = os.path.dirname(pdf_path)
-            if os.path.exists(pdf_dir) and not os.listdir(pdf_dir):
-                os.rmdir(pdf_dir)
+        # Get product's batch number
+        product = models.Product.query.get(pdf.product_id)
+        if product:
+            # Delete physical PDF file
+            pdf_path = os.path.join('static', 'pdfs', product.batch_number, pdf.filename)
+            if os.path.exists(pdf_path):
+                os.remove(pdf_path)
                 
+                # Check if directory is empty and delete it
+                pdf_dir = os.path.dirname(pdf_path)
+                if os.path.exists(pdf_dir) and not os.listdir(pdf_dir):
+                    os.rmdir(pdf_dir)
+                    
         db.session.delete(pdf)
         db.session.commit()
         return jsonify({'success': True})
