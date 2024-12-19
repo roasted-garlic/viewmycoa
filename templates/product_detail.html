@@ -42,10 +42,10 @@
         </div>
 
         <div class="product-actions d-flex gap-3">
-            <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-primary" style="width: 50%;">
+            <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-primary flex-grow-1">
                 <i class="fas fa-edit"></i> Edit Product
             </a>
-            <button class="btn btn-danger" style="width: 50%;" id="deleteProduct" data-product-id="{{ product.id }}">
+            <button class="btn btn-danger flex-grow-1" id="deleteProduct" data-product-id="{{ product.id }}">
                 <i class="fas fa-trash"></i> Delete Product
             </button>
         </div>
@@ -173,41 +173,39 @@
                 <div class="list-group">
                     {% for history in product.batch_history.order_by(BatchHistory.created_at.desc()).all() %}
                     <div class="list-group-item">
-                        <div class="row align-items-center">
-                            <div class="col-md-6">
-                                <h5 class="mb-1">Batch: {{ history.batch_number }}</h5>
-                                <p class="mb-1 text-muted">Created: {{ history.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex flex-column align-items-md-end gap-2">
-                                    <div class="btn-group">
+                        <div class="d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5 class="mb-1">Batch: {{ history.batch_number }}</h5>
+                                    <p class="mb-1 text-muted">Created: {{ history.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                                </div>
+                                <div class="d-flex flex-column gap-2" style="min-width: 350px;">
+                                    <div class="d-flex justify-content-end gap-2">
                                         {% if history.coa_pdf %}
-                                        <a href="{{ url_for('static', filename=history.coa_pdf) }}" class="btn btn-info btn-sm" target="_blank">
+                                        <a href="{{ url_for('static', filename=history.coa_pdf) }}" class="btn btn-info btn-sm flex-grow-1" target="_blank">
                                             <i class="fas fa-file-pdf"></i> View COA
                                         </a>
                                         {% endif %}
                                         {% for pdf in pdfs %}
                                             {% if pdf.filename.startswith(history.batch_number) %}
-                                            <a href="{{ url_for('serve_pdf', filename=pdf.filename) }}" class="btn btn-primary btn-sm" target="_blank">
+                                            <a href="{{ url_for('serve_pdf', filename=pdf.filename) }}" class="btn btn-primary btn-sm flex-grow-1" target="_blank">
                                                 <i class="fas fa-file-pdf"></i> View Label
                                             </a>
                                             {% endif %}
                                         {% endfor %}
                                     </div>
-                                    <a href="{{ url_for('public_product_detail', batch_number=history.batch_number) }}" class="btn btn-secondary btn-sm" target="_blank">
-                                        <i class="fas fa-external-link-alt"></i> View Public Page
-                                    </a>
+                                    <div class="d-flex flex-column gap-2 align-items-stretch">
+                                        <a href="{{ url_for('public_product_detail', batch_number=history.batch_number) }}" class="btn btn-secondary btn-sm w-100" target="_blank">
+                                            <i class="fas fa-external-link-alt"></i> View Public Page
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
-                            <!-- Delete Button Container -->
-                            <div class="row mt-3">
-                                <div class="col-12">
-                                    <button class="btn btn-danger btn-sm delete-history w-100 text-start d-none" data-history-id="{{ history.id }}">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </button>
-                                </div>
+                            <div class="mt-3">
+                                <button class="btn btn-danger btn-sm delete-history w-100 text-start d-none" data-history-id="{{ history.id }}">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
                             </div>
-                        </div>
                         </div>
                     </div>
                     {% endfor %}
