@@ -43,3 +43,8 @@ def process_image(file):
     img.save(output, format=img.format, optimize=True)
     output.seek(0)
     return output
+
+def generate_batch_number():
+    """Generate a unique batch number"""
+    chars = string.ascii_uppercase + string.digits
+    return ''.join(random.choice(chars) for _ in range(8))

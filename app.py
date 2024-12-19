@@ -906,11 +906,6 @@ def generate_json(product_id):
         return jsonify({'error': str(e)}), 500
 
 
-def generate_batch_number():
-    chars = string.ascii_uppercase + string.digits
-    return ''.join(random.choice(chars) for _ in range(8))
-
-
 def save_image(file):
     filename = secure_filename(file.filename)
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
