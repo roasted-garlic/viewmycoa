@@ -255,19 +255,8 @@
         gap: 0.5rem;
     }
 
-    .history-buttons .top-buttons {
-        display: flex;
-        gap: 0.5rem;
-        width: 100%;
-        justify-content: flex-end;
-    }
-
-    .history-buttons .bottom-button {
-        width: 100%;
-    }
-
-    .history-buttons .btn {
-        min-width: 120px;
+    .btn-sm {
+        min-width: 95px;
     }
     
     @media (max-width: 768px) {
