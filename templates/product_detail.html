@@ -169,16 +169,9 @@
                     <div class="list-group-item">
                         <div class="d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div class="d-flex flex-column h-100">
-                                    <div>
-                                        <h5 class="mb-1">Batch: {{ history.batch_number }}</h5>
-                                        <p class="mb-1 text-muted">Created: {{ history.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
-                                    </div>
-                                    <div class="mt-auto">
-                                        <button class="btn btn-danger btn-sm delete-history w-100 text-start" data-history-id="{{ history.id }}">
-                                            <i class="fas fa-trash"></i> Delete
-                                        </button>
-                                    </div>
+                                <div>
+                                    <h5 class="mb-1">Batch: {{ history.batch_number }}</h5>
+                                    <p class="mb-1 text-muted">Created: {{ history.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
                                 </div>
                                 <div class="d-flex flex-column gap-2" style="min-width: 350px;">
                                     <div class="d-flex justify-content-end gap-2">
@@ -202,7 +195,11 @@
                                     </div>
                                 </div>
                             </div>
-                            
+                            <div class="mt-3">
+                                <button class="btn btn-danger btn-sm delete-history w-100 text-start" data-history-id="{{ history.id }}">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
                         </div>
                     </div>
                     {% endfor %}
