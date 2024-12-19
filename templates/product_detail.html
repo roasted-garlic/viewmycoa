@@ -1,4 +1,3 @@
-
 <!-- Duplicate Confirmation Modal -->
 <div class="modal fade" id="duplicateConfirmModal" tabindex="-1">
     <div class="modal-dialog">
@@ -371,7 +370,7 @@ document.getElementById('confirmDelete').addEventListener('click', async functio
             method: 'DELETE'
         });
         if (response.ok) {
-            window.location.href = '/';
+            window.location.href = '/products';
         } else {
             console.error('Failed to delete product');
         }
