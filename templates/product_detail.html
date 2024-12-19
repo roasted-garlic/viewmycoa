@@ -179,9 +179,9 @@
                             </div>
                             {% for pdf in pdfs if pdf.batch_history_id == history.id %}
                             <div class="d-flex justify-content-between align-items-center border-top pt-3">
-                                <span>{{ pdf.filename }}</span>
+                                <span>{{ pdf.filename.split('/')[-1] }}</span>
                                 <div class="btn-group">
-                                    <a href="{{ url_for('serve_pdf', filename=pdf.filename) }}" class="btn btn-primary btn-sm">
+                                    <a href="{{ url_for('serve_pdf', filename=pdf.filename) }}" class="btn btn-primary btn-sm" target="_blank">
                                         <i class="fas fa-file-pdf"></i> View Label
                                     </a>
                                     <a href="{{ url_for('serve_pdf', filename=pdf.filename, download=1) }}" class="btn btn-primary btn-sm">
@@ -360,27 +360,6 @@ document.getElementById('copyJSON').addEventListener('click', function() {
 });
 
 // Handle historical batch deletion
-document.querySelectorAll('.delete-history').forEach(button => {
-    button.addEventListener('click', async function() {
-        if (confirm('Are you sure you want to delete this historical batch record?')) {
-            const historyId = this.dataset.historyId;
-            try {
-                const response = await fetch(`/api/delete_batch_history/${historyId}`, {
-                    method: 'DELETE'
-                });
-                if (response.ok) {
-                    this.closest('.list-group-item').remove();
-                } else {
-                    alert('Error deleting historical batch record');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error deleting historical batch record');
-            }
-        }
-    });
-});
-
 // Handle historical batch deletion
 document.querySelectorAll('.delete-history').forEach(button => {
     button.addEventListener('click', async function() {
@@ -390,10 +369,11 @@ document.querySelectorAll('.delete-history').forEach(button => {
                 const response = await fetch(`/api/delete_batch_history/${historyId}`, {
                     method: 'DELETE'
                 });
+                const data = await response.json();
                 if (response.ok) {
                     this.closest('.list-group-item').remove();
                 } else {
-                    alert('Error deleting historical batch record');
+                    alert(data.error || 'Error deleting historical batch record');
                 }
             } catch (error) {
                 console.error('Error:', error);
