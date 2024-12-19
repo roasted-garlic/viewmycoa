@@ -802,20 +802,26 @@ def duplicate_product(product_id):
         new_product.batch_number = utils.generate_batch_number()
         new_product.sku = utils.generate_sku()
         new_product.barcode = utils.generate_upc_barcode()
-        new_product.attributes = original.attributes
+        new_product.set_attributes(original.get_attributes())  # Use getter/setter methods
         new_product.product_image = original.product_image
         new_product.label_image = original.label_image
         new_product.template_id = original.template_id
         new_product.craftmypdf_template_id = original.craftmypdf_template_id
         new_product.label_qty = original.label_qty
-        new_product.categories = original.categories
+        
+        # Handle categories properly
+        if original.categories.count() > 0:
+            new_product.categories = list(original.categories)
         
         db.session.add(new_product)
+        db.session.flush()  # Flush to get the new ID without committing
         db.session.commit()
         
+        app.logger.info(f"Successfully duplicated product {product_id} to {new_product.id}")
         return jsonify({'success': True, 'new_product_id': new_product.id})
     except Exception as e:
         db.session.rollback()
+        app.logger.error(f"Error duplicating product {product_id}: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/delete_product/<int:product_id>', methods=['DELETE'])
