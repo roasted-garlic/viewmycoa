@@ -214,7 +214,7 @@
 }
 
 /* Mobile-friendly button styles */
-@media (max-width: 768px) {
+@media (max-width: 1399px) {
     .btn {
         padding: 0.5rem 0.75rem;
         font-size: 0.9rem;
