@@ -220,7 +220,7 @@
                                         {% endif %}
                                         {% for pdf in pdfs %}
                                             {% if pdf.batch_history_id == history.id %}
-                                            <a href="{{ url_for('serve_pdf', filename=history.batch_number + '/' + pdf.filename) }}" class="btn btn-primary btn-sm flex-grow-1" target="_blank">
+                                            <a href="{{ url_for('serve_pdf', filename=pdf.filename) }}" class="btn btn-primary btn-sm flex-grow-1" target="_blank">
                                                 <i class="fas fa-file-pdf"></i> View Label
                                             </a>
                                             {% endif %}
