@@ -603,51 +603,80 @@ def edit_product(product_id):
                 batch_history.set_attributes(product.get_attributes())
                 
                 # Move generated PDFs to history
-                pdfs = models.GeneratedPDF.query.filter_by(product_id=product.id).all()
+                pdfs = models.GeneratedPDF.query.filter_by(product_id=product.id, batch_history_id=None).all()
                 for pdf in pdfs:
-                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
                     if pdf.filename.startswith('label_' + product.batch_number):
+                        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
                         # Create historical version of the label PDF
-                        new_filename = f"history_label_{batch_history.batch_number}_{timestamp}.pdf"
-                        history_dir = os.path.join('static', 'pdfs', batch_history.batch_number)
+                        new_filename = f"label_{batch_history.batch_number}_{timestamp}.pdf"
+                        history_dir = os.path.join('pdfs', batch_history.batch_number)
                         new_filepath = os.path.join(history_dir, new_filename)
                         old_filepath = os.path.join('static', 'pdfs', product.batch_number, pdf.filename)
                         
                         try:
                             if os.path.exists(old_filepath):
-                                os.makedirs(history_dir, exist_ok=True)
+                                os.makedirs(os.path.join('static', history_dir), exist_ok=True)
                                 import shutil
-                                shutil.copy2(old_filepath, new_filepath)
-                                os.remove(old_filepath)  # Remove original file
-                                
-                                # Update the existing PDF record instead of creating a new one
-                                pdf.batch_history_id = batch_history.id
-                                pdf.filename = os.path.join(batch_history.batch_number, new_filename)
-                                pdf.pdf_url = url_for('serve_pdf', filename=os.path.join(batch_history.batch_number, new_filename), _external=True)
-                                db.session.flush()  # Ensure the update is processed
+                                try:
+                                    # Copy file first
+                                    shutil.copy2(old_filepath, os.path.join('static', new_filepath))
+                                    # Only remove original after successful copy
+                                    os.remove(old_filepath)
+                                    
+                                    # Update the PDF record
+                                    pdf.batch_history_id = batch_history.id
+                                    pdf.filename = new_filepath
+                                    pdf.pdf_url = url_for('serve_pdf', 
+                                                        filename=os.path.join(batch_history.batch_number, new_filename),
+                                                        _external=True)
+                                    db.session.flush()
+                                    app.logger.info(f"Successfully moved PDF {pdf.filename} to batch history")
+                                except (shutil.Error, OSError) as e:
+                                    app.logger.error(f"Error moving PDF file: {str(e)}")
+                                    raise
                         except Exception as e:
-                            app.logger.error(f"Error moving PDF file: {str(e)}")
-                            continue
+                            app.logger.error(f"Error handling PDF file: {str(e)}")
+                            db.session.rollback()
+                            flash(f"Error preserving PDF files: {str(e)}", 'danger')
+                            return render_template('product_edit.html',
+                                               product=product,
+                                               templates=templates,
+                                               categories=categories,
+                                               pdf_templates=pdf_templates)
 
                 if product.coa_pdf:
                     # Move COA to history
                     old_coa = product.coa_pdf
                     if old_coa:
-                        new_filename = f"history_coa_{batch_history.batch_number}.pdf"
+                        new_filename = f"coa_{batch_history.batch_number}.pdf"
                         history_dir = os.path.join('pdfs', batch_history.batch_number)
                         new_filepath = os.path.join(history_dir, new_filename)
                         try:
                             if os.path.exists(os.path.join('static', old_coa)):
                                 os.makedirs(os.path.join('static', history_dir), exist_ok=True)
                                 import shutil
-                                shutil.move(
-                                    os.path.join('static', old_coa),
-                                    os.path.join('static', new_filepath)
-                                )
-                                batch_history.coa_pdf = new_filepath
-                                product.coa_pdf = None
+                                try:
+                                    shutil.copy2(
+                                        os.path.join('static', old_coa),
+                                        os.path.join('static', new_filepath)
+                                    )
+                                    # Only remove the old file after successful copy
+                                    os.remove(os.path.join('static', old_coa))
+                                    batch_history.coa_pdf = new_filepath
+                                    product.coa_pdf = None
+                                    app.logger.info(f"Successfully moved COA file for batch {batch_history.batch_number}")
+                                except (shutil.Error, OSError) as e:
+                                    app.logger.error(f"Error moving COA file: {str(e)}")
+                                    raise
                         except Exception as e:
-                            app.logger.error(f"Error moving COA file: {str(e)}")
+                            app.logger.error(f"Error handling COA file: {str(e)}")
+                            db.session.rollback()
+                            flash(f"Error preserving COA file: {str(e)}", 'danger')
+                            return render_template('product_edit.html',
+                                               product=product,
+                                               templates=templates,
+                                               categories=categories,
+                                               pdf_templates=pdf_templates)
 
                 db.session.add(batch_history)
                 product.batch_number = new_batch_number
