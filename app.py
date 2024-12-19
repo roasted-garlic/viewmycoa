@@ -652,16 +652,16 @@ def edit_product(product_id):
                         history_dir = os.path.join('pdfs', batch_history.batch_number)
                         new_filepath = os.path.join(history_dir, new_filename)
                         try:
-                            if os.path.exists(os.path.join('static', old_coa)):
+                            old_coa_path = os.path.join('static', old_coa)
+                            new_coa_path = os.path.join('static', new_filepath)
+                            
+                            if os.path.exists(old_coa_path) and old_coa_path != new_coa_path:
                                 os.makedirs(os.path.join('static', history_dir), exist_ok=True)
                                 import shutil
                                 try:
-                                    shutil.copy2(
-                                        os.path.join('static', old_coa),
-                                        os.path.join('static', new_filepath)
-                                    )
+                                    shutil.copy2(old_coa_path, new_coa_path)
                                     # Only remove the old file after successful copy
-                                    os.remove(os.path.join('static', old_coa))
+                                    os.remove(old_coa_path)
                                     batch_history.coa_pdf = new_filepath
                                     product.coa_pdf = None
                                     app.logger.info(f"Successfully moved COA file for batch {batch_history.batch_number}")
