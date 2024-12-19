@@ -200,18 +200,36 @@
 }
 
 /* Mobile-friendly button styles */
+/* Responsive text sizes */
 @media (max-width: 768px) {
+    h1 {
+        font-size: calc(1.5rem + 1vw);
+    }
+    
+    h3 {
+        font-size: calc(1.2rem + 0.5vw);
+    }
+    
+    h5 {
+        font-size: calc(1rem + 0.3vw);
+    }
+    
+    .card-text {
+        font-size: calc(0.9rem + 0.2vw);
+    }
+
     .btn {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.9rem;
+        padding: 0.4rem 0.6rem;
+        font-size: calc(0.8rem + 0.3vw);
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        min-width: auto;
     }
     
     .btn i {
         margin-right: 4px;
-        font-size: 0.9rem;
+        font-size: calc(0.8rem + 0.2vw);
     }
 
     .product-actions {
@@ -224,6 +242,30 @@
     .product-actions .btn {
         width: 100%;
         margin: 0;
+    }
+    
+    .list-group-item {
+        font-size: calc(0.85rem + 0.2vw);
+    }
+    
+    .btn-sm {
+        padding: 0.3rem 0.5rem;
+        font-size: calc(0.75rem + 0.2vw);
+    }
+}
+
+/* Larger screen adjustments */
+@media (min-width: 769px) {
+    .btn {
+        font-size: calc(0.85rem + 0.2vw);
+    }
+    
+    h1 {
+        font-size: calc(1.8rem + 0.5vw);
+    }
+    
+    .card-text {
+        font-size: calc(0.95rem + 0.1vw);
     }
 }
 
