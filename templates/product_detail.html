@@ -51,16 +51,6 @@
         </div>
     </div>
     <div class="row g-3">
-        <div class="col-md-2">
-            <div class="card bg-dark border-secondary h-100">
-                <div class="card-body">
-                    <h5 class="card-title text-info">
-                        <i class="fas fa-hashtag"></i> Batch Number
-                    </h5>
-                    <p class="card-text h4">{{ product.batch_number }}</p>
-                </div>
-            </div>
-        </div>
         <div class="col-md-3">
             <div class="card {% if product.coa_pdf %}bg-success{% else %}bg-danger{% endif %} border-secondary h-100">
                 <div class="card-body">
@@ -68,6 +58,16 @@
                         <i class="fas {% if product.coa_pdf %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i> COA Status
                     </h5>
                     <p class="card-text h4 text-white">{% if product.coa_pdf %}COA Attached{% else %}Needs COA{% endif %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card bg-dark border-secondary h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-info">
+                        <i class="fas fa-hashtag"></i> Batch Number
+                    </h5>
+                    <p class="card-text h4">{{ product.batch_number }}</p>
                 </div>
             </div>
         </div>
