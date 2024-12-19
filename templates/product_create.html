@@ -89,39 +89,37 @@
                     <div class="card bg-dark border-secondary mb-3">
                         <div class="card-body">
                             <h5 class="card-title text-info mb-3">
-                                <i class="fas fa-copy"></i> PDF Settings
+                                <i class="fas fa-file-pdf"></i> PDF Settings
                             </h5>
+                            <select class="form-select mb-3" id="craftmypdf_template" name="craftmypdf_template_id" required>
+                                <option value="">Select a PDF Template</option>
+                                {% for template in pdf_templates %}
+                                <option value="{{ template.template_id }}">{{ template.name }}</option>
+                                {% endfor %}
+                            </select>
                             <div class="mb-3">
-                                <label class="form-label">PDF Template</label>
-                                <select class="form-select" id="craftmypdf_template" name="craftmypdf_template_id" required>
-                                    <option value="">Select a PDF Template</option>
-                                    {% for template in pdf_templates %}
-                                    <option value="{{ template.template_id }}">{{ template.name }}</option>
-                                    {% endfor %}
-                                </select>
-                                <div class="mt-3">
-                                    <label class="form-label">Number of Labels</label>
-                                    <input type="number" class="form-control" id="labelQty" name="label_qty" value="4" min="1" required>
-                                    <small class="form-text text-muted mt-2">Specify how many labels you need (default is 4)</small>
-                                </div>
+                                <label class="form-label">Number of Labels</label>
+                                <input type="number" class="form-control" id="labelQty" name="label_qty" value="4" min="1" required>
+                                <small class="form-text text-muted mt-2">Specify how many labels you need (default is 4)</small>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="card bg-dark border-secondary mt-3">
-                            <div class="card-body">
-                                <h5 class="card-title text-info mb-3">
-                                    <i class="fas fa-file"></i> Certificate of Analysis (COA)
-                                </h5>
-                                <div id="coaPreview" class="mb-3 d-none">
-                                    <div class="text-center p-3 bg-secondary rounded">
-                                        <i class="fas fa-file-pdf fa-3x text-white"></i>
-                                        <div class="mt-2 text-white">PDF Document</div>
-                                    </div>
+                    <div class="card bg-dark border-secondary mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title text-info mb-3">
+                                <i class="fas fa-file"></i> Certificate of Analysis (COA)
+                            </h5>
+                            <div id="coaPreview" class="mb-3 d-none">
+                                <div class="text-center p-3 bg-secondary rounded">
+                                    <i class="fas fa-file-pdf fa-3x text-white"></i>
+                                    <div class="mt-2 text-white">PDF Document</div>
                                 </div>
-                                <input type="file" class="form-control" id="coaPdf" name="coa_pdf" accept=".pdf,.jpg,.jpeg,.png">
-                                <small class="form-text text-muted mt-2">Upload a PDF or image file for the Certificate of Analysis</small>
                             </div>
+                            <input type="file" class="form-control" id="coaPdf" name="coa_pdf" accept=".pdf,.jpg,.jpeg,.png">
+                            <small class="form-text text-muted mt-2">Upload a PDF or image file for the Certificate of Analysis</small>
                         </div>
+                    </div>
                     </div>
                 </div>
             </div>
