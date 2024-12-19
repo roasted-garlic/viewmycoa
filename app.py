@@ -403,6 +403,12 @@ def delete_pdf(pdf_id):
         pdf_path = os.path.join('static', 'pdfs', pdf.filename)
         if os.path.exists(pdf_path):
             os.remove(pdf_path)
+            
+            # Check if directory is empty and delete it
+            pdf_dir = os.path.dirname(pdf_path)
+            if os.path.exists(pdf_dir) and not os.listdir(pdf_dir):
+                os.rmdir(pdf_dir)
+                
         db.session.delete(pdf)
         db.session.commit()
         return jsonify({'success': True})
