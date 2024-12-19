@@ -42,6 +42,17 @@ document.addEventListener('DOMContentLoaded', function() {
         initializeDeleteHandler(button);
     });
 
+    // Enable/disable batch number editing
+    const enableBatchEdit = document.getElementById('enableBatchEdit');
+    const batchNumberInput = document.getElementById('batchNumber');
+    
+    if (enableBatchEdit) {
+        enableBatchEdit.addEventListener('change', function() {
+            batchNumberInput.readOnly = !this.checked;
+            generateBatchBtn.disabled = this.checked;
+        });
+    }
+
     // Generate batch number
     if (generateBatchBtn) {
         generateBatchBtn.addEventListener('click', async function() {
