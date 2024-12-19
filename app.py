@@ -791,6 +791,33 @@ def delete_coa(product_id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/duplicate_product/<int:product_id>', methods=['POST'])
+def duplicate_product(product_id):
+    try:
+        original = models.Product.query.get_or_404(product_id)
+        
+        # Create new product with copied attributes
+        new_product = models.Product()
+        new_product.title = f"{original.title} - Copy"
+        new_product.batch_number = utils.generate_batch_number()
+        new_product.sku = utils.generate_sku()
+        new_product.barcode = utils.generate_upc_barcode()
+        new_product.attributes = original.attributes
+        new_product.product_image = original.product_image
+        new_product.label_image = original.label_image
+        new_product.template_id = original.template_id
+        new_product.craftmypdf_template_id = original.craftmypdf_template_id
+        new_product.label_qty = original.label_qty
+        new_product.categories = original.categories
+        
+        db.session.add(new_product)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'new_product_id': new_product.id})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/delete_product/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
     try:

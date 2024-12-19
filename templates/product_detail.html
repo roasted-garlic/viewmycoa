@@ -17,6 +17,9 @@
                 <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-primary">
                     <i class="fas fa-edit"></i> Edit Product
                 </a>
+                <button class="btn btn-secondary duplicate-product" data-product-id="{{ product.id }}">
+                    <i class="fas fa-copy"></i> Duplicate
+                </button>
                 <button class="btn btn-danger" id="deleteProduct" data-product-id="{{ product.id }}">
                     <i class="fas fa-trash"></i> Delete Product
                 </button>
@@ -293,6 +296,25 @@
 <script>
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
+    // Handle product duplication
+    document.querySelector('.duplicate-product').addEventListener('click', async function() {
+        const productId = this.dataset.productId;
+        try {
+            const response = await fetch(`/api/duplicate_product/${productId}`, {
+                method: 'POST'
+            });
+            if (response.ok) {
+                const data = await response.json();
+                window.location.href = `/product/${data.new_product_id}`;
+            } else {
+                showNotification('Error duplicating product', 'danger');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('Error duplicating product', 'danger');
+        }
+    });
+
     // Handle delete button visibility
     const enableDeleteCheckbox = document.getElementById('enableDelete');
     const deleteButtons = document.querySelectorAll('.delete-history');
