@@ -1,4 +1,46 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    // Auto generate batch number on page load for create page
+    const batchInput = document.getElementById('batchNumber');
+    if (batchInput && !batchInput.value) {
+        try {
+            const response = await fetch('/api/generate_batch', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                batchInput.value = data.batch_number;
+            }
+        } catch (error) {
+            console.error('Error generating batch number:', error);
+        }
+    }
+
+    // Handle image previews
+    function handleImagePreview(inputId, previewId) {
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
+        
+        if (input && preview) {
+            input.addEventListener('change', function(e) {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const previewImg = preview.querySelector('img');
+                        previewImg.src = e.target.result;
+                        preview.classList.remove('d-none');
+                    }
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+        }
+    }
+
+    // Initialize image previews
+    handleImagePreview('productImage', 'productImagePreview');
+    handleImagePreview('labelImage', 'labelImagePreview');
     // Delete COA handler
     document.querySelectorAll('.delete-coa').forEach(button => {
         button.addEventListener('click', async function() {

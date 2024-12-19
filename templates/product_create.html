@@ -10,9 +10,29 @@
                     <div class="card bg-dark border-secondary h-100">
                         <div class="card-body">
                             <h5 class="card-title text-info mb-3">
-                                <i class="fas fa-tag"></i> Product Title
+                                <i class="fas fa-tag"></i> Product Name
                             </h5>
-                            <input type="text" class="form-control" id="title" name="title" required>
+                            <input type="text" class="form-control mb-3" id="title" name="title" required>
+                            
+                            <h5 class="card-title text-info mb-3">
+                                <i class="fas fa-folder"></i> Category
+                            </h5>
+                            <select class="form-select mb-3" id="category" name="category_id">
+                                <option value="">Select a category</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+
+                            <h5 class="card-title text-info mb-3">
+                                <i class="fas fa-hashtag"></i> Batch Number
+                            </h5>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="batchNumber" name="batch_number" readonly>
+                                <button type="button" class="btn btn-secondary" id="generateBatch">
+                                    <i class="fas fa-random"></i> Generate
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -22,19 +42,12 @@
                             <h5 class="card-title text-info mb-3">
                                 <i class="fas fa-image"></i> Product Image
                             </h5>
+                            <div id="productImagePreview" class="mb-3 d-none">
+                                <img src="" class="img-thumbnail" alt="Product preview">
+                            </div>
                             <input type="file" class="form-control" id="productImage" name="product_image" accept="image/*" required>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label for="batchNumber" class="form-label">Batch Number</label>
-                <div class="input-group">
-                    <input type="text" class="form-control" id="batchNumber" name="batch_number" readonly>
-                    <button type="button" class="btn btn-secondary" id="generateBatch">
-                        <i class="fas fa-random"></i> Generate
-                    </button>
                 </div>
             </div>
 
@@ -44,16 +57,6 @@
                     <option value="">No Template</option>
                     {% for template in templates %}
                     <option value="{{ template.id }}">{{ template.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="mb-3">
-                <label for="category" class="form-label">Category</label>
-                <select class="form-select" id="category" name="category_id">
-                    <option value="">Select a category</option>
-                    {% for category in categories %}
-                    <option value="{{ category.id }}">{{ category.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -75,6 +78,9 @@
                             <h5 class="card-title text-info mb-3">
                                 <i class="fas fa-tag"></i> Label Image
                             </h5>
+                            <div id="labelImagePreview" class="mb-3 d-none">
+                                <img src="" class="img-thumbnail" alt="Label preview">
+                            </div>
                             <input type="file" class="form-control" id="labelImage" name="label_image" accept="image/*" required>
                         </div>
                     </div>
