@@ -12,11 +12,15 @@ class ProductTemplate(db.Model):
         if attrs is None:
             self.attributes = json.dumps({})
         elif isinstance(attrs, (dict, list)):
+            # Convert simple name list to dict with optional values
+            if isinstance(attrs, list):
+                attrs = {name: "" for name in attrs}
             self.attributes = json.dumps(attrs)
         elif isinstance(attrs, str):
             try:
-                # Parse string to ensure it's valid JSON and convert back
                 parsed = json.loads(attrs)
+                if isinstance(parsed, list):
+                    parsed = {name: "" for name in parsed}
                 self.attributes = json.dumps(parsed)
             except json.JSONDecodeError:
                 self.attributes = json.dumps({})
@@ -66,11 +70,15 @@ class Product(db.Model):
         if attrs is None:
             self.attributes = json.dumps({})
         elif isinstance(attrs, (dict, list)):
+            # Convert simple name list to dict with optional values
+            if isinstance(attrs, list):
+                attrs = {name: "" for name in attrs}
             self.attributes = json.dumps(attrs)
         elif isinstance(attrs, str):
             try:
-                # Parse string to ensure it's valid JSON and convert back
                 parsed = json.loads(attrs)
+                if isinstance(parsed, list):
+                    parsed = {name: "" for name in parsed}
                 self.attributes = json.dumps(parsed)
             except json.JSONDecodeError:
                 self.attributes = json.dumps({})
