@@ -248,9 +248,12 @@
         font-size: calc(0.85rem + 0.2vw);
     }
     
+    .list-group-item .d-flex {
+        gap: 0.5rem;
+    }
+    
     .list-group-item .btn {
-        flex: 1 1 auto;
-        max-width: 200px;
+        min-width: 40px;
     }
     
     @media (max-width: 768px) {
@@ -259,7 +262,7 @@
         }
         
         .list-group-item .btn {
-            max-width: none;
+            flex: 1;
         }
     }
     
