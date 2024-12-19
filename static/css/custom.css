@@ -215,6 +215,10 @@
 
 /* Mobile-friendly button styles */
 @media (max-width: 1399px) {
+    .mb-2.mb-md-0 {
+        margin-bottom: 1rem !important;
+    }
+    
     .btn {
         padding: 0.5rem 0.75rem;
         font-size: 0.9rem;
