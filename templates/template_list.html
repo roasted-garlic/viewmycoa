@@ -70,6 +70,28 @@
 {% block scripts %}
 <script>
 const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+
+// Handle duplicate button clicks
+document.querySelectorAll('.duplicate-template').forEach(button => {
+    button.addEventListener('click', async function() {
+        const templateId = this.dataset.templateId;
+        try {
+            const response = await fetch(`/api/duplicate_template/${templateId}`, {
+                method: 'POST'
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                window.location.href = `/template/${data.new_template_id}/edit`;
+            } else {
+                showNotification('Error duplicating template', 'danger');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('Error duplicating template', 'danger');
+        }
+    });
+});
 const confirmDeleteBtn = document.getElementById('confirmDelete');
 let templateToDelete = null;
 
