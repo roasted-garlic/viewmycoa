@@ -180,11 +180,11 @@
                                             <i class="fas fa-file-pdf"></i> View COA
                                         </a>
                                         {% endif %}
-                                        {% for pdf in history.pdfs %}
-                                        <a href="{{ pdf.pdf_url }}" class="btn btn-primary btn-sm" target="_blank">
+                                        {% for pdf in pdfs if pdf.batch_history_id == history.id %}
+                                        <a href="{{ url_for('serve_pdf', filename=history.batch_number + '/' + pdf.filename.split('/')[-1]) }}" class="btn btn-primary btn-sm" target="_blank">
                                             <i class="fas fa-file-pdf"></i> View Label
                                         </a>
-                                        <a href="{{ pdf.pdf_url }}?download=1" class="btn btn-primary btn-sm">
+                                        <a href="{{ url_for('serve_pdf', filename=history.batch_number + '/' + pdf.filename.split('/')[-1], download=1) }}" class="btn btn-primary btn-sm">
                                             <i class="fas fa-download"></i> Download Label
                                         </a>
                                         {% endfor %}
