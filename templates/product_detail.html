@@ -173,13 +173,13 @@
                 <div class="list-group">
                     {% for history in product.batch_history.order_by(BatchHistory.created_at.desc()).all() %}
                     <div class="list-group-item">
-                        <div class="d-flex flex-column">
+                        <div class="d-flex flex-column w-100">
                             <div class="d-flex justify-content-between align-items-start mb-3">
                                 <div>
                                     <h5 class="mb-1">Batch: {{ history.batch_number }}</h5>
                                     <p class="mb-1 text-muted">Created: {{ history.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
                                 </div>
-                                <div class="d-flex flex-column gap-2" style="min-width: 350px;">
+                                <div class="d-flex flex-column gap-2" style="min-width: 300px; max-width: 350px;">
                                     <div class="d-flex justify-content-end gap-2">
                                         {% if history.coa_pdf %}
                                         <a href="{{ url_for('static', filename=history.coa_pdf) }}" class="btn btn-info btn-sm flex-grow-1" target="_blank">
