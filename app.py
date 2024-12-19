@@ -648,7 +648,7 @@ def edit_product(product_id):
                     # Move COA to history
                     old_coa = product.coa_pdf
                     if old_coa:
-                        new_filename = f"coa_{batch_history.batch_number}.pdf"
+                        new_filename = f"history_coa_{batch_history.batch_number}.pdf"
                         history_dir = os.path.join('pdfs', batch_history.batch_number)
                         new_filepath = os.path.join(history_dir, new_filename)
                         try:
