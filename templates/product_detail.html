@@ -177,9 +177,9 @@
                                     </button>
                                 </div>
                             </div>
-                            {% for pdf in pdfs if pdf.batch_history_id == history.id and pdf.filename.startswith('history_label_') %}
+                            {% for pdf in pdfs if pdf.batch_history_id == history.id %}
                             <div class="d-flex justify-content-between align-items-center border-top pt-3">
-                                <span>Label PDF</span>
+                                <span>{{ pdf.filename }}</span>
                                 <div class="btn-group">
                                     <a href="{{ url_for('serve_pdf', filename=pdf.filename) }}" class="btn btn-primary btn-sm">
                                         <i class="fas fa-file-pdf"></i> View Label

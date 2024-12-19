@@ -650,26 +650,32 @@ def edit_product(product_id):
 def delete_batch_history(history_id):
     try:
         history = models.BatchHistory.query.get_or_404(history_id)
-        # Delete historical COA if exists
+        
+        # Delete the entire batch directory
+        batch_dir = os.path.join('static', 'pdfs', history.batch_number)
+        if os.path.exists(batch_dir):
+            import shutil
+            shutil.rmtree(batch_dir)
+        
+        # Delete historical COA if exists and it's not in the batch directory
         if history.coa_pdf:
             coa_path = os.path.join('static', history.coa_pdf)
-            if os.path.exists(coa_path):
+            if os.path.exists(coa_path) and not coa_path.startswith(batch_dir):
                 os.remove(coa_path)
-                
-        # Delete historical label PDFs
-        pdfs = models.GeneratedPDF.query.filter_by(product_id=history.product_id).all()
+        
+        # Delete PDF records
+        pdfs = models.GeneratedPDF.query.filter_by(
+            batch_history_id=history.id
+        ).all()
         for pdf in pdfs:
-            if pdf.filename.startswith(f"history_{history.batch_number}"):
-                pdf_path = os.path.join('static', 'pdfs', pdf.filename)
-                if os.path.exists(pdf_path):
-                    os.remove(pdf_path)
-                db.session.delete(pdf)
-                
+            db.session.delete(pdf)
+        
         db.session.delete(history)
         db.session.commit()
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
+        app.logger.error(f"Error deleting batch history: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/delete_coa/<int:product_id>', methods=['DELETE'])
