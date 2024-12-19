@@ -175,21 +175,23 @@
                                 </div>
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="btn-group">
-                                        {% if history.coa_pdf %}
-                                        <a href="{{ url_for('static', filename=history.coa_pdf) }}" class="btn btn-info btn-sm" target="_blank">
-                                            <i class="fas fa-file-pdf"></i> View COA
-                                        </a>
-                                        {% endif %}
-                                        {% for pdf in pdfs %}
-                                            {% if pdf.filename.startswith(history.batch_number) %}
-                                            <a href="{{ url_for('serve_pdf', filename=pdf.filename) }}" class="btn btn-primary btn-sm" target="_blank">
-                                                <i class="fas fa-file-pdf"></i> View Label
-                                            </a>
-                                            <a href="{{ url_for('serve_pdf', filename=pdf.filename, download=1) }}" class="btn btn-primary btn-sm">
-                                                <i class="fas fa-download"></i> Download Label
+                                        <div class="d-flex flex-wrap gap-2 mb-2">
+                                            {% if history.coa_pdf %}
+                                            <a href="{{ url_for('static', filename=history.coa_pdf) }}" class="btn btn-info btn-sm" target="_blank">
+                                                <i class="fas fa-file-pdf"></i> View COA
                                             </a>
                                             {% endif %}
-                                        {% endfor %}
+                                            {% for pdf in pdfs %}
+                                                {% if pdf.filename.startswith(history.batch_number) %}
+                                                <a href="{{ url_for('serve_pdf', filename=pdf.filename) }}" class="btn btn-primary btn-sm" target="_blank">
+                                                    <i class="fas fa-file-pdf"></i> View Label
+                                                </a>
+                                                <a href="{{ url_for('serve_pdf', filename=pdf.filename, download=1) }}" class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-download"></i> Download Label
+                                                </a>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
                                     </div>
                                     <a href="{{ url_for('public_product_detail', batch_number=history.batch_number) }}" class="btn btn-secondary btn-sm" target="_blank">
                                         <i class="fas fa-external-link-alt"></i> View Public Page
