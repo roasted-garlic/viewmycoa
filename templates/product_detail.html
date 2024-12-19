@@ -172,7 +172,7 @@
             <div class="card-body">
                 <div class="list-group">
                     {% for history in product.batch_history.order_by(BatchHistory.created_at.desc()).all() %}
-                    <div class="list-group-item">
+                    <div class="list-group-item mb-3 border border-secondary rounded">
                         <div class="container-fluid p-0">
                             <div class="row">
                                 <!-- Text Container -->
