@@ -11,7 +11,7 @@ import json
 from PIL import Image
 import datetime
 
-import utils
+from utils import generate_batch_number, generate_sku, generate_upc_barcode, is_valid_image
 
 
 class Base(DeclarativeBase):
