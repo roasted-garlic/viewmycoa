@@ -231,9 +231,10 @@ def create_product():
         attributes = dict(zip(attr_names, attr_values))
 
         # Generate UPC-A barcode number
-        barcode_number = utils.generate_upc_barcode()
-        batch_number = utils.generate_batch_number()
-        sku = utils.generate_sku()  # Generate unique SKU
+        from utils import generate_upc_barcode, generate_batch_number, generate_sku
+        barcode_number = generate_upc_barcode()
+        batch_number = generate_batch_number()
+        sku = generate_sku()  # Generate unique SKU
 
         product = models.Product()
         product.title = title
