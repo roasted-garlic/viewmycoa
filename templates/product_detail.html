@@ -181,7 +181,7 @@
                                         <p class="mb-0 text-muted">Created: {{ history.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
                                     </div>
                                 </div>
-                                <div class="d-flex flex-column gap-2 ms-xxl-4" style="min-width: 250px; max-width: 350px;">
+                                <div class="d-flex flex-column gap-2 ms-xxl-4 w-100 w-xxl-auto" style="max-width: 350px;">
                                     <div class="d-flex justify-content-end gap-2">
                                         {% if history.coa_pdf %}
                                         <a href="{{ url_for('static', filename=history.coa_pdf) }}" class="btn btn-info btn-sm flex-grow-1" target="_blank">
