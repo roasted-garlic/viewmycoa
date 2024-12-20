@@ -138,14 +138,29 @@
 }
 
 @media (max-width: 767px) {
-    .list-group-item .d-flex.gap-2 {
+    .list-group-item {
+        display: flex;
         flex-direction: column;
+        align-items: flex-end;
+        padding: 1rem;
+    }
+
+    .list-group-item > span {
+        align-self: flex-start;
+        margin-bottom: 1rem;
         width: 100%;
+    }
+
+    .list-group-item .d-flex.gap-2 {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem !important;
+        width: auto;
     }
     
     .list-group-item .btn {
-        width: 100%;
-        margin-top: 0.5rem;
+        width: auto;
+        white-space: nowrap;
     }
 }
 
