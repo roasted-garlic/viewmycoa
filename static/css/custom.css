@@ -349,19 +349,18 @@ body {
     gap: 1rem;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
 }
 
 .category-info {
     flex: 1;
     min-width: 0;
-    max-width: calc(100% - 220px);
+    margin-right: auto;
 }
 
 .category-actions {
     display: flex;
     gap: 0.5rem;
-    margin-left: auto;
-    width: 210px;
     justify-content: flex-end;
 }
 
