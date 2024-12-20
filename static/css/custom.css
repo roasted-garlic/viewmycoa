@@ -301,33 +301,29 @@ body {
 }
 
 .coa-download-btn {
-    width: 185px;
-    height: 100px;
-    display: flex;
-    flex-direction: column;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
-    padding: 1rem;
-    background-color: rgba(102, 16, 242, 0.1);
-    color: #6610f2;
-    border: 1px solid #6610f2;
-    border-radius: 8px;
-    font-weight: 500;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    min-height: 38px;
+    background-color: var(--bs-primary);
+    border: 1px solid var(--bs-primary);
+    border-radius: 0.375rem;
+    color: #fff;
     text-decoration: none;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    font-weight: 500;
 }
 
 .coa-download-btn i {
-    font-size: 2rem;
-    margin-bottom: 0.25rem;
+    flex-shrink: 0;
+    font-size: 0.9rem;
 }
 
 .coa-download-btn:hover {
+    background-color: var(--bs-primary-hover, #0a58ca);
+    border-color: var(--bs-primary-hover, #0a58ca);
+    color: #fff;
     text-decoration: none;
-    background-color: #6610f2;
-    color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
