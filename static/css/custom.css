@@ -271,14 +271,15 @@ body {
                     {% endif %}
                 </div>
 .coa-download-btn {
-    width: 200px;
+    width: 185px;
+    height: 100px;
     padding: 1rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 0.75rem;
-    background-color: #e9ecef;
+    background-color: #6610f2;
     border: none;
     border-radius: 8px;
     color: #adb5bd;
