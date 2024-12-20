@@ -817,14 +817,15 @@ def delete_coa(product_id):
 @app.route('/api/duplicate_product/<int:product_id>', methods=['POST'])
 def duplicate_product(product_id):
     try:
+        from utils import generate_batch_number, generate_sku, generate_upc_barcode
         original = models.Product.query.get_or_404(product_id)
         
         # Create new product with copied attributes
         new_product = models.Product()
         new_product.title = f"{original.title} - Copy"
-        new_product.batch_number = utils.generate_batch_number()
-        new_product.sku = utils.generate_sku()
-        new_product.barcode = utils.generate_upc_barcode()
+        new_product.batch_number = generate_batch_number()
+        new_product.sku = generate_sku()
+        new_product.barcode = generate_upc_barcode()
         new_product.set_attributes(original.get_attributes())
 
         # Create product directory
