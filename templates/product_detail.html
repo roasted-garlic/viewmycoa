@@ -42,12 +42,30 @@
                 <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-primary w-md-auto">
                     <i class="fas fa-edit"></i> Edit
                 </a>
+                <button class="btn btn-success w-md-auto" id="syncSquare" data-product-id="{{ product.id }}">
+                    <i class="fas fa-sync"></i> Sync to Square
+                </button>
                 <button class="btn btn-secondary duplicate-product w-md-auto" data-product-id="{{ product.id }}">
                     <i class="fas fa-copy"></i> Duplicate
                 </button>
                 <button class="btn btn-danger w-md-auto" id="deleteProduct" data-product-id="{{ product.id }}">
                     <i class="fas fa-trash"></i> Delete
                 </button>
+            </div>
+
+            <!-- Square Sync Modal -->
+            <div class="modal fade" id="squareSyncModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Square Sync Results</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="syncResults"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
