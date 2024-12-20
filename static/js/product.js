@@ -185,21 +185,28 @@ document.addEventListener('DOMContentLoaded', async function() {
                 attributesContainer.innerHTML = '';
                 
                 if (template && template.attributes) {
-                    const attributes = typeof template.attributes === 'string' 
-                        ? JSON.parse(template.attributes) 
-                        : template.attributes;
-                        
-                    Object.entries(attributes).forEach(([name, value]) => {
-                        const attributeGroup = document.createElement('div');
-                        attributeGroup.className = 'attribute-group mb-2';
+                    let attributes;
+                    try {
+                        attributes = typeof template.attributes === 'string' 
+                            ? JSON.parse(template.attributes) 
+                            : template.attributes;
+                    } catch (e) {
+                        console.error('Error parsing attributes:', e);
+                        attributes = template.attributes;
+                    }
+                    
+                    if (attributes && typeof attributes === 'object') {
+                        Object.entries(attributes).forEach(([name, value]) => {
+                            const attributeGroup = document.createElement('div');
+                            attributeGroup.className = 'attribute-group mb-2';
                         
                         attributeGroup.innerHTML = `
                             <div class="row">
                                 <div class="col">
-                                    <input type="text" class="form-control attr-name" name="attr_name[]" value="${name}" required>
+                                    <input type="text" class="form-control attr-name" name="attr_name[]" value="${name.replace(/"/g, '&quot;')}" required>
                                 </div>
                                 <div class="col">
-                                    <input type="text" class="form-control" name="attr_value[]" value="${value || ''}" required>
+                                    <input type="text" class="form-control" name="attr_value[]" value="${(value || '').replace(/"/g, '&quot;')}" required>
                                 </div>
                                 <div class="col-auto">
                                     <button type="button" class="btn btn-danger remove-attribute">
