@@ -286,7 +286,7 @@
     }
 }
 
-@media (max-width: 1399px) {    
+@media (max-width: 767px) {    
     .list-group-item .d-flex.flex-column.gap-2 {
         width: 100%;
         max-width: 100% !important;
@@ -307,10 +307,6 @@
     .product-actions .btn {
         width: 100%;
         margin: 0;
-    }
-
-    .w-md-auto {
-        width: auto !important;
     }
 }
 
