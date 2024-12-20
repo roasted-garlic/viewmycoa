@@ -285,9 +285,14 @@
                                 <div class="d-flex flex-column gap-2" style="min-width: 300px; max-width: 450px;">
                                     <div class="d-flex flex-column flex-md-row gap-2 w-100">
                                         {% if history.coa_pdf %}
-                                        <a href="{{ url_for('static', filename=history.coa_pdf) }}" class="btn btn-info btn-sm flex-grow-1" target="_blank">
-                                            <i class="fas fa-file-pdf"></i> View COA
-                                        </a>
+                                        <div class="d-flex gap-2">
+                                            <a href="{{ url_for('static', filename=history.coa_pdf) }}" class="btn btn-info btn-sm flex-grow-1" target="_blank">
+                                                <i class="fas fa-file-pdf"></i> View COA
+                                            </a>
+                                            <button type="button" class="btn btn-danger btn-sm delete-coa" data-coa-id="{{ history.id }}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
                                         {% endif %}
                                         {% for pdf in pdfs %}
                                         {% if history.batch_number in pdf.filename %}
