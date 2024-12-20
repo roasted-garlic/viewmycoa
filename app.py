@@ -71,6 +71,14 @@ with app.app_context():
 def index():
     return render_template('search_home.html')
 
+@app.route('/vmc-admin')
+def admin_index():
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/vmc-admin/dashboard')
+def admin_dashboard():
+    products = models.Product.query.all()
+    return render_template('product_list.html', products=products)
 
 @app.route('/search')
 def search_results():
@@ -108,8 +116,7 @@ def public_product_detail(batch_number):
                          is_historical=True)
 
 
-
-@app.route('/categories')
+@app.route('/vmc-admin/categories')
 def categories():
     categories = models.Category.query.order_by(models.Category.name).all()
     return render_template('category_list.html', categories=categories)
@@ -153,7 +160,7 @@ def delete_category(category_id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
 
-@app.route('/products')
+@app.route('/vmc-admin/products')
 def products():
     products = models.Product.query.all()
     return render_template('product_list.html', products=products)
@@ -498,13 +505,13 @@ def get_template(template_id):
     })
 
 
-@app.route('/templates')
+@app.route('/vmc-admin/templates')
 def template_list():
     templates = models.ProductTemplate.query.all()
     return render_template('template_list.html', templates=templates)
 
 
-@app.route('/template/new', methods=['GET', 'POST'])
+@app.route('/vmc-admin/template/new', methods=['GET', 'POST'])
 def create_template():
     if request.method == 'POST':
         try:
