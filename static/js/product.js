@@ -8,8 +8,52 @@ document.addEventListener('DOMContentLoaded', async function() {
     const addAttributeBtn = document.getElementById('addAttribute');
     const productImage = document.getElementById('productImage');
     const labelImage = document.getElementById('labelImage');
+    const coaPdf = document.getElementById('coaPdf');
     const productImagePreview = document.getElementById('productImagePreview');
     const labelImagePreview = document.getElementById('labelImagePreview');
+
+    // Handle COA file preview
+    if (coaPdf) {
+        coaPdf.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const fileType = file.type;
+                const coaPreviewContainer = document.querySelector('.card-body');
+                
+                // Remove existing preview
+                const existingPreview = coaPreviewContainer.querySelector('.mb-3');
+                if (existingPreview) {
+                    existingPreview.remove();
+                }
+
+                // Create preview element
+                const previewDiv = document.createElement('div');
+                previewDiv.className = 'mb-3';
+
+                if (fileType.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.className = 'img-thumbnail mt-2';
+                    img.style.maxHeight = '200px';
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        img.src = e.target.result;
+                    }
+                    reader.readAsDataURL(file);
+                    previewDiv.appendChild(img);
+                } else {
+                    // PDF preview placeholder
+                    previewDiv.innerHTML = `
+                        <div class="text-center p-3 bg-secondary rounded">
+                            <i class="fas fa-file-pdf fa-3x text-white"></i>
+                            <div class="mt-2 text-white">PDF Document</div>
+                        </div>`;
+                }
+
+                // Insert preview before the file input
+                coaPreviewContainer.insertBefore(previewDiv, coaPdf);
+            }
+        });
+    }
     
     // COA Delete functionality
     document.getElementById('confirmCoaDelete')?.addEventListener('click', async function() {
