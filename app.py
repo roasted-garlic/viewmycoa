@@ -73,14 +73,17 @@ def index():
 
 @app.route('/vmc-admin/')
 @app.route('/vmc-admin')
-@app.route('/vmc-admin/products')
-def products():
-    products = models.Product.query.all()
-    return render_template('product_list.html', products=products)
+def admin_index():
+    return redirect(url_for('admin_dashboard'))
 
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
+
+@app.route('/vmc-admin/dashboard')
+def admin_dashboard():
+    products = models.Product.query.all()
+    return render_template('product_list.html', products=products)
 
 @app.route('/search')
 def search_results():
