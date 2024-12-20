@@ -437,18 +437,6 @@ body {
 
 @media (max-width: 1200px) {
     .template-card .btn {
-        max-width: calc(33.333% - 0.35rem);
-    }
-}
-
-@media (max-width: 991px) {
-    .template-card .btn {
-        max-width: calc(33.333% - 0.35rem);
-    }
-}
-
-@media (max-width: 767px) {
-    .template-card .btn {
         max-width: 100%;
     }
     
