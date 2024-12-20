@@ -28,8 +28,14 @@ def sync_product_to_square(product):
     """Sync a single product to Square catalog"""
     idempotency_key = str(uuid.uuid4())
     
-    # Format product data for Square
-    product_data = {
+    existing_id = product.square_catalog_id
+    if existing_id:
+        # Use existing ID if available
+        product_data = {
+            "object": {
+                "id": existing_id,
+                "type": "ITEM",
+                "version": 1,  # Increment version for update
         "idempotency_key": idempotency_key,
         "object": {
             "id": f"#{product.sku}",
@@ -60,7 +66,14 @@ def sync_product_to_square(product):
             json=product_data
         )
         response.raise_for_status()
-        return response.json()
+        result = response.json()
+        
+        # Store the catalog ID from Square's response
+        if result.get('object') and result['object'].get('id'):
+            product.square_catalog_id = result['object']['id']
+            db.session.commit()
+            
+        return result
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
