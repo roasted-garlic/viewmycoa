@@ -1,6 +1,14 @@
+
 document.addEventListener('DOMContentLoaded', async function() {
-    // Auto generate batch number on page load for create page
     const batchInput = document.getElementById('batchNumber');
+    const generateBatchBtn = document.getElementById('generateBatch');
+    const addAttributeBtn = document.getElementById('addAttribute');
+    const attributesContainer = document.getElementById('attributesContainer');
+    const templateSelect = document.getElementById('template');
+    const enableBatchEdit = document.getElementById('enableBatchEdit');
+    const batchNumberInput = document.getElementById('batchNumber');
+
+    // Auto generate batch number on page load for create page
     if (batchInput && !batchInput.value) {
         try {
             const response = await fetch('/api/generate_batch', {
@@ -18,7 +26,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
-    // Handle image previews
     function handleImagePreview(inputId, previewId) {
         const input = document.getElementById(inputId);
         const preview = document.getElementById(previewId);
@@ -38,46 +45,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
-    // Initialize image previews
     handleImagePreview('productImage', 'productImagePreview');
     handleImagePreview('labelImage', 'labelImagePreview');
-    // COA Delete Modal
-    const coaDeleteModal = new bootstrap.Modal(document.getElementById('coaDeleteModal'));
-    let coaToDelete = null;
-
-    document.querySelectorAll('.delete-coa').forEach(button => {
-        button.addEventListener('click', function() {
-            coaToDelete = this;
-            coaDeleteModal.show();
-        });
-    });
-
-    document.getElementById('confirmCoaDelete').addEventListener('click', async function() {
-        if (coaToDelete) {
-            const productId = coaToDelete.dataset.productId;
-            try {
-                const response = await fetch(`/api/delete_coa/${productId}`, {
-                    method: 'DELETE'
-                });
-                if (response.ok) {
-                    location.reload();
-                } else {
-                    const data = await response.json();
-                    alert(data.error || 'Failed to delete COA');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error deleting COA');
-            }
-            coaDeleteModal.hide();
-            coaToDelete = null;
-        }
-    });
-
-    const generateBatchBtn = document.getElementById('generateBatch');
-    const addAttributeBtn = document.getElementById('addAttribute');
-    const attributesContainer = document.getElementById('attributesContainer');
-    const templateSelect = document.getElementById('template');
 
     function initializeDeleteHandler(button) {
         button.addEventListener('click', function() {
@@ -88,15 +57,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // Initialize delete handlers for existing attributes
     document.querySelectorAll('.remove-attribute').forEach(button => {
         initializeDeleteHandler(button);
     });
 
-    // Enable/disable batch number editing
-    const enableBatchEdit = document.getElementById('enableBatchEdit');
-    const batchNumberInput = document.getElementById('batchNumber');
-    
     if (enableBatchEdit) {
         enableBatchEdit.addEventListener('change', function() {
             batchNumberInput.readOnly = !this.checked;
@@ -104,7 +68,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // Generate batch number
     if (generateBatchBtn) {
         generateBatchBtn.addEventListener('click', async function() {
             try {
@@ -117,9 +80,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (response.ok) {
                     const data = await response.json();
                     document.getElementById('batchNumber').value = data.batch_number;
-                } else {
-                    const data = await response.json();
-                    alert(data.error || 'Failed to generate batch number');
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -128,10 +88,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // Add attribute fields
-    const addAttributeBtn = document.getElementById('addAttribute');
-    const attributesContainer = document.getElementById('attributesContainer');
-    
     if (addAttributeBtn && attributesContainer) {
         addAttributeBtn.addEventListener('click', function() {
             const attributeGroup = document.createElement('div');
@@ -153,23 +109,17 @@ document.addEventListener('DOMContentLoaded', async function() {
                 </div>
             `;
             
-            // Add event listener for lowercase conversion
             const attrNameInput = attributeGroup.querySelector('.attr-name');
             attrNameInput.addEventListener('input', function(e) {
                 this.value = this.value.toLowerCase();
             });
             
             attributesContainer.appendChild(attributeGroup);
-            
-            // Initialize delete handler for the new attribute
             initializeDeleteHandler(attributeGroup.querySelector('.remove-attribute'));
-            
-            // Focus on the new attribute name input
-            attributeGroup.querySelector('.attr-name').focus();
+            attrNameInput.focus();
         });
     }
 
-    // Template selection handler
     if (templateSelect && attributesContainer) {
         templateSelect.addEventListener('change', async function() {
             const templateId = this.value;
@@ -202,29 +152,27 @@ document.addEventListener('DOMContentLoaded', async function() {
                         Object.entries(attributes).forEach(([name, value]) => {
                             const attributeGroup = document.createElement('div');
                             attributeGroup.className = 'attribute-group mb-2';
-                        
-                        attributeGroup.innerHTML = `
-                            <div class="row">
-                                <div class="col">
-                                    <input type="text" class="form-control attr-name" name="attr_name[]" value="${name.replace(/"/g, '&quot;')}" required>
+                            
+                            attributeGroup.innerHTML = `
+                                <div class="row">
+                                    <div class="col">
+                                        <input type="text" class="form-control attr-name" name="attr_name[]" value="${name.replace(/"/g, '&quot;')}" required>
+                                    </div>
+                                    <div class="col">
+                                        <input type="text" class="form-control" name="attr_value[]" value="${(value || '').replace(/"/g, '&quot;')}" required>
+                                    </div>
+                                    <div class="col-auto">
+                                        <button type="button" class="btn btn-danger remove-attribute">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="col">
-                                    <input type="text" class="form-control" name="attr_value[]" value="${(value || '').replace(/"/g, '&quot;')}" required>
-                                </div>
-                                <div class="col-auto">
-                                    <button type="button" class="btn btn-danger remove-attribute">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                        
-                        attributesContainer.appendChild(attributeGroup);
-                        const deleteButton = attributeGroup.querySelector('.remove-attribute');
-                        if (deleteButton) {
-                            initializeDeleteHandler(deleteButton);
-                        }
-                    });
+                            `;
+                            
+                            attributesContainer.appendChild(attributeGroup);
+                            initializeDeleteHandler(attributeGroup.querySelector('.remove-attribute'));
+                        });
+                    }
                 }
             } catch (error) {
                 console.error('Error loading template:', error);
