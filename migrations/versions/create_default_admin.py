@@ -17,19 +17,19 @@ depends_on = None
 
 def upgrade():
     # Create the default admin user with a secure password hash
-    admin_table = sa.table('admin_user',
-        sa.column('username', sa.String),
-        sa.column('password_hash', sa.String),
-        sa.column('created_at', sa.DateTime)
-    )
-    
-    op.bulk_insert(admin_table, [
+    from datetime import datetime
+    connection = op.get_bind()
+    connection.execute(
+        """
+        INSERT INTO admin_user (username, password_hash, created_at)
+        VALUES ('admin', :password_hash, :created_at)
+        ON CONFLICT (username) DO NOTHING
+        """,
         {
-            'username': 'admin',
             'password_hash': generate_password_hash('admin', method='sha256'),
-            'created_at': sa.func.now()
+            'created_at': datetime.utcnow()
         }
-    ])
+    )
 
 def downgrade():
     op.execute("DELETE FROM admin_user WHERE username = 'admin'")

@@ -86,12 +86,20 @@ def login():
                 flash('Invalid credentials', 'danger')
                 return render_template('admin/login.html')
             
-            # Simple direct password verification
-            from werkzeug.security import check_password_hash
+            # Log detailed password verification attempt
+            logger.info(f"Attempting to verify password for user: {username}")
+            logger.debug(f"Stored password hash: {admin_user.password_hash}")
+            
+            # Direct password verification
             if check_password_hash(admin_user.password_hash, password):
                 session['admin_logged_in'] = True
+                session.permanent = True
                 flash('Successfully logged in', 'success')
+                logger.info(f"Successful login for user: {username}")
                 return redirect(url_for('admin.dashboard'))
+            else:
+                logger.warning(f"Failed login attempt for user: {username}")
+                logger.debug("Password verification failed")
             
             flash('Invalid credentials', 'danger')
                 
