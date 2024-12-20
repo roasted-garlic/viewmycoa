@@ -271,47 +271,35 @@ body {
                     {% endif %}
                 </div>
 .coa-download-btn {
-    width: 185px;
-    height: 100px;
-    padding: 1rem 0.5rem;
+    width: 200px;
+    padding: 0.75rem;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: #6610f2;
-    border: 1px solid #7525f3;
+    gap: 0.75rem;
+    background-color: #e9ecef;
+    border: none;
     border-radius: 8px;
-    color: #fff;
+    color: #adb5bd;
     text-decoration: none;
     transition: all 0.2s ease;
-    gap: 0.75rem;
 }
 
 .coa-download-btn i {
-    font-size: 2.5rem;
-    margin: 0;
+    font-size: 2rem;
 }
 
-.coa-download-btn span {
-    font-size: 1rem;
-    text-align: center;
+.coa-download-btn.has-coa {
+    background-color: #6610f2;
+    color: #fff;
 }
 
 .coa-download-btn:hover {
     text-decoration: none;
-    background-color: #5a0dd6;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    color: #adb5bd;
 }
 
-.coa-download-btn:not(.has-coa) {
-    background-color: #343a40;
-    border-color: #404850;
-    cursor: not-allowed;
-}
-
-.coa-download-btn:not(.has-coa):hover {
-    background-color: #343a40;
-    transform: none;
-    box-shadow: none;
+.coa-download-btn.has-coa:hover {
+    background-color: #520dc2;
+    color: #fff;
 }
