@@ -93,6 +93,23 @@
     justify-content: center;
 }
 
+@media (max-width: 990px) {
+    .list-group-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .list-group-item span {
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
+
+    .list-group-item .d-flex.gap-2 {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
 @media (max-width: 576px) {
     .list-group-item {
         flex-direction: column;
