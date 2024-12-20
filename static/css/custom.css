@@ -206,10 +206,10 @@
 }
 
 /* Product list styles */
-.product-list .card img {
+.card-img-top {
     width: 100%;
     height: 200px;
-    object-fit: contain;
+    object-fit: cover;
     object-position: center;
 }
 
