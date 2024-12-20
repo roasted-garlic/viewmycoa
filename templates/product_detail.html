@@ -389,6 +389,10 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize modals
+    const deleteModal = document.getElementById('deleteConfirmModal') ? new bootstrap.Modal(document.getElementById('deleteConfirmModal')) : null;
+    const duplicateModal = document.getElementById('duplicateConfirmModal') ? new bootstrap.Modal(document.getElementById('duplicateConfirmModal')) : null;
+    
     // Square sync button
     const syncButton = document.getElementById('syncSquare');
     if (syncButton) {
@@ -426,95 +430,123 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
-    // Initialize delete confirmation modal
-    const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-    
-    // Handle delete button click
-    document.getElementById('deleteProduct').addEventListener('click', function() {
-        deleteModal.show();
-    });
 
-    document.getElementById('confirmDelete').addEventListener('click', async function() {
-        const productId = document.getElementById('deleteProduct').dataset.productId;
-        try {
-            const response = await fetch(`/api/delete_product/${productId}`, {
-                method: 'DELETE'
-            });
-            if (response.ok) {
-                window.location.href = '/vmc-admin/products';
-            } else {
-                console.error('Failed to delete product');
+    // Delete product functionality
+    const deleteButton = document.getElementById('deleteProduct');
+    if (deleteButton) {
+        deleteButton.addEventListener('click', function() {
+            if (deleteModal) deleteModal.show();
+        });
+    }
+
+    const confirmDeleteButton = document.getElementById('confirmDelete');
+    if (confirmDeleteButton && deleteButton) {
+        confirmDeleteButton.addEventListener('click', async function() {
+            const productId = deleteButton.dataset.productId;
+            try {
+                const response = await fetch(`/api/delete_product/${productId}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    window.location.href = '/vmc-admin/products';
+                } else {
+                    console.error('Failed to delete product');
+                }
+            } catch (error) {
+                console.error('Error deleting product:', error);
             }
-        } catch (error) {
-            console.error('Error deleting product:', error);
-        }
-        deleteModal.hide();
-    });
-    
-    // Initialize duplicate confirmation modal
-    const duplicateModal = new bootstrap.Modal(document.getElementById('duplicateConfirmModal'));
+            if (deleteModal) deleteModal.hide();
+        });
+    }
 
-    // Handle product duplication
-    document.querySelector('.duplicate-product').addEventListener('click', function() {
-        duplicateModal.show();
-    });
+    // Duplicate product functionality
+    const duplicateButton = document.querySelector('.duplicate-product');
+    if (duplicateButton) {
+        duplicateButton.addEventListener('click', function() {
+            if (duplicateModal) duplicateModal.show();
+        });
+    }
 
-    // Handle duplicate confirmation
-    document.getElementById('confirmDuplicate').addEventListener('click', async function() {
-        const productId = document.querySelector('.duplicate-product').dataset.productId;
-        duplicateModal.hide();
+    const confirmDuplicateButton = document.getElementById('confirmDuplicate');
+    if (confirmDuplicateButton && duplicateButton) {
+        confirmDuplicateButton.addEventListener('click', async function() {
+            const productId = duplicateButton.dataset.productId;
+            if (duplicateModal) duplicateModal.hide();
 
-        try {
-            const response = await fetch(`/api/duplicate_product/${productId}`, {
-                method: 'POST'
-            });
-            if (response.ok) {
+            try {
+                const response = await fetch(`/api/duplicate_product/${productId}`, {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    window.location.href = `/vmc-admin/products/${data.new_product_id}/edit`;
+                } else {
+                    console.error('Error duplicating product');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    }
+
+    // Generate PDF functionality
+    const generatePDFButton = document.getElementById('generatePDF');
+    if (generatePDFButton) {
+        generatePDFButton.addEventListener('click', async function() {
+            const productId = this.dataset.productId;
+            const button = this;
+            const normalState = button.querySelector('.normal-state');
+            const loadingState = button.querySelector('.loading-state');
+            
+            if (normalState && loadingState) {
+                normalState.classList.add('d-none');
+                loadingState.classList.remove('d-none');
+            }
+            button.disabled = true;
+
+            try {
+                const response = await fetch(`/api/generate_pdf/${productId}`, {
+                    method: 'POST'
+                });
                 const data = await response.json();
-                window.location.href = `/vmc-admin/products/${data.new_product_id}/edit`;
-            } else {
-                showNotification('Error duplicating product', 'danger');
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    console.error('Error generating PDF:', data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                if (normalState && loadingState) {
+                    normalState.classList.remove('d-none');
+                    loadingState.classList.add('d-none');
+                }
+                button.disabled = false;
             }
-        } catch (error) {
-            console.error('Error:', error);
-            showNotification('Error duplicating product', 'danger');
-        }
-    });
+        });
+    }
 
-    // Square sync button
-    document.getElementById('syncSquare').addEventListener('click', async function() {
-        const productId = this.dataset.productId;
-        const button = this;
-        const originalText = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
-        button.disabled = true;
-
-        try {
-            const response = await fetch(`/api/square/sync/${productId}`, {
-                method: 'POST'
-            });
-            const data = await response.json();
-            
-            const resultsDiv = document.getElementById('syncResults');
-            if (data.success) {
-                resultsDiv.innerHTML = '<div class="alert alert-success">Product synced successfully!</div>';
-            } else {
-                resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+    // Generate JSON functionality
+    const generateJSONButton = document.getElementById('generateJSON');
+    if (generateJSONButton) {
+        generateJSONButton.addEventListener('click', async function() {
+            const productId = this.dataset.productId;
+            try {
+                const response = await fetch(`/api/generate_json/${productId}`);
+                const data = await response.json();
+                
+                const jsonPreview = document.getElementById('jsonPreview');
+                if (jsonPreview) {
+                    jsonPreview.textContent = JSON.stringify(data, null, 2);
+                }
+                
+                const jsonModal = new bootstrap.Modal(document.getElementById('jsonModal'));
+                jsonModal.show();
+            } catch (error) {
+                console.error('Error:', error);
             }
-            
-            const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
-            modal.show();
-        } catch (error) {
-            console.error('Error syncing with Square:', error);
-            const resultsDiv = document.getElementById('syncResults');
-            resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
-            const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
-            modal.show();
-        } finally {
-            button.innerHTML = originalText;
-            button.disabled = false;
-        }
-    });
+        });
+    }
 });
 </script>
 {% endblock %}
