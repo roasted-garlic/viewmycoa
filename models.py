@@ -144,13 +144,17 @@ class AdminUser(db.Model):
     def create(username, password):
         """Create a new admin user with hashed password"""
         from werkzeug.security import generate_password_hash
+        password_hash = generate_password_hash(password)
+        print(f"Creating admin user with hash: {password_hash[:20]}...")  # Log partial hash for debugging
         user = AdminUser(
             username=username,
-            password_hash=generate_password_hash(password)
+            password_hash=password_hash
         )
         return user
 
     def verify_password(self, password):
         """Verify the user's password"""
         from werkzeug.security import check_password_hash
-        return check_password_hash(self.password_hash, password)
+        result = check_password_hash(self.password_hash, password)
+        print(f"Password verification for {self.username}: {'success' if result else 'failed'}")
+        return result

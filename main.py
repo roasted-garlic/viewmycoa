@@ -28,20 +28,30 @@ def init_app():
             try:
                 # Create default admin user if none exists
                 from models import AdminUser
-                if AdminUser.query.count() == 0:
-                    logger.info("Creating default admin user...")
-                    from werkzeug.security import generate_password_hash
-                    admin = AdminUser(
-                        username='admin',
-                        password_hash=generate_password_hash('admin')
-                    )
+                logger.info("Checking for existing admin users...")
+                existing_count = AdminUser.query.count()
+                logger.info(f"Found {existing_count} existing admin users")
+                
+                if existing_count == 0:
+                    logger.info("Creating new admin user...")
+                    admin = AdminUser.create(username='admin', password='admin')
+                    logger.info(f"Admin user created with username: {admin.username}")
+                    logger.info(f"Password hash generated: {admin.password_hash[:20]}...")
+                    
                     db.session.add(admin)
                     db.session.commit()
-                    logger.info("Default admin user created successfully")
+                    
+                    # Verify the user was created
+                    created_admin = AdminUser.query.filter_by(username='admin').first()
+                    if created_admin:
+                        logger.info("Admin user successfully created and verified in database")
+                    else:
+                        logger.error("Failed to verify admin user after creation")
                 else:
-                    logger.info("Admin user already exists")
+                    logger.info("Admin user already exists, skipping creation")
             except Exception as e:
                 logger.error(f"Error creating admin user: {str(e)}")
+                logger.exception("Full stack trace:")
                 db.session.rollback()
                 raise
 

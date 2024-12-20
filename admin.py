@@ -86,15 +86,18 @@ def login():
                 flash('Invalid credentials', 'danger')
                 return render_template('admin/login.html')
             
-            # Verify password using werkzeug's check_password_hash
-            from werkzeug.security import check_password_hash
-            if check_password_hash(admin_user.password_hash, password):
-                logger.info(f"Successful login for admin user: {username}")
+            # Log the verification attempt
+            logger.info(f"Attempting to verify password for user: {username}")
+            logger.debug(f"Stored password hash: {admin_user.password_hash[:20]}...")
+            
+            if admin_user.verify_password(password):
+                logger.info(f"Password verification successful for user: {username}")
                 session['admin_logged_in'] = True
                 flash('Successfully logged in', 'success')
                 return redirect(url_for('admin.dashboard'))
             else:
-                logger.warning(f"Failed login attempt for username: {username}")
+                logger.warning(f"Password verification failed for user: {username}")
+                logger.debug("Password verification failed - hash comparison did not match")
                 flash('Invalid credentials', 'danger')
                 
         except Exception as e:
