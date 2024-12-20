@@ -129,7 +129,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Add attribute fields
-    if (addAttributeBtn) {
+    const addAttributeBtn = document.getElementById('addAttribute');
+    const attributesContainer = document.getElementById('attributesContainer');
+    
+    if (addAttributeBtn && attributesContainer) {
         addAttributeBtn.addEventListener('click', function() {
             const attributeGroup = document.createElement('div');
             attributeGroup.className = 'attribute-group mb-2';
