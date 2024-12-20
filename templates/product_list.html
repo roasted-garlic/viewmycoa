@@ -28,7 +28,12 @@
             <div class="card-body">
                 <h5 class="card-title">{{ product.title }}</h5>
                 <p class="card-text">Batch: {{ product.batch_number }}</p>
-                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-primary">View Details</a>
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-primary">View Details</a>
+                    <button class="btn btn-secondary duplicate-product" data-product-id="{{ product.id }}">
+                        <i class="fas fa-copy"></i> Duplicate
+                    </button>
+                </div>
             </div>
         </div>
     </div>
