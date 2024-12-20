@@ -222,18 +222,21 @@ def create_product():
         title = request.form.get('title')
         attributes = {}
         
-        # Get selected category ID
+        # Get selected category ID and other fields
         category_id = request.form.get('category_id')
+        cost = request.form.get('cost')
+        price = request.form.get('price')
+        batch_input = request.form.get('batchNumber')  # Get batch number from form
 
         # Process dynamic attributes
         attr_names = request.form.getlist('attr_name[]')
         attr_values = request.form.getlist('attr_value[]')
         attributes = dict(zip(attr_names, attr_values))
 
-        # Generate UPC-A barcode number
+        # Generate UPC-A barcode number and SKU
         from utils import generate_upc_barcode, generate_batch_number, generate_sku
         barcode_number = generate_upc_barcode()
-        batch_number = generate_batch_number()
+        batch_number = batch_input if batch_input else generate_batch_number()
         sku = generate_sku()  # Generate unique SKU
 
         product = models.Product()
@@ -241,6 +244,8 @@ def create_product():
         product.batch_number = batch_number
         product.barcode = barcode_number
         product.sku = sku
+        product.cost = float(cost) if cost else None
+        product.price = float(price) if price else None
         product.craftmypdf_template_id = request.form.get('craftmypdf_template_id')
         product.set_attributes(attributes)
         
