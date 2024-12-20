@@ -64,23 +64,33 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+    gap: 1rem;
 }
 
 .list-group-item span {
-    word-break: break-all;
-    margin-right: auto;
+    flex: 1;
+    min-width: 0;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    margin-right: 0;
 }
 
 .list-group-item .d-flex.gap-2 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem !important;
     flex-shrink: 0;
-    margin-left: 0.5rem;
 }
 
 .list-group-item .btn {
     padding: 0.375rem 0.75rem;
-    white-space: nowrap;
+    min-width: 40px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 @media (max-width: 576px) {
