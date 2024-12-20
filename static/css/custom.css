@@ -101,6 +101,10 @@
         width: 100%;
     }
 
+    .card-header h3 {
+        width: 100%;
+    }
+
     .card-header .d-flex.gap-2 {
         display: flex !important;
         flex-direction: row !important;
@@ -112,8 +116,14 @@
     .card-header .btn {
         flex: 1 1 auto;
         min-width: 150px;
-        max-width: 100%;
+        width: calc(50% - 0.25rem);
         margin: 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .card-header .btn {
+        width: 100%;
     }
 }
 
