@@ -192,12 +192,15 @@
         {% endif %}
 
         <!-- Product Attributes -->
-        <div class="d-block d-none d-lg-none mb-3">
+        <div class="d-block d-lg-none mb-3">
             <button class="btn btn-info w-100" type="button" data-bs-toggle="collapse" data-bs-target="#attributesInfo">
                 <i class="fas fa-tags"></i> Product Attributes
             </button>
         </div>
         <div class="row g-3 mb-4 collapse d-lg-flex" id="attributesInfo">
+            <div class="col-12">
+                <h3 class="mb-3">Product Attributes</h3>
+            </div>
             {% for name, value in product.get_attributes().items() %}
             <div class="col-md-6">
                 <div class="card bg-dark border-secondary h-100">
