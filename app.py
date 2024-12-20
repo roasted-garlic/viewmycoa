@@ -159,13 +159,57 @@ def products():
     return render_template('product_list.html', products=products)
 
 
-from craftmypdf_integration import CraftMyPDFIntegration
-
-craftmypdf = CraftMyPDFIntegration()
-
 def fetch_craftmypdf_templates():
     """Fetch templates from CraftMyPDF API"""
-    return craftmypdf.fetch_templates()
+    api_key = os.environ.get('CRAFTMYPDF_API_KEY')
+    if not api_key:
+        app.logger.error("CraftMyPDF API key not configured")
+        return []
+
+    headers = {'X-API-KEY': api_key, 'Content-Type': 'application/json'}
+
+    try:
+        app.logger.debug("Fetching templates from CraftMyPDF API")
+        app.logger.debug(
+            "Using API endpoint: https://api.craftmypdf.com/v1/list-templates"
+        )
+
+        response = requests.get('https://api.craftmypdf.com/v1/list-templates',
+                                headers=headers,
+                                params={
+                                    'limit': 300,
+                                    'offset': 0
+                                },
+                                timeout=30)
+
+        app.logger.debug(f"API Response Status: {response.status_code}")
+        app.logger.debug(f"API Response Headers: {response.headers}")
+        app.logger.debug(f"API Response Content: {response.text}")
+
+        if response.status_code == 200:
+            data = response.json()
+            templates = data.get('templates', [])
+            app.logger.info(f"Successfully fetched {len(templates)} templates")
+
+            # Log template IDs for debugging
+            for template in templates:
+                app.logger.debug(
+                    f"Template ID: {template.get('template_id')}, Name: {template.get('name')}"
+                )
+
+            return templates
+        else:
+            app.logger.error(
+                f"Failed to fetch templates. Status: {response.status_code}, Response: {response.text}"
+            )
+            return []
+
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f"Request error fetching templates: {str(e)}")
+        return []
+    except Exception as e:
+        app.logger.error(f"Unexpected error fetching templates: {str(e)}")
+        return []
 
 
 @app.route('/product/new', methods=['GET', 'POST'])
@@ -347,12 +391,39 @@ def generate_pdf(product_id):
         app.logger.debug(
             f"Sending request to CraftMyPDF API with payload: {api_data}")
 
-        # Generate PDF using CraftMyPDF integration
-        try:
-            pdf_url = craftmypdf.generate_pdf(product, api_data)
-            if not pdf_url:
-                app.logger.error("No PDF URL in response")
-                return jsonify({'error': 'No PDF URL in response'}), 500
+        # Make API call
+        headers = {'X-API-KEY': api_key, 'Content-Type': 'application/json'}
+
+        # Make API request with detailed logging
+        response = requests.post('https://api.craftmypdf.com/v1/create',
+                                 json=api_data,
+                                 headers=headers,
+                                 timeout=30)
+
+        # Log full request and response details for debugging
+        app.logger.debug(
+            "CraftMyPDF API Request URL: https://api.craftmypdf.com/v1/create"
+        )
+        app.logger.debug(f"CraftMyPDF API Headers: {headers}")
+        app.logger.debug(
+            f"CraftMyPDF API Response Status: {response.status_code}")
+        app.logger.debug(f"CraftMyPDF API Response Content: {response.text}")
+
+        if response.status_code != 200:
+            error_msg = f"API Error (Status {response.status_code}): {response.text}"
+            app.logger.error(error_msg)
+            return jsonify({'error': error_msg}), response.status_code
+
+        result = response.json()
+        if result.get('status') != 'success':
+            error_msg = result.get('message', 'Unknown error')
+            app.logger.error(f"API Error: {error_msg}")
+            return jsonify({'error': error_msg}), 400
+
+        pdf_url = result.get('file')
+        if not pdf_url:
+            app.logger.error("No PDF URL in response")
+            return jsonify({'error': 'No PDF URL in response'}), 500
 
         # Create PDF record with timestamp
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
