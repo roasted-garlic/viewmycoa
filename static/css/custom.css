@@ -300,16 +300,30 @@ body {
     color: #fff;
 }
 
+.coa-download-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #6610f2;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.coa-download-btn i {
+    font-size: 1.2rem;
+}
+
 .coa-download-btn:hover {
     text-decoration: none;
     background-color: #520dc2;
-    border-color: #6610f2;
     transform: translateY(-2px);
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
-    color: #ffffff;
-}
-
-.coa-download-btn.has-coa:hover {
-    background-color: #520dc2;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     color: #ffffff;
 }
