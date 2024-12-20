@@ -332,10 +332,10 @@ body {
 }
 
 .coa-download-btn:hover {
-    background-color: #8e5af5;
+    background-color: rgba(125, 66, 244, 0.9);
     border-color: #7d42f4;
     color: #fff;
     text-decoration: none;
     transform: translateY(-2px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
 }
