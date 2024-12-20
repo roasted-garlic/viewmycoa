@@ -1,11 +1,28 @@
-import os
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_from_directory
+from flask import Flask, render_template, request, jsonify, flash, redirect, url_for, send_file, abort, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
-import logging
+from flask_migrate import Migrate
+import sqlalchemy.orm as orm
 from werkzeug.utils import secure_filename
+import os
+import logging
 import string
 import random
+import requests
+import json
+from PIL import Image
+import datetime
+
+# Initialize SQLAlchemy and Migrate
+db = SQLAlchemy()
+migrate = Migrate()
+
+# Initialize the application
+app = Flask(__name__)
+app.config.from_object('config')
+
+# Initialize extensions
+db.init_app(app)
+migrate.init_app(app, db)
 import requests
 import json
 from PIL import Image
@@ -14,20 +31,9 @@ import datetime
 from utils import generate_batch_number, generate_sku, generate_upc_barcode, is_valid_image
 
 
-class Base(DeclarativeBase):
-    pass
-
-
-db = SQLAlchemy(model_class=Base)
-app = Flask(__name__)
-
-# Configuration
-app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
+# Additional configuration
+app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 

@@ -46,7 +46,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "FLASK_APP=app.py flask db init && FLASK_APP=app.py flask db migrate -m 'Add product cost and price' && FLASK_APP=app.py flask db upgrade"
+args = "FLASK_APP=app.py flask db upgrade"
 
 [deployment]
 run = ["sh", "-c", "python main.py"]
