@@ -53,3 +53,21 @@ function showNotification(message, type = 'success') {
         container.remove();
     });
 }
+
+document.getElementById('confirmDelete').addEventListener('click', async function() {
+    const productId = document.getElementById('deleteProduct').dataset.productId;
+    try {
+        const response = await fetch(`/api/delete_product/${productId}`, {
+            method: 'DELETE'
+        });
+        if (response.ok) {
+            window.location.replace('/products');
+        } else {
+            const data = await response.json();
+            console.error('Failed to delete product:', data.error);
+        }
+    } catch (error) {
+        console.error('Error deleting product:', error);
+    }
+    deleteModal.hide();
+});

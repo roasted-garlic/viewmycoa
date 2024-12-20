@@ -886,18 +886,21 @@ def duplicate_product(product_id):
 def delete_product(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
+        batch_number = product.batch_number
 
-        # Delete all associated PDFs
-        pdfs = models.GeneratedPDF.query.filter_by(
-            product_id=product_id).order_by(
-                models.GeneratedPDF.created_at.desc()).all()
+        # Delete PDFs and their directory
+        pdfs = models.GeneratedPDF.query.filter_by(product_id=product_id).all()
         for pdf in pdfs:
+            db.session.delete(pdf)
+            
+        # Delete PDF directory if it exists
+        pdf_dir = os.path.join('static', 'pdfs', batch_number)
+        if os.path.exists(pdf_dir):
             try:
-                pdf_path = os.path.join('static', 'pdfs', pdf.filename)
-                if os.path.exists(pdf_path):
-                    os.remove(pdf_path)
+                import shutil
+                shutil.rmtree(pdf_dir)
             except OSError as e:
-                logging.error(f"Error deleting PDF file: {e}")
+                logging.error(f"Error deleting PDF directory: {e}")
 
         # Delete product directory with all images
         product_dir = os.path.join('static', 'uploads', str(product.id))
@@ -908,6 +911,7 @@ def delete_product(product_id):
             except OSError as e:
                 logging.error(f"Error deleting product directory: {e}")
 
+        # Delete the product and commit all changes
         db.session.delete(product)
         db.session.commit()
 
