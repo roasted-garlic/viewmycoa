@@ -71,9 +71,14 @@ with app.app_context():
 def index():
     return render_template('search_home.html')
 
+@app.route('/vmc-admin/')
 @app.route('/vmc-admin')
 def admin_index():
     return redirect(url_for('admin_dashboard'))
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
 
 @app.route('/vmc-admin/dashboard')
 def admin_dashboard():
