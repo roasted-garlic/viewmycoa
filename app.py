@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, jsonify, flash, redirect, url_for, send_file, abort, send_from_directory
-import sqlalchemy.orm as orm
-from werkzeug.utils import secure_filename
 import os
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_from_directory
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase
 import logging
+from werkzeug.utils import secure_filename
 import string
 import random
 import requests
@@ -10,23 +11,26 @@ import json
 from PIL import Image
 import datetime
 
-# Initialize Flask application
-app = Flask(__name__)
-app.config.from_object('config')
-
-# Import database instance
-from extensions import db, init_db
-
-# Initialize extensions
-init_db(app)
-
-# Import models and utils after db initialization
-import models
 from utils import generate_batch_number, generate_sku, generate_upc_barcode, is_valid_image
 
-# Configure upload settings
+
+class Base(DeclarativeBase):
+    pass
+
+
+db = SQLAlchemy(model_class=Base)
+app = Flask(__name__)
+
+# Configuration
+app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_recycle": 300,
+    "pool_pre_ping": True,
+}
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+
 
 @app.route('/static/pdfs/<path:filename>')
 def serve_pdf(filename):
@@ -51,12 +55,16 @@ def serve_pdf(filename):
         return f"Error accessing PDF: {str(e)}", 500
 
 
+db.init_app(app)
+
 logging.basicConfig(level=logging.DEBUG)
 
 # Ensure upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# Tables are created through migrations
+with app.app_context():
+    import models
+    db.create_all()
 
 
 @app.route('/')
@@ -800,55 +808,12 @@ def delete_batch_history(history_id):
         for pdf in pdfs:
             db.session.delete(pdf)
         
-        # Delete the batch history record
         db.session.delete(history)
         db.session.commit()
         return jsonify({'success': True})
-        
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"Error deleting batch history: {str(e)}")
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/sync_to_square/<int:product_id>', methods=['POST'])
-def sync_to_square(product_id):
-    """Sync a single product to Square's catalog"""
-    try:
-        product = models.Product.query.get_or_404(product_id)
-        from square_sync import sync_product_to_square
-        
-        result = sync_product_to_square(product)
-        if result.get('success'):
-            flash('Product successfully synced with Square!', 'success')
-            return jsonify(result), 200
-        else:
-            error_msg = result.get('error', 'Unknown error occurred')
-            flash(f'Error syncing with Square: {error_msg}', 'danger')
-            return jsonify(result), 400
-            
-    except Exception as e:
-        app.logger.error(f"Error syncing product to Square: {str(e)}")
-        return jsonify({'error': str(e)}), 500
-            db.session.commit()
-
-@app.route('/api/sync_to_square/<int:product_id>', methods=['POST'])
-def sync_to_square(product_id):
-    """Sync a single product to Square's catalog"""
-    try:
-        product = models.Product.query.get_or_404(product_id)
-        from square_sync import sync_product_to_square
-        
-        result = sync_product_to_square(product)
-        if result.get('success'):
-            flash('Product successfully synced with Square!', 'success')
-            return jsonify(result), 200
-        else:
-            error_msg = result.get('error', 'Unknown error occurred')
-            flash(f'Error syncing with Square: {error_msg}', 'danger')
-            return jsonify(result), 400
-            
-    except Exception as e:
-        app.logger.error(f"Error syncing product to Square: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/delete_coa/<int:product_id>', methods=['DELETE'])
@@ -936,13 +901,11 @@ def duplicate_product(product_id):
         app.logger.error(f"Error duplicating product {product_id}: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/square/sync_all', methods=['POST'])
-def sync_all_to_square():
+@app.route('/api/square/sync', methods=['POST'])
+def sync_to_square():
     try:
         from square_sync import sync_all_products
         results = sync_all_products()
-        if any(result.get('result', {}).get('success', False) for result in results):
-            flash('Products successfully synced to Square!', 'success')
         return jsonify({"success": True, "results": results})
     except Exception as e:
         app.logger.error(f"Square sync error: {str(e)}")
