@@ -74,8 +74,13 @@
         </div>
     
 
-    <!-- COA Status -->
-    <div class="row g-3 mb-4">
+    <!-- Status Information -->
+    <div class="d-block d-md-none mb-3">
+        <button class="btn btn-info w-100" type="button" data-bs-toggle="collapse" data-bs-target="#statusInfo">
+            <i class="fas fa-info-circle"></i> Status Information
+        </button>
+    </div>
+    <div class="row g-3 mb-4 collapse d-md-flex" id="statusInfo">
         <div class="col-md">
             <div class="card {% if product.coa_pdf %}bg-success{% else %}bg-danger{% endif %} border-secondary h-100">
                 <div class="card-body">
