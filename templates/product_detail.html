@@ -659,7 +659,7 @@ document.getElementById('syncSquare').addEventListener('click', async function()
         
         const resultsDiv = document.getElementById('syncResults');
         if (data.success) {
-            resultsDiv.innerHTML = '<div class="alert alert-success">Product synced successfully!</div>';
+            resultsDiv.innerHTML = `<div class="alert alert-success">Product synced successfully!</div>`;
         } else {
             resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
         }
