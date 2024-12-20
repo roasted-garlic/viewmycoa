@@ -7,6 +7,12 @@
     <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/custom.css') }}" rel="stylesheet">
+    <style>
+        .coa-download-btn i {
+            display: block; /* Make icon a block element */
+            margin-bottom: 0.5rem; /* Add spacing between icon and text */
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-4">
@@ -93,15 +99,18 @@
                     <div class="card-body d-flex flex-column justify-content-center align-items-center">
                         {% if is_historical and batch_history.coa_pdf %}
                         <a href="{{ url_for('serve_pdf', filename=batch_history.batch_number + '/' + batch_history.coa_pdf.split('/')[-1], download=1) }}" class="coa-download-btn has-coa">
-                            <i class="fas fa-file-pdf"></i> Download COA
+                            <i class="fas fa-file-pdf"></i>
+                            <span>Download COA</span>
                         </a>
                         {% elif product.coa_pdf %}
                         <a href="{{ url_for('serve_pdf', filename=product.batch_number + '/' + product.coa_pdf.split('/')[-1], download=1) }}" class="coa-download-btn has-coa">
-                            <i class="fas fa-file-pdf"></i> Download COA
+                            <i class="fas fa-file-pdf"></i>
+                            <span>Download COA</span>
                         </a>
                         {% else %}
                         <a href="#" class="coa-download-btn">
-                            <i class="fas fa-file-pdf"></i> Download COA
+                            <i class="fas fa-file-pdf"></i>
+                            <span>Download COA</span>
                         </a>
                         {% endif %}
                     </div>

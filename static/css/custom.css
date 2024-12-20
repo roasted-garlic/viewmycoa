@@ -271,8 +271,7 @@ body {
                     {% endif %}
                 </div>
 .coa-download-btn {
-    width: 185px;
-    height: 100px;
+    width: 200px;
     padding: 1rem;
     display: flex;
     flex-direction: column;
