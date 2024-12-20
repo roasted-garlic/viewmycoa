@@ -264,8 +264,10 @@ body {
     left: 50%;
     transform: translate(-50%, -50%);
     width: 100%;
+    max-width: 600px;
     text-align: center;
     padding: 2rem;
+    margin: 0 auto;
 }
 
 <div class="card-body d-flex flex-column justify-content-center align-items-center">
