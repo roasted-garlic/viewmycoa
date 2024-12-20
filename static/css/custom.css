@@ -270,13 +270,15 @@
 
     .card-header .d-flex {
         width: 100%;
-        display: flex;
+        display: flex !important;
+        flex-direction: row !important;
         gap: 0.5rem;
     }
 
     .card-header .btn {
         flex: 1;
         min-width: 140px;
+        display: flex !important;
     }
 }
 
