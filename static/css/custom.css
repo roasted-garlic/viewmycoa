@@ -339,3 +339,53 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
 }
+/* Category Card Responsive Styles */
+.category-card {
+    padding: 1.25rem;
+}
+
+.category-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.category-info {
+    flex: 1;
+    min-width: 200px;
+}
+
+.category-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.category-actions .btn {
+    min-width: 90px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+@media (max-width: 576px) {
+    .category-content {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .category-info {
+        min-width: 100%;
+    }
+    
+    .category-actions {
+        width: 100%;
+    }
+    
+    .category-actions .btn {
+        flex: 1;
+    }
+}

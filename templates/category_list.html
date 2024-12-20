@@ -17,23 +17,23 @@
         <div class="col">
             <div class="list-group">
                 {% for category in categories %}
-                <div class="list-group-item mb-3 border shadow-sm">
-                    <div class="d-flex w-100 justify-content-between align-items-center">
-                        <div>
+                <div class="list-group-item mb-3 border shadow-sm category-card">
+                    <div class="category-content">
+                        <div class="category-info">
                             <h5 class="mb-1">{{ category.name }}</h5>
                             <p class="mb-1 text-muted">{{ category.description or 'No description' }}</p>
                             <small>Products: {{ category.products|length }}</small>
                         </div>
-                        <div class="d-flex gap-2">
+                        <div class="category-actions">
                             <button class="btn btn-outline-primary btn-sm edit-category" 
                                     data-category-id="{{ category.id }}"
                                     data-category-name="{{ category.name }}"
                                     data-category-description="{{ category.description or '' }}">
-                                <i class="fas fa-edit"></i> Edit
+                                <i class="fas fa-edit"></i> <span class="btn-text">Edit</span>
                             </button>
                             <button class="btn btn-outline-danger btn-sm delete-category" 
                                     data-category-id="{{ category.id }}">
-                                <i class="fas fa-trash"></i> Delete
+                                <i class="fas fa-trash"></i> <span class="btn-text">Delete</span>
                             </button>
                         </div>
                     </div>
