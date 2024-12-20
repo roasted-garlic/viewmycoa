@@ -67,7 +67,7 @@ class Product(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     generated_pdfs = db.relationship('GeneratedPDF', backref='product', lazy='dynamic')
     batch_history = db.relationship('BatchHistory', backref='product', lazy='dynamic')
-    # Categories relationship is handled through the backref in Category model
+    categories = relationship('Category', secondary=product_categories, back_populates='products')
 
     def set_attributes(self, attrs):
         if attrs is None:

@@ -10,7 +10,7 @@ from PIL import Image
 import datetime
 
 from utils import generate_batch_number
-
+from sqlalchemy.orm import relationship
 
 class Base(DeclarativeBase):
     pass
