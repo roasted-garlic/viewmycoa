@@ -417,6 +417,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const historyDeleteModal = new bootstrap.Modal(document.getElementById('historyDeleteModal'));
     const jsonModal = new bootstrap.Modal(document.getElementById('jsonModal'));
 
+    // Add event listeners for modal cleanup
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.addEventListener('hidden.bs.modal', function() {
+            document.querySelector('.modal-backdrop')?.remove();
+            document.body.classList.remove('modal-open');
+            document.body.style.paddingRight = '';
+        });
+    });
+
     // Enable delete checkbox functionality
     const enableDeleteCheckbox = document.getElementById('enableDelete');
     const deleteHistoryButtons = document.querySelectorAll('.delete-history');
@@ -501,6 +511,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (deleteButton) {
         deleteButton.addEventListener('click', function() {
             deleteModal.show();
+        });
+        
+        // Clean up modal backdrop when modal is hidden
+        document.getElementById('deleteConfirmModal').addEventListener('hidden.bs.modal', function() {
+            document.querySelector('.modal-backdrop')?.remove();
         });
     }
 
