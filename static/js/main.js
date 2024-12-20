@@ -61,7 +61,7 @@ document.getElementById('confirmDelete').addEventListener('click', async functio
             method: 'DELETE'
         });
         if (response.ok) {
-            window.location.replace('/products');
+            window.location.href = '/vmc-admin/products';
         } else {
             const data = await response.json();
             console.error('Failed to delete product:', data.error);
