@@ -346,6 +346,7 @@ body {
 
 .category-content {
     display: flex;
+    flex-wrap: wrap;
     gap: 1rem;
     justify-content: space-between;
     align-items: center;
@@ -353,25 +354,21 @@ body {
 
 .category-info {
     flex: 1;
-    min-width: 0;
-    max-width: calc(100% - 220px);
+    min-width: 200px;
 }
 
 .category-actions {
     display: flex;
     gap: 0.5rem;
-    flex-shrink: 0;
-    justify-content: flex-end;
-    width: 210px;
+    flex-wrap: wrap;
 }
 
 .category-actions .btn {
-    width: 100px;
+    min-width: 90px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
 }
 
 @media (max-width: 576px) {
@@ -381,18 +378,14 @@ body {
     }
     
     .category-info {
-        width: 100%;
-        max-width: 100%;
-        margin-bottom: 1rem;
+        min-width: 100%;
     }
     
     .category-actions {
         width: 100%;
-        justify-content: flex-end;
     }
     
     .category-actions .btn {
         flex: 1;
-        width: auto;
     }
 }
