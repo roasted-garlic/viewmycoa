@@ -72,6 +72,51 @@
         </div>
 
         </div>
+    <!-- Financial Information -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-dark border-secondary h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-info">
+                        <i class="fas fa-dollar-sign"></i> Cost
+                    </h5>
+                    <p class="card-text h4">${{ '%.2f'|format(product.cost) if product.cost else '0.00' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark border-secondary h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-info">
+                        <i class="fas fa-tag"></i> Price
+                    </h5>
+                    <p class="card-text h4">${{ '%.2f'|format(product.price) if product.price else '0.00' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark border-secondary h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-info">
+                        <i class="fas fa-chart-line"></i> Profit
+                    </h5>
+                    <p class="card-text h4">${{ '%.2f'|format(product.price - product.cost) if (product.price and product.cost) else '0.00' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark border-secondary h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-info">
+                        <i class="fas fa-percentage"></i> Margin
+                    </h5>
+                    <p class="card-text h4">{{ '%.1f'|format((((product.price - product.cost) / product.price) * 100) if (product.price and product.cost and product.price > 0) else 0) }}%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COA Status -->
     <div class="row g-3 mb-4">
         <div class="col-md">
             <div class="card {% if product.coa_pdf %}bg-success{% else %}bg-danger{% endif %} border-secondary h-100">
@@ -133,7 +178,7 @@
         {% if product.product_image %}
             <img src="{{ url_for('static', filename=product.product_image) }}" class="img-fluid mb-4" alt="{{ product.title }}">
         {% endif %}
-        
+
         <h3 class="mb-3">Product Attributes</h3>
         <div class="row g-3">
             {% for name, value in product.get_attributes().items() %}
@@ -189,7 +234,7 @@
                 </ul>
             </div>
         </div>
-        
+
         <!-- Historical Batches Section -->
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -342,17 +387,17 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize duplicate confirmation modal
     const duplicateModal = new bootstrap.Modal(document.getElementById('duplicateConfirmModal'));
-    
+
     // Handle product duplication
     document.querySelector('.duplicate-product').addEventListener('click', function() {
         duplicateModal.show();
     });
-    
+
     // Handle duplicate confirmation
     document.getElementById('confirmDuplicate').addEventListener('click', async function() {
         const productId = document.querySelector('.duplicate-product').dataset.productId;
         duplicateModal.hide();
-        
+
         try {
             const response = await fetch(`/api/duplicate_product/${productId}`, {
                 method: 'POST'
@@ -372,7 +417,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle delete button visibility
     const enableDeleteCheckbox = document.getElementById('enableDelete');
     const deleteButtons = document.querySelectorAll('.delete-history');
-    
+
     enableDeleteCheckbox.addEventListener('change', function() {
         deleteButtons.forEach(button => {
             if (this.checked) {
@@ -410,7 +455,7 @@ document.getElementById('generatePDF').addEventListener('click', async function(
     const normalState = btn.querySelector('.normal-state');
     const loadingState = btn.querySelector('.loading-state');
     const productId = document.getElementById('deleteProduct').dataset.productId;
-    
+
     // Show loading state
     normalState.classList.add('d-none');
     loadingState.classList.remove('d-none');
@@ -475,7 +520,7 @@ document.getElementById('generateJSON').addEventListener('click', async function
             const data = await response.json();
             const jsonPreview = document.getElementById('jsonPreview');
             jsonPreview.textContent = JSON.stringify(data, null, 2);
-            
+
             // Show the modal
             const modal = new bootstrap.Modal(document.getElementById('jsonModal'));
             modal.show();
