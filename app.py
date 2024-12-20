@@ -738,7 +738,7 @@ def edit_product(product_id):
             # Handle product image
             if 'product_image' in request.files and request.files['product_image'].filename:
                 file = request.files['product_image']
-                if file and utils.is_valid_image(file):
+                if file and is_valid_image(file):
                     if product.product_image:  # Delete old image if it exists
                         try:
                             os.remove(os.path.join('static', product.product_image))
@@ -766,7 +766,7 @@ def edit_product(product_id):
             # Handle label image
             if 'label_image' in request.files and request.files['label_image'].filename:
                 file = request.files['label_image']
-                if file and utils.is_valid_image(file):
+                if file and is_valid_image(file):
                     if product.label_image:  # Delete old image if it exists
                         try:
                             os.remove(os.path.join('static', product.label_image))
