@@ -38,16 +38,19 @@
     gap: 0.5rem;
     padding: 0.5rem 1rem;
     min-height: 38px;
-    min-width: 120px;
+    min-width: 130px;
     white-space: nowrap;
     transition: all 0.2s ease;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 @media (min-width: 768px) {
     .btn {
-        min-width: 140px;
-        font-size: 1rem;
+        min-width: 150px;
+        font-size: 0.9rem;
+        padding: 0.5rem 1.25rem;
     }
 }
 
