@@ -92,27 +92,4 @@ def sync_all_products():
     
     return results
 
-@app.route('/api/square/sync/<int:product_id>', methods=['POST'])
-def sync_single_product(product_id):
-    """Sync a single product to Square"""
-    try:
-        product = Product.query.get_or_404(product_id)
-        result = sync_product_to_square(product)
-        
-        if 'error' in result:
-            return jsonify({
-                'success': False,
-                'error': result['error']
-            }), 400
-            
-        return jsonify({
-            'success': True,
-            'data': result
-        })
-        
-    except Exception as e:
-        app.logger.error(f"Error syncing product to Square: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+

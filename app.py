@@ -1000,6 +1000,32 @@ def generate_json(product_id):
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/square/sync/<int:product_id>', methods=['POST'])
+def sync_single_product(product_id):
+    """Sync a single product to Square"""
+    try:
+        from square_sync import sync_product_to_square
+        product = models.Product.query.get_or_404(product_id)
+        result = sync_product_to_square(product)
+        
+        if 'error' in result:
+            return jsonify({
+                'success': False,
+                'error': result['error']
+            }), 400
+            
+        return jsonify({
+            'success': True,
+            'data': result
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error syncing product to Square: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 def save_image(file, product_id, image_type):
     # Create product-specific directory
     product_dir = os.path.join('uploads', str(product_id))
