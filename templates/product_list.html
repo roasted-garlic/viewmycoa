@@ -42,6 +42,90 @@
 {% endblock %}
 
 {% block scripts %}
+
+<!-- Duplicate Confirmation Modal -->
+<div class="modal fade" id="duplicateConfirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Duplicate</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize search functionality (existing code)
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchText = e.target.value.toLowerCase();
+            const products = document.getElementsByClassName('product-card');
+            
+            Array.from(products).forEach(product => {
+                const title = product.querySelector('.card-title').textContent.toLowerCase();
+                const batch = product.querySelector('.card-text').textContent.toLowerCase();
+                
+                if (title.includes(searchText) || batch.includes(searchText)) {
+                    product.style.display = '';
+                } else {
+                    product.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // Initialize duplicate confirmation modal
+    const duplicateModal = new bootstrap.Modal(document.getElementById('duplicateConfirmModal'));
+    let productToDuplicate = null;
+
+    // Handle duplicate button clicks
+    document.querySelectorAll('.duplicate-product').forEach(button => {
+        button.addEventListener('click', function() {
+            productToDuplicate = this.dataset.productId;
+            duplicateModal.show();
+        });
+    });
+
+    // Handle duplicate confirmation
+    document.getElementById('confirmDuplicate').addEventListener('click', async function() {
+        if (!productToDuplicate) return;
+        
+        try {
+            const response = await fetch(`/api/duplicate_product/${productToDuplicate}`, {
+                method: 'POST'
+            });
+            if (response.ok) {
+                const data = await response.json();
+                window.location.href = `/product/${data.new_product_id}/edit`;
+            } else {
+                showNotification('Error duplicating product', 'danger');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('Error duplicating product', 'danger');
+        }
+        duplicateModal.hide();
+    });
+});
+</script>
+
+                <p>Are you sure you want to duplicate this product?</p>
+                <p>This will create a copy of the product with:</p>
+                <ul>
+                    <li>New batch number and SKU</li>
+                    <li>All product attributes</li>
+                    <li>All associated images</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmDuplicate">Duplicate Product</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.getElementById('searchInput').addEventListener('input', function(e) {
     const searchText = e.target.value.toLowerCase();
