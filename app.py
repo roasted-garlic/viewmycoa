@@ -800,9 +800,11 @@ def delete_batch_history(history_id):
         for pdf in pdfs:
             db.session.delete(pdf)
         
+        # Delete the batch history record
         db.session.delete(history)
         db.session.commit()
         return jsonify({'success': True})
+        
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"Error deleting batch history: {str(e)}")
@@ -810,20 +812,44 @@ def delete_batch_history(history_id):
 
 @app.route('/api/sync_to_square/<int:product_id>', methods=['POST'])
 def sync_to_square(product_id):
+    """Sync a single product to Square's catalog"""
     try:
         product = models.Product.query.get_or_404(product_id)
-        result = sync_product_to_square(product)
+        from square_sync import sync_product_to_square
         
+        result = sync_product_to_square(product)
         if result.get('success'):
-            flash('Product successfully synced to Square!', 'success')
+            flash('Product successfully synced with Square!', 'success')
             return jsonify(result), 200
         else:
-            flash(f'Error syncing to Square: {result.get("error")}', 'danger')
+            error_msg = result.get('error', 'Unknown error occurred')
+            flash(f'Error syncing with Square: {error_msg}', 'danger')
             return jsonify(result), 400
             
     except Exception as e:
         app.logger.error(f"Error syncing product to Square: {str(e)}")
-        return jsonify({"success": False, "error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
+            db.session.commit()
+
+@app.route('/api/sync_to_square/<int:product_id>', methods=['POST'])
+def sync_to_square(product_id):
+    """Sync a single product to Square's catalog"""
+    try:
+        product = models.Product.query.get_or_404(product_id)
+        from square_sync import sync_product_to_square
+        
+        result = sync_product_to_square(product)
+        if result.get('success'):
+            flash('Product successfully synced with Square!', 'success')
+            return jsonify(result), 200
+        else:
+            error_msg = result.get('error', 'Unknown error occurred')
+            flash(f'Error syncing with Square: {error_msg}', 'danger')
+            return jsonify(result), 400
+            
+    except Exception as e:
+        app.logger.error(f"Error syncing product to Square: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/delete_coa/<int:product_id>', methods=['DELETE'])
 def delete_coa(product_id):
