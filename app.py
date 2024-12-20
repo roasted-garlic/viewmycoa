@@ -67,9 +67,6 @@ with app.app_context():
     db.create_all()
 
 
-# Import routes
-from routes import product_routes, pdf_routes, template_routes
-
 @app.route('/')
 def index():
     return render_template('search_home.html')
