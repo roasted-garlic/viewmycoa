@@ -94,7 +94,7 @@ def login():
                 flash('Successfully logged in', 'success')
                 return redirect(url_for('admin.dashboard'))
             else:
-                logger.warning(f"Failed login attempt for username: {username} (invalid password)")
+                logger.warning(f"Failed login attempt for username: {username}")
                 flash('Invalid credentials', 'danger')
                 
         except Exception as e:

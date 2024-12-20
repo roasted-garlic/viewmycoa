@@ -22,11 +22,28 @@ def init_app():
         with app.app_context():
             import models  # Import models before creating tables
             db.create_all()
+            db.session.commit()  # Ensure all tables are created
             logger.info("Database tables created successfully")
             
-            # Create default admin user if none exists
-            from admin import create_default_admin
-            create_default_admin()
+            try:
+                # Create default admin user if none exists
+                from models import AdminUser
+                if AdminUser.query.count() == 0:
+                    logger.info("Creating default admin user...")
+                    from werkzeug.security import generate_password_hash
+                    admin = AdminUser(
+                        username='admin',
+                        password_hash=generate_password_hash('admin')
+                    )
+                    db.session.add(admin)
+                    db.session.commit()
+                    logger.info("Default admin user created successfully")
+                else:
+                    logger.info("Admin user already exists")
+            except Exception as e:
+                logger.error(f"Error creating admin user: {str(e)}")
+                db.session.rollback()
+                raise
 
     except Exception as e:
         logger.error(f"Error during application initialization: {str(e)}")
