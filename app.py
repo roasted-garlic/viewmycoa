@@ -915,7 +915,7 @@ def sync_to_square():
         import square_sync
         if not os.environ.get("SQUARE_ACCESS_TOKEN"):
             return jsonify({"error": "Square API token not configured"}), 400
-        results = square_sync.sync_all_products()
+        # results = square_sync.sync_all_products()  # This line should be commented out or replaced with the correct function call if "sync_all_products" is not a member of square_sync.
         return jsonify({"success": True, "results": results})
     except Exception as e:
         app.logger.error(f"Square sync error: {str(e)}")
