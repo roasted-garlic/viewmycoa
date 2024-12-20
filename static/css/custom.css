@@ -352,12 +352,9 @@
 }
 
 @media (max-width: 767px) {    
-    .list-group-item .d-flex.flex-column {
+    .list-group-item .d-flex.flex-column.gap-2 {
         width: 100%;
-    }
-    
-    .list-group-item .btn {
-        width: 100%;
+        max-width: 100% !important;
     }
     
     .btn i {
@@ -375,18 +372,6 @@
     .product-actions .btn {
         width: 100%;
         margin: 0;
-    }
-}
-
-@media (min-width: 768px) {
-    .list-group-item .btn {
-        min-width: 120px;
-        width: auto;
-    }
-    
-    .list-group-item .d-flex.flex-md-row {
-        justify-content: flex-start;
-        gap: 0.5rem;
     }
 }
 
