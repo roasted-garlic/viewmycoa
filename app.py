@@ -594,6 +594,8 @@ def edit_product(product_id):
     if request.method == 'POST':
         try:
             product.title = request.form['title']
+            product.cost = float(request.form['cost']) if request.form.get('cost') else None
+            product.price = float(request.form['price']) if request.form.get('price') else None
             new_batch_number = request.form['batch_number']
             if new_batch_number != product.batch_number:
                 # Create batch history record
