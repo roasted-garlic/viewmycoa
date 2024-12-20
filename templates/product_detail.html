@@ -389,6 +389,44 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Square sync button
+    const syncButton = document.getElementById('syncSquare');
+    if (syncButton) {
+        syncButton.addEventListener('click', async function() {
+            const productId = this.dataset.productId;
+            const button = this;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+            button.disabled = true;
+
+            try {
+                const response = await fetch(`/api/square/sync/${productId}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                const resultsDiv = document.getElementById('syncResults');
+                if (data.success) {
+                    resultsDiv.innerHTML = '<div class="alert alert-success">Product synced successfully!</div>';
+                } else {
+                    resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+                }
+                
+                const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
+                modal.show();
+            } catch (error) {
+                console.error('Error syncing with Square:', error);
+                const resultsDiv = document.getElementById('syncResults');
+                resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+                const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
+                modal.show();
+            } finally {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        });
+    }
+    
     // Initialize delete confirmation modal
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
     
