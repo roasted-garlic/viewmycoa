@@ -142,10 +142,9 @@ def create_category():
         if not data or 'name' not in data:
             return jsonify({'error': 'Name is required'}), 400
             
-        category = models.Category(
-            name=data['name'],
-            description=data.get('description', '')
-        )
+        category = models.Category()
+        category.name = data['name']
+        category.description = data.get('description', '')
         db.session.add(category)
         db.session.commit()
         return jsonify({'success': True})
