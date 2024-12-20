@@ -67,6 +67,11 @@ logging.basicConfig(level=logging.DEBUG)
 # Ensure upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+# Register blueprints
+from routes import blueprints
+for blueprint in blueprints:
+    app.register_blueprint(blueprint)
+
 with app.app_context():
     import models
     db.create_all()
