@@ -25,22 +25,8 @@ def init_app():
             db.session.commit()  # Ensure all tables are created
             logger.info("Database tables created successfully")
             
-            # Create default admin user if none exists
-            from models import AdminUser
-            from werkzeug.security import generate_password_hash
-            
-            # Clear existing admin users
-            AdminUser.query.delete()
-            db.session.commit()
-            
-            # Create new admin user with direct password hash
-            admin = AdminUser(
-                username='admin',
-                password_hash=generate_password_hash('admin', method='sha256')
-            )
-            db.session.add(admin)
-            db.session.commit()
-            logger.info("Default admin user created with username: admin")
+            # Database is initialized and admin user is created through migrations
+            logger.info("Database initialization complete")
 
     except Exception as e:
         logger.error(f"Error during application initialization: {str(e)}")
