@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             if (response.ok) {
                 const data = await response.json();
-                window.location.href = `/product/${data.new_product_id}/edit`;
+                window.location.href = `/vmc-admin/products/${data.new_product_id}/edit`;
             } else {
                 showNotification('Error duplicating product', 'danger');
             }
