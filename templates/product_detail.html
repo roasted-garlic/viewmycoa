@@ -1,3 +1,4 @@
+
 <!-- Duplicate Confirmation Modal -->
 <div class="modal fade" id="duplicateConfirmModal" tabindex="-1">
     <div class="modal-dialog">
@@ -68,35 +69,7 @@
                 </div>
             </div>
         </div>
-
-        <!-- Delete Confirmation Modal -->
-        <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header bg-danger text-white">
-                        <h5 class="modal-title">Confirm Delete</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p><i class="fas fa-exclamation-triangle text-warning"></i> Warning: This action cannot be undone!</p>
-                        <p>Deleting this product will permanently remove:</p>
-                        <ul>
-                            <li>The product and all its data</li>
-                            <li>All generated PDF files</li>
-                            <li>All associated images</li>
-                        </ul>
-                        <p>Are you sure you want to proceed?</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-danger" id="confirmDelete">Delete Product</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        </div>
-    
+    </div>
 
     <!-- Product Info -->
     <div class="d-block d-md-none mb-3">
@@ -158,9 +131,8 @@
         </div>
         {% endif %}
     </div>
-</div>
 
-<!-- Financial Information -->
+    <!-- Financial Information -->
     <div class="d-block d-md-none mb-3">
         <button class="btn btn-info w-100" type="button" data-bs-toggle="collapse" data-bs-target="#financialInfo">
             <i class="fas fa-chart-line"></i> Financial Information
@@ -209,123 +181,124 @@
         </div>
     </div>
 
-<div class="row">
-    <div class="col-md-6 mb-5">
-        {% if product.product_image %}
-            <img src="{{ url_for('static', filename=product.product_image) }}" class="img-fluid mb-4" alt="{{ product.title }}">
-        {% endif %}
+    <div class="row">
+        <div class="col-md-6 mb-5">
+            {% if product.product_image %}
+                <img src="{{ url_for('static', filename=product.product_image) }}" class="img-fluid mb-4" alt="{{ product.title }}">
+            {% endif %}
 
-        <!-- Product Attributes -->
-        <div class="d-block d-lg-none mb-3">
-            <button class="btn btn-info w-100" type="button" data-bs-toggle="collapse" data-bs-target="#attributesInfo">
-                <i class="fas fa-tags"></i> Product Attributes
-            </button>
-        </div>
-        <div class="row g-3 mb-4 collapse d-lg-flex" id="attributesInfo">
-            <div class="col-12">
-                <h3 class="mb-3">Product Attributes</h3>
+            <!-- Product Attributes -->
+            <div class="d-block d-lg-none mb-3">
+                <button class="btn btn-info w-100" type="button" data-bs-toggle="collapse" data-bs-target="#attributesInfo">
+                    <i class="fas fa-tags"></i> Product Attributes
+                </button>
             </div>
-            {% for name, value in product.get_attributes().items() %}
-            <div class="col-md-6">
-                <div class="card bg-dark border-secondary h-100">
-                    <div class="card-body">
-                        <h5 class="card-title text-info">
-                            <i class="fas fa-tag"></i> {{ name }}
-                        </h5>
-                        <p class="card-text h5">{{ value }}</p>
-                    </div>
+            <div class="row g-3 mb-4 collapse d-lg-flex" id="attributesInfo">
+                <div class="col-12">
+                    <h3 class="mb-3">Product Attributes</h3>
                 </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">Current Batch Labels</h4>
-                <div class="d-flex gap-2 flex-wrap">
-                    <button class="btn btn-primary flex-grow-1" id="generatePDF" data-product-id="{{ product.id }}">
-                        <span class="normal-state">
-                            <i class="fas fa-file-pdf"></i> Generate PDF
-                        </span>
-                        <span class="loading-state d-none">
-                            <i class="fas fa-spinner fa-spin fa-fw"></i> Generating...
-                        </span>
-                    </button>
-                    <button class="btn btn-secondary flex-grow-1" id="generateJSON" data-product-id="{{ product.id }}">
-                        <i class="fas fa-code"></i> Generate JSON
-                    </button>
-                </div>
-            </div>
-            <div class="card-body">
-                <ul class="list-group" id="pdfList">
-                    {% for pdf in pdfs %}
-                        {% if not pdf.batch_history_id and pdf.filename.startswith('label_' + product.batch_number) %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>{{ pdf.filename }}</span>
-                            <div class="d-flex gap-2">
-                                <a href="{{ url_for('serve_pdf', filename=product.batch_number + '/' + pdf.filename) }}?download=1" class="btn btn-primary btn-sm" title="Download PDF">
-                                    <i class="fas fa-download"></i>
-                                </a>
-                                <button class="btn btn-danger btn-sm delete-pdf" data-pdf-id="{{ pdf.id }}" title="Delete PDF">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </li>
-                        {% endif %}
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-
-        <!-- Historical Batches Section -->
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">Historical Batches</h4>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="enableDelete">
-                    <label class="form-check-label" for="enableDelete">
-                        Enable Delete
-                    </label>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="list-group">
-                    {% for history in product.batch_history.order_by(BatchHistory.created_at.desc()).all() %}
-                    <div class="list-group-item">
-                        <div class="d-flex flex-column w-100">
-                            <div class="mb-2 text-start">
-                                <h5 class="mb-1">Batch: {{ history.batch_number }}</h5>
-                                <p class="mb-1 text-muted">Created: {{ history.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
-                            </div>
-                            <div class="d-flex flex-column gap-2">
-                                <div class="d-flex flex-column flex-sm-row gap-2">
-                                    {% if history.coa_pdf %}
-                                    <a href="{{ url_for('static', filename=history.coa_pdf) }}" class="btn btn-info btn-sm w-100" target="_blank">
-                                        <i class="fas fa-file-pdf"></i> View COA
-                                    </a>
-                                    {% endif %}
-                                    {% for pdf in pdfs %}
-                                    {% if history.batch_number in pdf.filename %}
-                                    <a href="{{ url_for('serve_pdf', filename=history.batch_number + '/' + pdf.filename.split('/')[-1]) }}" class="btn btn-primary btn-sm w-100" target="_blank">
-                                        <i class="fas fa-file-pdf"></i> View Label
-                                    </a>
-                                    {% endif %}
-                                    {% endfor %}
-                                </div>
-                                <a href="{{ url_for('public_product_detail', batch_number=history.batch_number) }}" class="btn btn-secondary btn-sm w-100" target="_blank">
-                                    <i class="fas fa-external-link-alt"></i> View Public Page
-                                </a>
-                            </div>
-                            <div class="mt-3">
-                                <button class="btn btn-danger btn-sm delete-history w-100 text-start d-none" data-history-id="{{ history.id }}">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            </div>
+                {% for name, value in product.get_attributes().items() %}
+                <div class="col-md-6">
+                    <div class="card bg-dark border-secondary h-100">
+                        <div class="card-body">
+                            <h5 class="card-title text-info">
+                                <i class="fas fa-tag"></i> {{ name }}
+                            </h5>
+                            <p class="card-text h5">{{ value }}</p>
                         </div>
                     </div>
-                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Current Batch Labels</h4>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-primary flex-grow-1" id="generatePDF" data-product-id="{{ product.id }}">
+                            <span class="normal-state">
+                                <i class="fas fa-file-pdf"></i> Generate PDF
+                            </span>
+                            <span class="loading-state d-none">
+                                <i class="fas fa-spinner fa-spin fa-fw"></i> Generating...
+                            </span>
+                        </button>
+                        <button class="btn btn-secondary flex-grow-1" id="generateJSON" data-product-id="{{ product.id }}">
+                            <i class="fas fa-code"></i> Generate JSON
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group" id="pdfList">
+                        {% for pdf in pdfs %}
+                            {% if not pdf.batch_history_id and pdf.filename.startswith('label_' + product.batch_number) %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>{{ pdf.filename }}</span>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ url_for('serve_pdf', filename=product.batch_number + '/' + pdf.filename) }}?download=1" class="btn btn-primary btn-sm" title="Download PDF">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                    <button class="btn btn-danger btn-sm delete-pdf" data-pdf-id="{{ pdf.id }}" title="Delete PDF">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Historical Batches Section -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Historical Batches</h4>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="enableDelete">
+                        <label class="form-check-label" for="enableDelete">
+                            Enable Delete
+                        </label>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for history in product.batch_history.order_by(BatchHistory.created_at.desc()).all() %}
+                        <div class="list-group-item">
+                            <div class="d-flex flex-column w-100">
+                                <div class="mb-2 text-start">
+                                    <h5 class="mb-1">Batch: {{ history.batch_number }}</h5>
+                                    <p class="mb-1 text-muted">Created: {{ history.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                                </div>
+                                <div class="d-flex flex-column gap-2">
+                                    <div class="d-flex flex-column flex-sm-row gap-2">
+                                        {% if history.coa_pdf %}
+                                        <a href="{{ url_for('static', filename=history.coa_pdf) }}" class="btn btn-info btn-sm w-100" target="_blank">
+                                            <i class="fas fa-file-pdf"></i> View COA
+                                        </a>
+                                        {% endif %}
+                                        {% for pdf in pdfs %}
+                                        {% if history.batch_number in pdf.filename %}
+                                        <a href="{{ url_for('serve_pdf', filename=history.batch_number + '/' + pdf.filename.split('/')[-1]) }}" class="btn btn-primary btn-sm w-100" target="_blank">
+                                            <i class="fas fa-file-pdf"></i> View Label
+                                        </a>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <a href="{{ url_for('public_product_detail', batch_number=history.batch_number) }}" class="btn btn-secondary btn-sm w-100" target="_blank">
+                                        <i class="fas fa-external-link-alt"></i> View Public Page
+                                    </a>
+                                </div>
+                                <div class="mt-3">
+                                    <button class="btn btn-danger btn-sm delete-history w-100 text-start d-none" data-history-id="{{ history.id }}">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -414,12 +387,33 @@
     </div>
 </div>
 
-{% endblock %}
-
-{% block scripts %}
 <script>
-// Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize delete confirmation modal
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+    
+    // Handle delete button click
+    document.getElementById('deleteProduct').addEventListener('click', function() {
+        deleteModal.show();
+    });
+
+    document.getElementById('confirmDelete').addEventListener('click', async function() {
+        const productId = document.getElementById('deleteProduct').dataset.productId;
+        try {
+            const response = await fetch(`/api/delete_product/${productId}`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                window.location.href = '/vmc-admin/products';
+            } else {
+                console.error('Failed to delete product');
+            }
+        } catch (error) {
+            console.error('Error deleting product:', error);
+        }
+        deleteModal.hide();
+    });
+    
     // Initialize duplicate confirmation modal
     const duplicateModal = new bootstrap.Modal(document.getElementById('duplicateConfirmModal'));
 
@@ -449,256 +443,40 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Handle delete button visibility
-    const enableDeleteCheckbox = document.getElementById('enableDelete');
-    const deleteButtons = document.querySelectorAll('.delete-history');
+    // Square sync button
+    document.getElementById('syncSquare').addEventListener('click', async function() {
+        const productId = this.dataset.productId;
+        const button = this;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+        button.disabled = true;
 
-    enableDeleteCheckbox.addEventListener('change', function() {
-        deleteButtons.forEach(button => {
-            if (this.checked) {
-                button.classList.remove('d-none');
-            } else {
-                button.classList.add('d-none');
-            }
-        });
-    });
-    // Delete product confirmation modal
-    const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-    document.getElementById('deleteProduct').addEventListener('click', function() {
-        deleteModal.show();
-    });
-
-document.getElementById('confirmDelete').addEventListener('click', async function() {
-    const productId = document.getElementById('deleteProduct').dataset.productId;
-    try {
-        const response = await fetch(`/api/delete_product/${productId}`, {
-            method: 'DELETE'
-        });
-        if (response.ok) {
-            window.location.href = '/vmc-admin/products';
-        } else {
-            console.error('Failed to delete product');
-        }
-    } catch (error) {
-        console.error('Error deleting product:', error);
-    }
-    deleteModal.hide();
-});
-
-document.getElementById('generatePDF').addEventListener('click', async function() {
-    const btn = this;
-    const normalState = btn.querySelector('.normal-state');
-    const loadingState = btn.querySelector('.loading-state');
-    const productId = document.getElementById('deleteProduct').dataset.productId;
-
-    // Show loading state
-    normalState.classList.add('d-none');
-    loadingState.classList.remove('d-none');
-    btn.disabled = true;
-
-    try {
-        const response = await fetch(`/api/generate_pdf/${productId}`, {
-            method: 'POST'
-        });
-        if (response.ok) {
-            location.reload();
-        } else {
-            throw new Error('Failed to generate PDF');
-        }
-    } catch (error) {
-        console.error('Error generating PDF:', error);
-        // Reset button state
-        normalState.classList.remove('d-none');
-        loadingState.classList.add('d-none');
-        btn.disabled = false;
-        showNotification('Failed to generate PDF. Please try again.', 'error');
-    }
-});
-
-// PDF Delete Modal
-const pdfDeleteModal = new bootstrap.Modal(document.getElementById('pdfDeleteModal'));
-let pdfToDelete = null;
-
-document.querySelectorAll('.delete-pdf').forEach(button => {
-    button.addEventListener('click', function() {
-        pdfToDelete = this;
-        pdfDeleteModal.show();
-    });
-});
-
-document.getElementById('confirmPdfDelete').addEventListener('click', async function() {
-    if (pdfToDelete) {
-        const pdfId = pdfToDelete.dataset.pdfId;
         try {
-            const response = await fetch(`/api/delete_pdf/${pdfId}`, {
-                method: 'DELETE'
+            const response = await fetch(`/api/square/sync/${productId}`, {
+                method: 'POST'
             });
-            if (response.ok) {
-                pdfToDelete.closest('.list-group-item').remove();
-                showNotification('PDF deleted successfully', 'success');
-            }
-        } catch (error) {
-            console.error('Error deleting PDF:', error);
-            showNotification('Error deleting PDF', 'danger');
-        }
-        pdfDeleteModal.hide();
-        pdfToDelete = null;
-    }
-});
-
-// JSON Generation and Display
-document.getElementById('generateJSON').addEventListener('click', async function() {
-    const productId = this.dataset.productId;
-    try {
-        const response = await fetch(`/api/generate_json/${productId}`);
-        if (response.ok) {
             const data = await response.json();
-            const jsonPreview = document.getElementById('jsonPreview');
-            jsonPreview.textContent = JSON.stringify(data, null, 2);
-
-            // Show the modal
-            const modal = new bootstrap.Modal(document.getElementById('jsonModal'));
+            
+            const resultsDiv = document.getElementById('syncResults');
+            if (data.success) {
+                resultsDiv.innerHTML = '<div class="alert alert-success">Product synced successfully!</div>';
+            } else {
+                resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+            }
+            
+            const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
             modal.show();
-        }
-    } catch (error) {
-        console.error('Error generating JSON:', error);
-    }
-});
-
-// Copy JSON to clipboard
-document.getElementById('copyJSON').addEventListener('click', function() {
-    const jsonText = document.getElementById('jsonPreview').textContent;
-    navigator.clipboard.writeText(jsonText).then(() => {
-        this.innerHTML = '<i class="fas fa-check"></i> Copied!';
-        setTimeout(() => {
-            this.innerHTML = '<i class="fas fa-copy"></i> Copy to Clipboard';
-        }, 2000);
-    });
-});
-
-// Handle historical batch deletion
-// Historical Batch Delete Modal
-const historyDeleteModal = new bootstrap.Modal(document.getElementById('historyDeleteModal'));
-let historyToDelete = null;
-
-document.querySelectorAll('.delete-history').forEach(button => {
-    button.addEventListener('click', function() {
-        historyToDelete = this;
-        historyDeleteModal.show();
-    });
-});
-
-document.getElementById('confirmHistoryDelete').addEventListener('click', async function() {
-    if (historyToDelete) {
-        const historyId = historyToDelete.dataset.historyId;
-        try {
-            const response = await fetch(`/api/delete_batch_history/${historyId}`, {
-                method: 'DELETE'
-            });
-            if (response.ok) {
-                historyToDelete.closest('.list-group-item').remove();
-                showNotification('Historical batch deleted successfully', 'success');
-            } else {
-                const data = await response.json();
-                showNotification(data.error || 'Error deleting historical batch', 'danger');
-            }
         } catch (error) {
-            console.error('Error:', error);
-            showNotification('Error deleting historical batch', 'danger');
+            console.error('Error syncing with Square:', error);
+            const resultsDiv = document.getElementById('syncResults');
+            resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+            const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
+            modal.show();
+        } finally {
+            button.innerHTML = originalText;
+            button.disabled = false;
         }
-        historyDeleteModal.hide();
-        historyToDelete = null;
-    }
-});
-
-// COA Delete Modal
-const coaDeleteModal = new bootstrap.Modal(document.getElementById('coaDeleteModal'));
-let coaToDelete = null;
-
-document.querySelectorAll('.delete-coa').forEach(button => {
-    button.addEventListener('click', function() {
-        coaToDelete = this;
-        coaDeleteModal.show();
     });
-});
-
-document.getElementById('confirmCoaDelete').addEventListener('click', async function() {
-    if (coaToDelete) {
-        const coaId = coaToDelete.dataset.coaId;
-        try {
-            const response = await fetch(`/api/delete_coa/${coaId}`, {
-                method: 'DELETE'
-            });
-            if (response.ok) {
-                coaToDelete.closest('.list-group-item').remove();
-                showNotification('COA deleted successfully', 'success');
-            } else {
-                showNotification('Error deleting COA', 'danger');
-            }
-        } catch (error) {
-            console.error('Error deleting COA:', error);
-            showNotification('Error deleting COA', 'danger');
-        }
-        coaDeleteModal.hide();
-        coaToDelete = null;
-    }
-});
-
-document.getElementById('syncSquare').addEventListener('click', async function() {
-    const productId = this.dataset.productId;
-    const button = this;
-    const originalText = button.innerHTML;
-    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
-    button.disabled = true;
-
-    try {
-        const response = await fetch(`/api/square/sync/${productId}`, {
-            method: 'POST'
-        });
-        const data = await response.json();
-        
-        const resultsDiv = document.getElementById('syncResults');
-        if (data.success) {
-            resultsDiv.innerHTML = `<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const syncButton = document.querySelector('.sync-square');
-    if (syncButton) {
-        syncButton.addEventListener('click', async function(e) {
-            e.preventDefault();
-            const button = this;
-            const originalText = button.innerHTML;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
-            button.disabled = true;
-
-            try {
-                const productId = button.dataset.productId;
-                const response = await fetch(`/api/square/sync/${productId}`, {
-                    method: 'POST'
-                });
-                const data = await response.json();
-                
-                const resultsDiv = document.getElementById('syncResults');
-                if (data.success) {
-                    resultsDiv.innerHTML = `<div class="alert alert-success">Product synced successfully!</div>`;
-                } else {
-                    resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
-                }
-                
-                const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
-                modal.show();
-            } catch (error) {
-                console.error('Error syncing with Square:', error);
-                const resultsDiv = document.getElementById('syncResults');
-                resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
-                const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
-                modal.show();
-            } finally {
-                button.innerHTML = originalText;
-                button.disabled = false;
-            }
-        });
-    }
 });
 </script>
-{% endblock %}
 {% endblock %}
