@@ -309,8 +309,8 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.75rem;
-    background-color: #6610f2;
-    border: 2px solid #7d42f4;
+    background-color: #7d42f4;
+    border: 2px solid #6610f2;
     border-radius: 8px;
     color: #ffffff;
     text-decoration: none;
@@ -326,8 +326,8 @@ body {
 }
 
 .coa-download-btn:hover {
-    background-color: #7d42f4;
-    border-color: #8e5af5;
+    background-color: #8e5af5;
+    border-color: #7d42f4;
     color: #fff;
     text-decoration: none;
     transform: translateY(-2px);
