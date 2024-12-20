@@ -308,6 +308,16 @@
         width: 100%;
         margin: 0;
     }
+
+    .w-md-auto {
+        width: auto !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .w-md-auto {
+        width: 100% !important;
+    }
 }
 
 body {
