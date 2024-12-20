@@ -167,20 +167,29 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Template selection handler
-    if (templateSelect) {
+    if (templateSelect && attributesContainer) {
         templateSelect.addEventListener('change', async function() {
             const templateId = this.value;
-            if (templateId) {
-                try {
-                    const response = await fetch(`/api/template/${templateId}`);
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch template');
-                    }
-                    
-                    const template = await response.json();
-                    attributesContainer.innerHTML = '';
-                    
-                    Object.entries(template.attributes).forEach(([name, value]) => {
+            if (!templateId) {
+                attributesContainer.innerHTML = '';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/template/${templateId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const template = await response.json();
+                attributesContainer.innerHTML = '';
+                
+                if (template && template.attributes) {
+                    const attributes = typeof template.attributes === 'string' 
+                        ? JSON.parse(template.attributes) 
+                        : template.attributes;
+                        
+                    Object.entries(attributes).forEach(([name, value]) => {
                         const attributeGroup = document.createElement('div');
                         attributeGroup.className = 'attribute-group mb-2';
                         
@@ -201,15 +210,15 @@ document.addEventListener('DOMContentLoaded', async function() {
                         `;
                         
                         attributesContainer.appendChild(attributeGroup);
-                        initializeDeleteHandler(attributeGroup.querySelector('.remove-attribute'));
+                        const deleteButton = attributeGroup.querySelector('.remove-attribute');
+                        if (deleteButton) {
+                            initializeDeleteHandler(deleteButton);
+                        }
                     });
-                } catch (error) {
-                    console.error('Error loading template:', error);
-                    alert('Failed to load template attributes');
                 }
-            } else {
-                // Clear attributes if no template selected
-                attributesContainer.innerHTML = '';
+            } catch (error) {
+                console.error('Error loading template:', error);
+                alert('Failed to load template attributes');
             }
         });
     }
