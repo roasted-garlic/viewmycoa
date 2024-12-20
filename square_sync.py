@@ -27,6 +27,10 @@ def format_price_money(price):
 def sync_product_to_square(product):
     """Sync a single product to Square catalog"""
     idempotency_key = str(uuid.uuid4())
+    location_id = os.environ.get('SQUARE_LOCATION_ID')
+    
+    if not location_id:
+        return {"error": "Square location ID not configured"}
     
     existing_id = product.square_catalog_id
     if existing_id:
@@ -36,6 +40,7 @@ def sync_product_to_square(product):
                 "id": existing_id,
                 "type": "ITEM",
                 "version": 1,  # Increment version for update
+                "present_at_location_ids": [location_id],
         "idempotency_key": idempotency_key,
         "object": {
             "id": f"#{product.sku}",
@@ -91,3 +96,28 @@ def sync_all_products():
         })
     
     return results
+
+@app.route('/api/square/sync/<int:product_id>', methods=['POST'])
+def sync_single_product(product_id):
+    """Sync a single product to Square"""
+    try:
+        product = Product.query.get_or_404(product_id)
+        result = sync_product_to_square(product)
+        
+        if 'error' in result:
+            return jsonify({
+                'success': False,
+                'error': result['error']
+            }), 400
+            
+        return jsonify({
+            'success': True,
+            'data': result
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error syncing product to Square: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
