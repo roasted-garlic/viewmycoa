@@ -249,7 +249,6 @@ def create_product():
         category_id = request.form.get('category_id')
         cost = request.form.get('cost')
         price = request.form.get('price')
-        batch_input = request.form.get('batchNumber')  # Get batch number from form
 
         # Process dynamic attributes
         attr_names = request.form.getlist('attr_name[]')
