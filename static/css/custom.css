@@ -348,23 +348,25 @@ body {
     display: flex;
     gap: 1rem;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
 }
 
 .category-info {
     flex: 1;
     min-width: 0;
+    max-width: calc(100% - 220px);
 }
 
 .category-actions {
     display: flex;
     gap: 0.5rem;
     flex-shrink: 0;
-    margin-left: auto;
+    justify-content: flex-end;
+    width: 210px;
 }
 
 .category-actions .btn {
-    min-width: 100px;
+    width: 100px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -380,6 +382,7 @@ body {
     
     .category-info {
         width: 100%;
+        max-width: 100%;
         margin-bottom: 1rem;
     }
     
@@ -390,6 +393,6 @@ body {
     
     .category-actions .btn {
         flex: 1;
-        min-width: auto;
+        width: auto;
     }
 }
