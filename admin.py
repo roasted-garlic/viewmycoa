@@ -44,6 +44,15 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def create_default_admin():
+    """Create a default admin user if none exists"""
+    from models import AdminUser
+    if AdminUser.query.first() is None:
+        admin = AdminUser.create(username='admin', password='admin')
+        db.session.add(admin)
+        db.session.commit()
+        logger.info("Created default admin user")
+
 @admin.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -54,25 +63,16 @@ def login():
             flash('Please provide both username and password', 'warning')
             return render_template('admin/login.html')
         
-        # Get credentials from environment variables
-        admin_username = os.environ.get('ADMIN_USERNAME')
-        admin_password_hash = os.environ.get('ADMIN_PASSWORD_HASH')
+        # Find admin user in database
+        from models import AdminUser
+        admin_user = AdminUser.query.filter_by(username=username).first()
         
-        logger.debug(f"Login attempt for username: {username}")
-        
-        if not admin_username or not admin_password_hash:
-            logger.error("Admin credentials not properly configured")
-            logger.error(f"Username configured: {bool(admin_username)}")
-            logger.error(f"Password hash configured: {bool(admin_password_hash)}")
-            flash('System configuration error. Please contact administrator.', 'danger')
-            return render_template('admin/login.html')
-        
-        if username != admin_username:
+        if admin_user is None:
             logger.warning(f"Login attempt with invalid username: {username}")
             flash('Invalid credentials', 'danger')
             return render_template('admin/login.html')
         
-        if verify_password(admin_password_hash, password):
+        if admin_user.verify_password(password):
             logger.info(f"Successful login for admin user: {username}")
             session['admin_logged_in'] = True
             flash('Successfully logged in', 'success')

@@ -133,3 +133,24 @@ class GeneratedPDF(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     pdf_url = db.Column(db.String(500))
     batch_history = db.relationship('BatchHistory', backref='pdfs')
+
+class AdminUser(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    @staticmethod
+    def create(username, password):
+        """Create a new admin user with hashed password"""
+        from werkzeug.security import generate_password_hash
+        user = AdminUser(
+            username=username,
+            password_hash=generate_password_hash(password)
+        )
+        return user
+
+    def verify_password(self, password):
+        """Verify the user's password"""
+        from werkzeug.security import check_password_hash
+        return check_password_hash(self.password_hash, password)

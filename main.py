@@ -23,6 +23,10 @@ def init_app():
             import models  # Import models before creating tables
             db.create_all()
             logger.info("Database tables created successfully")
+            
+            # Create default admin user if none exists
+            from admin import create_default_admin
+            create_default_admin()
 
     except Exception as e:
         logger.error(f"Error during application initialization: {str(e)}")
