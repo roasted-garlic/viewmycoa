@@ -46,40 +46,60 @@ def login_required(f):
 
 def create_default_admin():
     """Create a default admin user if none exists"""
-    from models import AdminUser
-    if AdminUser.query.first() is None:
-        admin = AdminUser.create(username='admin', password='admin')
-        db.session.add(admin)
-        db.session.commit()
-        logger.info("Created default admin user")
+    try:
+        from models import AdminUser
+        # Check if admin user exists
+        if AdminUser.query.count() == 0:
+            logger.info("No admin user found. Creating default admin user...")
+            from werkzeug.security import generate_password_hash
+            # Create admin with direct password hash
+            admin = AdminUser(
+                username='admin',
+                password_hash=generate_password_hash('admin')
+            )
+            db.session.add(admin)
+            db.session.commit()
+            logger.info("Successfully created default admin user")
+        else:
+            logger.info("Admin user already exists")
+    except Exception as e:
+        logger.error(f"Error creating default admin: {str(e)}")
+        db.session.rollback()
 
 @admin.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        
-        if not username or not password:
-            flash('Please provide both username and password', 'warning')
-            return render_template('admin/login.html')
-        
-        # Find admin user in database
-        from models import AdminUser
-        admin_user = AdminUser.query.filter_by(username=username).first()
-        
-        if admin_user is None:
-            logger.warning(f"Login attempt with invalid username: {username}")
-            flash('Invalid credentials', 'danger')
-            return render_template('admin/login.html')
-        
-        if admin_user.verify_password(password):
-            logger.info(f"Successful login for admin user: {username}")
-            session['admin_logged_in'] = True
-            flash('Successfully logged in', 'success')
-            return redirect(url_for('admin.dashboard'))
-        else:
-            logger.warning(f"Failed login attempt for username: {username} (invalid password)")
-            flash('Invalid credentials', 'danger')
+        try:
+            username = request.form.get('username')
+            password = request.form.get('password')
+            
+            if not username or not password:
+                flash('Please provide both username and password', 'warning')
+                return render_template('admin/login.html')
+            
+            # Find admin user in database
+            from models import AdminUser
+            admin_user = AdminUser.query.filter_by(username=username).first()
+            
+            if admin_user is None:
+                logger.warning(f"Login attempt with invalid username: {username}")
+                flash('Invalid credentials', 'danger')
+                return render_template('admin/login.html')
+            
+            # Verify password using werkzeug's check_password_hash
+            from werkzeug.security import check_password_hash
+            if check_password_hash(admin_user.password_hash, password):
+                logger.info(f"Successful login for admin user: {username}")
+                session['admin_logged_in'] = True
+                flash('Successfully logged in', 'success')
+                return redirect(url_for('admin.dashboard'))
+            else:
+                logger.warning(f"Failed login attempt for username: {username} (invalid password)")
+                flash('Invalid credentials', 'danger')
+                
+        except Exception as e:
+            logger.error(f"Login error: {str(e)}")
+            flash('An error occurred during login. Please try again.', 'danger')
             
     return render_template('admin/login.html')
 
