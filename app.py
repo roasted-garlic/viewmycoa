@@ -10,8 +10,6 @@ from PIL import Image
 import datetime
 from utils import generate_batch_number, is_valid_image
 from sqlalchemy.orm import relationship
-from square_sync import sync_all_products
-
 class Base(DeclarativeBase):
     pass
 
@@ -914,14 +912,11 @@ def duplicate_product(product_id):
 @app.route('/api/square/sync', methods=['POST'])
 def sync_to_square():
     try:
-        from square_sync import sync_all_products
+        import square_sync
         if not os.environ.get("SQUARE_ACCESS_TOKEN"):
             return jsonify({"error": "Square API token not configured"}), 400
-        results = sync_all_products()
+        results = square_sync.sync_all_products()
         return jsonify({"success": True, "results": results})
-    except ImportError:
-        app.logger.error("Square sync module not available")
-        return jsonify({"error": "Square integration not available"}), 500
     except Exception as e:
         app.logger.error(f"Square sync error: {str(e)}")
         return jsonify({"error": str(e)}), 500
