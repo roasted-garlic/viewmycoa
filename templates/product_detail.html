@@ -72,61 +72,7 @@
         </div>
 
         </div>
-    <!-- COA Status and other info -->
-    <div class="row g-3 mb-4">
-        <div class="col-md">
-            <div class="card {% if product.coa_pdf %}bg-success{% else %}bg-danger{% endif %} border-secondary h-100">
-                <div class="card-body">
-                    <h5 class="card-title text-white">
-                        <i class="fas {% if product.coa_pdf %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i> COA Status
-                    </h5>
-                    <p class="card-text h4 text-white">{% if product.coa_pdf %}COA Attached{% else %}Needs COA{% endif %}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md">
-            <div class="card bg-dark border-secondary h-100">
-                <div class="card-body">
-                    <h5 class="card-title text-info">
-                        <i class="fas fa-folder"></i> Category
-                    </h5>
-                    <p class="card-text h4">{{ product.categories.first().name if product.categories.count() > 0 else 'Uncategorized' }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md">
-            <div class="card bg-dark border-secondary h-100">
-                <div class="card-body">
-                    <h5 class="card-title text-info">
-                        <i class="fas fa-hashtag"></i> Batch Number
-                    </h5>
-                    <p class="card-text h4">{{ product.batch_number }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md">
-            <div class="card bg-dark border-secondary h-100">
-                <div class="card-body">
-                    <h5 class="card-title text-info">
-                        <i class="fas fa-tags"></i> SKU
-                    </h5>
-                    <p class="card-text h4">{{ product.sku }}</p>
-                </div>
-            </div>
-        </div>
-        {% if product.barcode %}
-        <div class="col-md">
-            <div class="card bg-dark border-secondary h-100">
-                <div class="card-body">
-                    <h5 class="card-title text-info">
-                        <i class="fas fa-barcode"></i> UPC-A Barcode
-                    </h5>
-                    <p class="card-text h4">{{ product.barcode }}</p>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-    </div>
+    
 
     <!-- COA Status -->
     <div class="row g-3 mb-4">
