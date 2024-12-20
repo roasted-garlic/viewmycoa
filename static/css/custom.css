@@ -310,7 +310,27 @@
     .list-group-item .btn {
         width: 100%;
         margin-bottom: 0.5rem;
+        white-space: normal;
+        height: auto;
+        min-height: 38px;
     }
+
+    .list-group-item .btn i {
+        min-width: 16px;
+    }
+}
+
+.list-group-item {
+    overflow: hidden;
+}
+
+.list-group-item .btn {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
     
     .btn i {
         margin-right: 4px;
