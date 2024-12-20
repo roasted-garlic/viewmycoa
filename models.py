@@ -1,6 +1,7 @@
 from app import db
 import datetime
 import json
+from sqlalchemy.orm import relationship
 
 class ProductTemplate(db.Model):
     id = db.Column(db.Integer, primary_key=True)
