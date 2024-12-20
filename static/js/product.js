@@ -41,27 +41,37 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize image previews
     handleImagePreview('productImage', 'productImagePreview');
     handleImagePreview('labelImage', 'labelImagePreview');
-    // Delete COA handler
+    // COA Delete Modal
+    const coaDeleteModal = new bootstrap.Modal(document.getElementById('coaDeleteModal'));
+    let coaToDelete = null;
+
     document.querySelectorAll('.delete-coa').forEach(button => {
-        button.addEventListener('click', async function() {
-            if (confirm('Are you sure you want to delete this COA?')) {
-                const productId = this.dataset.productId;
-                try {
-                    const response = await fetch(`/api/delete_coa/${productId}`, {
-                        method: 'DELETE'
-                    });
-                    if (response.ok) {
-                        location.reload();
-                    } else {
-                        const data = await response.json();
-                        alert(data.error || 'Failed to delete COA');
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('Error deleting COA');
-                }
-            }
+        button.addEventListener('click', function() {
+            coaToDelete = this;
+            coaDeleteModal.show();
         });
+    });
+
+    document.getElementById('confirmCoaDelete').addEventListener('click', async function() {
+        if (coaToDelete) {
+            const productId = coaToDelete.dataset.productId;
+            try {
+                const response = await fetch(`/api/delete_coa/${productId}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Failed to delete COA');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error deleting COA');
+            }
+            coaDeleteModal.hide();
+            coaToDelete = null;
+        }
     });
 
     const generateBatchBtn = document.getElementById('generateBatch');
