@@ -274,13 +274,12 @@ body {
     width: 200px;
     padding: 1rem;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
-    background-color: rgba(52, 58, 64, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
+    background-color: #343a40;
+    border: 1px solid #6f42c1;
+    border-radius: 8px;
     color: #fff;
     text-decoration: none;
     transition: all 0.2s ease;
@@ -292,11 +291,14 @@ body {
 }
 
 .coa-download-btn i {
-    font-size: 1.25rem;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
 }
 
 .coa-download-btn:hover {
-    background-color: rgba(52, 58, 64, 1);
+    background-color: #2b3035;
+    text-decoration: none;
+    color: #fff;
 }
 
 .coa-download-btn.has-coa:hover {
