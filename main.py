@@ -25,35 +25,22 @@ def init_app():
             db.session.commit()  # Ensure all tables are created
             logger.info("Database tables created successfully")
             
-            try:
-                # Create default admin user if none exists
-                from models import AdminUser
-                logger.info("Checking for existing admin users...")
-                existing_count = AdminUser.query.count()
-                logger.info(f"Found {existing_count} existing admin users")
-                
-                if existing_count == 0:
-                    logger.info("Creating new admin user...")
-                    admin = AdminUser.create(username='admin', password='admin')
-                    logger.info(f"Admin user created with username: {admin.username}")
-                    logger.info(f"Password hash generated: {admin.password_hash[:20]}...")
-                    
-                    db.session.add(admin)
-                    db.session.commit()
-                    
-                    # Verify the user was created
-                    created_admin = AdminUser.query.filter_by(username='admin').first()
-                    if created_admin:
-                        logger.info("Admin user successfully created and verified in database")
-                    else:
-                        logger.error("Failed to verify admin user after creation")
-                else:
-                    logger.info("Admin user already exists, skipping creation")
-            except Exception as e:
-                logger.error(f"Error creating admin user: {str(e)}")
-                logger.exception("Full stack trace:")
-                db.session.rollback()
-                raise
+            # Create default admin user if none exists
+            from models import AdminUser
+            from werkzeug.security import generate_password_hash
+            
+            # Clear existing admin users
+            AdminUser.query.delete()
+            db.session.commit()
+            
+            # Create new admin user with direct password hash
+            admin = AdminUser(
+                username='admin',
+                password_hash=generate_password_hash('admin', method='sha256')
+            )
+            db.session.add(admin)
+            db.session.commit()
+            logger.info("Default admin user created with username: admin")
 
     except Exception as e:
         logger.error(f"Error during application initialization: {str(e)}")
