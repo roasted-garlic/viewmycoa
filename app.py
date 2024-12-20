@@ -139,6 +139,9 @@ def categories():
 def create_category():
     try:
         data = request.get_json()
+        if not data or 'name' not in data:
+            return jsonify({'error': 'Name is required'}), 400
+            
         category = models.Category(
             name=data['name'],
             description=data.get('description', '')
