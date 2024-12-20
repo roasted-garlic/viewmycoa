@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Enable batch edit functionality
-    if (enableBatchEdit && batchNumberInput && generateBatchBtn) {
+    if (enableBatchEdit && batchInput && generateBatchBtn) {
         enableBatchEdit.addEventListener('change', function() {
             batchInput.readOnly = !this.checked;
             generateBatchBtn.disabled = this.checked;
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (templateSelect) {
         templateSelect.addEventListener('change', async function() {
             const templateId = this.value;
-            if (templateId) {
+            if (templateId && attributesContainer) {
                 try {
                     const response = await fetch(`/api/template/${templateId}`);
                     if (response.ok) {
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 } catch (error) {
                     console.error('Error fetching template:', error);
                 }
-            } else {
+            } else if (attributesContainer) {
                 attributesContainer.innerHTML = '';
             }
         });
@@ -87,6 +87,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Function to add attribute fields
     function addAttributeField(name = '', value = '') {
+        if (!attributesContainer) return;
+        
         const attributeGroup = document.createElement('div');
         attributeGroup.className = 'attribute-group mb-2';
         
@@ -108,15 +110,19 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Add event listener for lowercase conversion
         const attrNameInput = attributeGroup.querySelector('.attr-name');
-        attrNameInput.addEventListener('input', function() {
-            this.value = this.value.toLowerCase();
-        });
+        if (attrNameInput) {
+            attrNameInput.addEventListener('input', function() {
+                this.value = this.value.toLowerCase();
+            });
+        }
 
         // Add event listener for remove button
         const removeBtn = attributeGroup.querySelector('.remove-attribute');
-        removeBtn.addEventListener('click', function() {
-            attributeGroup.remove();
-        });
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function() {
+                attributeGroup.remove();
+            });
+        }
         
         attributesContainer.appendChild(attributeGroup);
     }
