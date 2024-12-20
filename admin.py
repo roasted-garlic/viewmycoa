@@ -10,6 +10,25 @@ import logging
 admin = Blueprint('admin', __name__, url_prefix='/vmc-admin')
 logger = logging.getLogger(__name__)
 
+def verify_password(password_hash, password):
+    """Verify if the provided password matches the hash."""
+    try:
+        if not password_hash or not password_hash.startswith('pbkdf2:sha256:'):
+            logger.error("Invalid password hash format")
+            return False
+        return check_password_hash(password_hash, password)
+    except ValueError as e:
+        logger.error(f"Password verification error: {str(e)}")
+        return False
+
+def generate_admin_hash(password):
+    """Generate a proper password hash."""
+    try:
+        return generate_password_hash(password, method='pbkdf2:sha256')
+    except Exception as e:
+        logger.error(f"Error generating password hash: {str(e)}")
+        return None
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -30,23 +49,22 @@ def login():
         admin_password_hash = os.environ.get('ADMIN_PASSWORD_HASH')
         
         logger.debug(f"Login attempt for username: {username}")
-        logger.debug(f"Admin username from env: {admin_username}")
-        logger.debug(f"Password hash exists: {bool(admin_password_hash)}")
         
-        if not admin_password_hash or not admin_password_hash.startswith('pbkdf2:sha256:'):
-            logger.error("Invalid password hash format in environment")
+        if not admin_username or not admin_password_hash:
+            logger.error("Admin credentials not properly configured")
             flash('System configuration error. Please contact administrator.', 'danger')
             return render_template('admin/login.html')
         
-        try:
-            if username == admin_username and check_password_hash(admin_password_hash, password):
-                session['admin_logged_in'] = True
-                flash('Successfully logged in', 'success')
-                return redirect(url_for('admin.dashboard'))
+        if username != admin_username:
             flash('Invalid credentials', 'danger')
-        except ValueError as e:
-            logger.error(f"Password hash error: {str(e)}")
-            flash('System configuration error. Please contact administrator.', 'danger')
+            return render_template('admin/login.html')
+        
+        if verify_password(admin_password_hash, password):
+            session['admin_logged_in'] = True
+            flash('Successfully logged in', 'success')
+            return redirect(url_for('admin.dashboard'))
+        else:
+            flash('Invalid credentials', 'danger')
             
     return render_template('admin/login.html')
 
