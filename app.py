@@ -224,7 +224,7 @@ def fetch_craftmypdf_templates():
         return []
 
 
-@app.route('/product/new', methods=['GET', 'POST'])
+@app.route('/vmc-admin/products/new', methods=['GET', 'POST'])
 def create_product():
     templates = models.ProductTemplate.query.all()
     categories = models.Category.query.order_by(models.Category.name).all()
@@ -304,7 +304,7 @@ def create_product():
                            pdf_templates=pdf_templates)
 
 
-@app.route('/product/<int:product_id>')
+@app.route('/vmc-admin/products/<int:product_id>')
 def product_detail(product_id):
     product = models.Product.query.get_or_404(product_id)
     # Get all PDFs for this product, including historical ones
@@ -603,7 +603,7 @@ def delete_template(template_id):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
+@app.route('/vmc-admin/products/<int:product_id>/edit', methods=['GET', 'POST'])
 def edit_product(product_id):
     product = models.Product.query.get_or_404(product_id)
     templates = models.ProductTemplate.query.all()
