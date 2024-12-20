@@ -901,6 +901,16 @@ def duplicate_product(product_id):
         app.logger.error(f"Error duplicating product {product_id}: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/square/sync', methods=['POST'])
+def sync_to_square():
+    try:
+        from square_sync import sync_all_products
+        results = sync_all_products()
+        return jsonify({"success": True, "results": results})
+    except Exception as e:
+        app.logger.error(f"Square sync error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/delete_product/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
     try:
