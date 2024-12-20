@@ -12,6 +12,7 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'admin_logged_in' not in session:
+            flash('Please log in to access the admin area.', 'warning')
             return redirect(url_for('admin.login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -42,7 +43,7 @@ def dashboard():
 @login_required
 def products():
     products = Product.query.all()
-    return render_template('admin/product_list.html', products=products)
+    return render_template('admin/product_list.html', products=products, admin_view=True)
 
 @admin.route('/product/new', methods=['GET', 'POST'])
 @login_required
