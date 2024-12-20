@@ -8,8 +8,7 @@ import requests
 import json
 from PIL import Image
 import datetime
-
-from utils import generate_batch_number
+from utils import generate_batch_number, is_valid_image
 from sqlalchemy.orm import relationship
 
 class Base(DeclarativeBase):
