@@ -236,7 +236,9 @@ def create_product():
         # Generate UPC-A barcode number and SKU
         from utils import generate_upc_barcode, generate_batch_number, generate_sku
         barcode_number = generate_upc_barcode()
-        batch_number = batch_input if batch_input else generate_batch_number()
+        batch_number = request.form.get('batch_number')
+        if not batch_number:
+            batch_number = generate_batch_number()
         sku = generate_sku()  # Generate unique SKU
 
         product = models.Product()
