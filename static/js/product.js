@@ -1,5 +1,35 @@
 
 document.addEventListener('DOMContentLoaded', async function() {
+    // COA Delete functionality
+    const coaDeleteModal = new bootstrap.Modal(document.getElementById('coaDeleteModal'));
+    const confirmCoaDelete = document.getElementById('confirmCoaDelete');
+    let productIdToDeleteCoa = null;
+
+    document.querySelectorAll('.delete-coa').forEach(button => {
+        button.addEventListener('click', function() {
+            productIdToDeleteCoa = this.dataset.productId;
+        });
+    });
+
+    confirmCoaDelete.addEventListener('click', async function() {
+        if (productIdToDeleteCoa) {
+            try {
+                const response = await fetch(`/api/delete_coa/${productIdToDeleteCoa}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    // Reload the page to reflect changes
+                    window.location.reload();
+                } else {
+                    alert('Error deleting COA');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error deleting COA');
+            }
+            coaDeleteModal.hide();
+        }
+    });
     const batchInput = document.getElementById('batchNumber');
     const generateBatchBtn = document.getElementById('generateBatch');
     const addAttributeBtn = document.getElementById('addAttribute');
