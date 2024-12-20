@@ -1,4 +1,3 @@
-
 import os
 import uuid
 import requests
@@ -28,33 +27,33 @@ def sync_product_to_square(product):
     """Sync a single product to Square catalog"""
     idempotency_key = str(uuid.uuid4())
     
-    existing_id = product.square_catalog_id
-    if existing_id:
-        # Use existing ID if available
-        product_data = {
-            "object": {
-                "id": existing_id,
-                "type": "ITEM",
-                "version": 1,  # Increment version for update
+    # Prepare variation for the product
+    variation_id = f"#{product.sku}_var" if not product.square_catalog_id else f"{product.square_catalog_id}_var"
+    
+    # Prepare product data according to Square API format
+    product_data = {
         "idempotency_key": idempotency_key,
         "object": {
-            "id": f"#{product.sku}",
             "type": "ITEM",
+            "id": f"#{product.sku}" if not product.square_catalog_id else product.square_catalog_id,
             "item_data": {
                 "name": product.title,
                 "description": next(iter(product.get_attributes().values()), ""),
+                "abbreviation": product.sku,
                 "variations": [
                     {
-                        "id": f"#{product.sku}_regular",
                         "type": "ITEM_VARIATION",
+                        "id": variation_id,
                         "item_variation_data": {
-                            "item_id": f"#{product.sku}",
+                            "item_id": f"#{product.sku}" if not product.square_catalog_id else product.square_catalog_id,
                             "name": "Regular",
                             "pricing_type": "FIXED_PRICING" if product.price else "VARIABLE_PRICING",
-                            "price_money": format_price_money(product.price) if product.price else None
+                            "price_money": format_price_money(product.price) if product.price else None,
+                            "stockable": True
                         }
                     }
-                ]
+                ],
+                "product_type": "REGULAR"
             }
         }
     }
@@ -69,13 +68,41 @@ def sync_product_to_square(product):
         result = response.json()
         
         # Store the catalog ID from Square's response
-        if result.get('object') and result['object'].get('id'):
-            product.square_catalog_id = result['object']['id']
+        catalog_object = result.get('catalog_object', {})
+        if catalog_object and catalog_object.get('id'):
+            product.square_catalog_id = catalog_object['id']
             db.session.commit()
             
-        return result
+            # Return success response matching the sample format
+            return {
+                "success": True,
+                "square_id": product.square_catalog_id,
+                "response": {
+                    "catalog_object": catalog_object,
+                    "id_mappings": [
+                        {
+                            "client_object_id": f"#{product.sku}",
+                            "object_id": catalog_object['id']
+                        },
+                        {
+                            "client_object_id": f"#{product.sku}_var",
+                            "object_id": f"{catalog_object['id']}_var"
+                        }
+                    ]
+                }
+            }
+        else:
+            return {
+                "success": False,
+                "error": "No catalog object ID in response",
+                "response": result
+            }
+            
     except requests.exceptions.RequestException as e:
-        return {"error": str(e)}
+        return {
+            "success": False,
+            "error": str(e)
+        }
 
 def sync_all_products():
     """Sync all products to Square catalog"""

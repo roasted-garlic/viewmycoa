@@ -816,6 +816,23 @@ def delete_batch_history(history_id):
         app.logger.error(f"Error deleting batch history: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/sync_to_square/<int:product_id>', methods=['POST'])
+def sync_to_square(product_id):
+    try:
+        product = models.Product.query.get_or_404(product_id)
+        result = sync_product_to_square(product)
+        
+        if result.get('success'):
+            flash('Product successfully synced to Square!', 'success')
+            return jsonify(result), 200
+        else:
+            flash(f'Error syncing to Square: {result.get("error")}', 'danger')
+            return jsonify(result), 400
+            
+    except Exception as e:
+        app.logger.error(f"Error syncing product to Square: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route('/api/delete_coa/<int:product_id>', methods=['DELETE'])
 def delete_coa(product_id):
     try:
@@ -901,11 +918,13 @@ def duplicate_product(product_id):
         app.logger.error(f"Error duplicating product {product_id}: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/square/sync', methods=['POST'])
-def sync_to_square():
+@app.route('/api/square/sync_all', methods=['POST'])
+def sync_all_to_square():
     try:
         from square_sync import sync_all_products
         results = sync_all_products()
+        if any(result.get('result', {}).get('success', False) for result in results):
+            flash('Products successfully synced to Square!', 'success')
         return jsonify({"success": True, "results": results})
     except Exception as e:
         app.logger.error(f"Square sync error: {str(e)}")
