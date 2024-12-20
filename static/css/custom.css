@@ -309,14 +309,14 @@ body {
     justify-content: center;
     gap: 0.75rem;
     padding: 1rem;
-    background-color: #6610f2;
-    color: #ffffff;
-    border: none;
-    border-radius: 6px;
+    background-color: rgba(102, 16, 242, 0.1);
+    color: #6610f2;
+    border: 1px solid #6610f2;
+    border-radius: 8px;
     font-weight: 500;
     text-decoration: none;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .coa-download-btn i {
@@ -326,8 +326,8 @@ body {
 
 .coa-download-btn:hover {
     text-decoration: none;
-    background-color: #520dc2;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    background-color: #6610f2;
     color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
