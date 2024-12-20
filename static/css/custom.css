@@ -95,8 +95,19 @@
 }
 
 @media (max-width: 1400px) {
+    .card-header {
+        flex-direction: column !important;
+        gap: 1rem;
+        width: 100%;
+    }
+
+    .card-header h3 {
+        width: 100%;
+    }
+
     .card-header .d-flex.gap-2 {
         display: flex !important;
+        flex-direction: row !important;
         flex-wrap: wrap;
         width: 100%;
         gap: 0.5rem !important;
@@ -105,6 +116,7 @@
     .card-header .btn {
         flex: 1 1 auto;
         min-width: 150px;
+        width: calc(50% - 0.25rem);
         margin: 0;
     }
 }
