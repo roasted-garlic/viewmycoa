@@ -828,7 +828,18 @@ def duplicate_product(product_id):
         new_product.barcode = generate_upc_barcode()
         new_product.set_attributes(original.get_attributes())
 
-        # Create product directory
+        new_product.template_id = original.template_id
+        new_product.craftmypdf_template_id = original.craftmypdf_template_id
+        new_product.label_qty = original.label_qty
+        
+        # Handle categories properly
+        if original.categories.count() > 0:
+            new_product.categories = list(original.categories)
+        
+        db.session.add(new_product)
+        db.session.flush()  # Get the new product ID
+        
+        # Create product directory after we have the ID
         product_dir = os.path.join('static', 'uploads', str(new_product.id))
         os.makedirs(product_dir, exist_ok=True)
 
@@ -853,8 +864,6 @@ def duplicate_product(product_id):
                 import shutil
                 shutil.copy2(original_path, new_path)
                 new_product.label_image = os.path.join('uploads', str(new_product.id), new_filename)
-
-        new_product.template_id = original.template_id
         new_product.craftmypdf_template_id = original.craftmypdf_template_id
         new_product.label_qty = original.label_qty
         
