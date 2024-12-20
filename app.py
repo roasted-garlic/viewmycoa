@@ -909,17 +909,7 @@ def duplicate_product(product_id):
         app.logger.error(f"Error duplicating product {product_id}: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/square/sync', methods=['POST'])
-def sync_to_square():
-    try:
-        import square_sync
-        if not os.environ.get("SQUARE_ACCESS_TOKEN"):
-            return jsonify({"error": "Square API token not configured"}), 400
-        # results = square_sync.sync_all_products()  # This line should be commented out or replaced with the correct function call if "sync_all_products" is not a member of square_sync.
-        return jsonify({"success": True, "results": results})
-    except Exception as e:
-        app.logger.error(f"Square sync error: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/api/delete_product/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
