@@ -348,27 +348,28 @@ body {
     display: flex;
     gap: 1rem;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
 }
 
 .category-info {
     flex: 1;
-    min-width: 200px;
-    margin-right: auto;
+    min-width: 0;
 }
 
 .category-actions {
     display: flex;
     gap: 0.5rem;
     flex-shrink: 0;
+    margin-left: auto;
 }
 
 .category-actions .btn {
-    min-width: 90px;
+    min-width: 100px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    padding: 0.5rem 1rem;
 }
 
 @media (max-width: 576px) {
@@ -378,8 +379,8 @@ body {
     }
     
     .category-info {
-        min-width: 100%;
-        margin-right: 0;
+        width: 100%;
+        margin-bottom: 1rem;
     }
     
     .category-actions {
@@ -389,5 +390,6 @@ body {
     
     .category-actions .btn {
         flex: 1;
+        min-width: auto;
     }
 }
