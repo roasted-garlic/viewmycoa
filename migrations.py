@@ -1,7 +1,6 @@
-from flask_migrate import Migrate
-from app import app, db
-
-migrate = Migrate(app, db)
+from app import app
+from extensions import db, migrate
 
 if __name__ == '__main__':
-    migrate.init_app(app, db)
+    # Migrations are already initialized in extensions.init_db()
+    pass

@@ -1,10 +1,13 @@
 import os
 import logging
-from app import app, db
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+# Import app and database after logging configuration
+from app import app
+from extensions import db
 
 def init_app():
     """Initialize the application"""
@@ -12,17 +15,17 @@ def init_app():
         # Create static and uploads directories if they don't exist
         static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
         uploads_dir = os.path.join(static_dir, 'uploads')
+        pdfs_dir = os.path.join(static_dir, 'pdfs')
         
-        for directory in [static_dir, uploads_dir]:
+        for directory in [static_dir, uploads_dir, pdfs_dir]:
             if not os.path.exists(directory):
                 os.makedirs(directory)
                 logger.info(f"Created directory at {directory}")
 
-        # Initialize database
+        # Import models after app initialization
         with app.app_context():
-            import models  # Import models before creating tables
-            db.create_all()
-            logger.info("Database tables created successfully")
+            import models
+            logger.info("Models imported successfully")
 
     except Exception as e:
         logger.error(f"Error during application initialization: {str(e)}")

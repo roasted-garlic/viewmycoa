@@ -1,6 +1,4 @@
 from flask import Flask, render_template, request, jsonify, flash, redirect, url_for, send_file, abort, send_from_directory
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 import sqlalchemy.orm as orm
 from werkzeug.utils import secure_filename
 import os
@@ -12,31 +10,23 @@ import json
 from PIL import Image
 import datetime
 
-# Initialize SQLAlchemy and Migrate
-db = SQLAlchemy()
-migrate = Migrate()
-
-# Initialize the application
+# Initialize Flask application
 app = Flask(__name__)
 app.config.from_object('config')
 
-# Initialize extensions
-db.init_app(app)
-migrate.init_app(app, db)
-import requests
-import json
-from PIL import Image
-import datetime
+# Import database instance
+from extensions import db, init_db
 
+# Initialize extensions
+init_db(app)
+
+# Import models and utils after db initialization
+import models
 from utils import generate_batch_number, generate_sku, generate_upc_barcode, is_valid_image
 
-
-# Additional configuration
+# Configure upload settings
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-
 
 @app.route('/static/pdfs/<path:filename>')
 def serve_pdf(filename):
@@ -61,16 +51,12 @@ def serve_pdf(filename):
         return f"Error accessing PDF: {str(e)}", 500
 
 
-db.init_app(app)
-
 logging.basicConfig(level=logging.DEBUG)
 
 # Ensure upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-with app.app_context():
-    import models
-    db.create_all()
+# Tables are created through migrations
 
 
 @app.route('/')

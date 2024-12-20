@@ -9,8 +9,8 @@ from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = 'add_square_catalog_id'
-down_revision = None
+revision = 'add_square_catalog_id_001'  # Make it unique
+down_revision = None  # This will be our first migration
 branch_labels = None
 depends_on = None
 
