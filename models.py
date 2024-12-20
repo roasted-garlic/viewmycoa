@@ -55,6 +55,8 @@ class Product(db.Model):
     sku = db.Column(db.String(8), unique=True)  # SKU format similar to batch number
     barcode = db.Column(db.String(12), unique=True)  # UPC-A is 12 digits
     attributes = db.Column(db.Text)  # Stored as JSON
+    cost = db.Column(db.Float, nullable=True)  # Product cost (optional)
+    price = db.Column(db.Float, nullable=True)  # Product price (optional)
     product_image = db.Column(db.String(500))  # URL/path to image
     label_image = db.Column(db.String(500))    # URL/path to image
     coa_pdf = db.Column(db.String(500))      # URL/path to COA PDF
