@@ -40,7 +40,7 @@
                             <select class="form-select mb-3" id="category" name="category_id">
                                 <option value="">Select a category</option>
                                 {% for category in categories %}
-                                <option value="{{ category.id }}" {% if product.categories.first() and product.categories.first().id == category.id %}selected{% endif %}>{{ category.name }}</option>
+                                <option value="{{ category.id }}" {% if product.categories and product.categories[0].id == category.id %}selected{% endif %}>{{ category.name }}</option>
                                 {% endfor %}
                             </select>
 
