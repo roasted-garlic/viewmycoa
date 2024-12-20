@@ -288,6 +288,9 @@ body {
 
 .coa-download-btn i {
     font-size: 2.5rem;
+    display: block;
+    margin: 0 auto;
+    text-align: center;
 }
 
 .coa-download-btn.has-coa {
