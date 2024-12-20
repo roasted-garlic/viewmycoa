@@ -2,7 +2,8 @@
 import os
 import uuid
 import requests
-from app import db
+from flask import jsonify
+from app import db, app
 from models import Product
 
 SQUARE_API_URL = "https://connect.squareup.com/v2/catalog/object"
@@ -36,14 +37,27 @@ def sync_product_to_square(product):
     if existing_id:
         # Use existing ID if available
         product_data = {
+            "idempotency_key": idempotency_key,
             "object": {
                 "id": existing_id,
                 "type": "ITEM",
                 "version": 1,  # Increment version for update
                 "present_at_location_ids": [location_id],
-        "idempotency_key": idempotency_key,
-        "object": {
-            "id": f"#{product.sku}",
+                "item_data": {
+                    "name": product.title,
+                    "description": next(iter(product.get_attributes().values()), ""),
+                    "variations": [{
+                        "type": "ITEM_VARIATION",
+                        "id": f"#{product.sku}_regular",
+                        "item_variation_data": {
+                            "item_id": f"#{product.sku}",
+                            "name": "Regular",
+                            "pricing_type": "FIXED_PRICING" if product.price else "VARIABLE_PRICING",
+                            "price_money": format_price_money(product.price) if product.price else None
+                        }
+                    }]
+                }
+            }
             "type": "ITEM",
             "item_data": {
                 "name": product.title,
