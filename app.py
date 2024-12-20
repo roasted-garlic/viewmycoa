@@ -4,7 +4,6 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 import logging
 from werkzeug.utils import secure_filename
-import string
 import random
 import requests
 import json
