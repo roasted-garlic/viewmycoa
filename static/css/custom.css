@@ -57,6 +57,31 @@
     gap: 0.5rem;
 }
 
+.card-header .btn {
+    min-width: 140px;
+}
+
+.list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.list-group-item .btn {
+    padding: 0.375rem 0.75rem;
+}
+
+@media (max-width: 576px) {
+    .card-header .d-flex.gap-2 {
+        flex-direction: row;
+        width: 100%;
+    }
+    
+    .card-header .btn {
+        flex: 1;
+    }
+}
+
 /* Responsive layout styles */
 @media (min-width: 1400px) {
     .card-header {
