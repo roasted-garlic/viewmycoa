@@ -30,6 +30,15 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 }
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Disable caching for development
+
+@app.after_request
+def add_header(response):
+    response.headers['Cache-Control'] = 'no-store'
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    return response
 
 
 @app.route('/static/pdfs/<path:filename>')
@@ -71,9 +80,11 @@ with app.app_context():
 def index():
     return render_template('search_home.html')
 
-@app.route('/vmc-admin/')
-@app.route('/vmc-admin')
-def admin_index():
+@app.route('/vmc-admin/', defaults={'path': ''})
+@app.route('/vmc-admin/<path:path>')
+def admin_index(path):
+    if not path:
+        return redirect(url_for('admin_dashboard'))
     return redirect(url_for('admin_dashboard'))
 
 @app.errorhandler(404)
@@ -905,8 +916,13 @@ def duplicate_product(product_id):
 def sync_to_square():
     try:
         from square_sync import sync_all_products
+        if not os.environ.get("SQUARE_ACCESS_TOKEN"):
+            return jsonify({"error": "Square API token not configured"}), 400
         results = sync_all_products()
         return jsonify({"success": True, "results": results})
+    except ImportError:
+        app.logger.error("Square sync module not available")
+        return jsonify({"error": "Square integration not available"}), 500
     except Exception as e:
         app.logger.error(f"Square sync error: {str(e)}")
         return jsonify({"error": str(e)}), 500
