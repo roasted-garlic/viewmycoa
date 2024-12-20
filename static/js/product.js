@@ -10,6 +10,26 @@ document.addEventListener('DOMContentLoaded', async function() {
     const labelImage = document.getElementById('labelImage');
     const productImagePreview = document.getElementById('productImagePreview');
     const labelImagePreview = document.getElementById('labelImagePreview');
+    
+    // COA Delete functionality
+    document.getElementById('confirmCoaDelete')?.addEventListener('click', async function() {
+        const deleteBtn = document.querySelector('.delete-coa');
+        const productId = deleteBtn.dataset.productId;
+        
+        try {
+            const response = await fetch(`/api/delete_coa/${productId}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                console.error('Failed to delete COA');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
 
     // Handle product image preview
     if (productImage && productImagePreview) {
