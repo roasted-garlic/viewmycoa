@@ -30,7 +30,7 @@
                         <h5 class="card-title text-info">
                             <i class="fas fa-folder"></i> Category
                         </h5>
-                        <p class="card-text h4">{{ product.categories.first().name if product.categories.count() > 0 else 'Uncategorized' }}</p>
+                        <p class="card-text h4">{{ product.categories[0].name if product.categories and len(product.categories) > 0 else 'Uncategorized' }}</p>
                     </div>
                 </div>
             </div>
