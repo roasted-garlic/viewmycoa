@@ -860,7 +860,7 @@ def duplicate_product(product_id):
         new_product.label_qty = original.label_qty
         
         # Handle categories properly
-        if original.categories.count() > 0:
+        if len(original.categories) > 0:
             new_product.categories = list(original.categories)
         
         db.session.add(new_product)
@@ -895,7 +895,7 @@ def duplicate_product(product_id):
         new_product.label_qty = original.label_qty
         
         # Handle categories properly
-        if original.categories.count() > 0:
+        if len(original.categories) > 0:
             new_product.categories = list(original.categories)
         
         db.session.add(new_product)
