@@ -1,12 +1,14 @@
 from functools import wraps
-from flask import Blueprint, redirect, url_for, request, session, flash, render_template
-from werkzeug.security import check_password_hash
+from flask import Blueprint, redirect, url_for, request, session, flash, render_template, jsonify
+from werkzeug.security import check_password_hash, generate_password_hash
 from database import db
 from models import Product, Category, ProductTemplate
 from utils import save_image, generate_batch_number, generate_sku, generate_upc_barcode
 import os
+import logging
 
 admin = Blueprint('admin', __name__, url_prefix='/vmc-admin')
+logger = logging.getLogger(__name__)
 
 def login_required(f):
     @wraps(f)
@@ -27,10 +29,25 @@ def login():
         admin_username = os.environ.get('ADMIN_USERNAME')
         admin_password_hash = os.environ.get('ADMIN_PASSWORD_HASH')
         
-        if username == admin_username and admin_password_hash and check_password_hash(admin_password_hash, password):
-            session['admin_logged_in'] = True
-            return redirect(url_for('admin.dashboard'))
-        flash('Invalid credentials', 'danger')
+        logger.debug(f"Login attempt for username: {username}")
+        logger.debug(f"Admin username from env: {admin_username}")
+        logger.debug(f"Password hash exists: {bool(admin_password_hash)}")
+        
+        if not admin_password_hash or not admin_password_hash.startswith('pbkdf2:sha256:'):
+            logger.error("Invalid password hash format in environment")
+            flash('System configuration error. Please contact administrator.', 'danger')
+            return render_template('admin/login.html')
+        
+        try:
+            if username == admin_username and check_password_hash(admin_password_hash, password):
+                session['admin_logged_in'] = True
+                flash('Successfully logged in', 'success')
+                return redirect(url_for('admin.dashboard'))
+            flash('Invalid credentials', 'danger')
+        except ValueError as e:
+            logger.error(f"Password hash error: {str(e)}")
+            flash('System configuration error. Please contact administrator.', 'danger')
+            
     return render_template('admin/login.html')
 
 @admin.route('/')
@@ -44,6 +61,60 @@ def dashboard():
 def products():
     products = Product.query.all()
     return render_template('admin/product_list.html', products=products, admin_view=True)
+
+@admin.route('/templates')
+@login_required
+def template_list():
+    templates = ProductTemplate.query.all()
+    return render_template('admin/template_list.html', templates=templates)
+
+@admin.route('/categories')
+@login_required
+def categories():
+    categories = Category.query.order_by(Category.name).all()
+    return render_template('admin/category_list.html', categories=categories)
+
+@admin.route('/api/categories', methods=['POST'])
+@login_required
+def create_category():
+    try:
+        data = request.get_json()
+        category = Category(
+            name=data['name'],
+            description=data.get('description', '')
+        )
+        db.session.add(category)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+
+@admin.route('/api/categories/<int:category_id>', methods=['PUT'])
+@login_required
+def update_category(category_id):
+    try:
+        category = Category.query.get_or_404(category_id)
+        data = request.get_json()
+        category.name = data['name']
+        category.description = data.get('description', '')
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+
+@admin.route('/api/categories/<int:category_id>', methods=['DELETE'])
+@login_required
+def delete_category(category_id):
+    try:
+        category = Category.query.get_or_404(category_id)
+        db.session.delete(category)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
 
 @admin.route('/product/new', methods=['GET', 'POST'])
 @login_required

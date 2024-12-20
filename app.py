@@ -111,54 +111,17 @@ def public_product_detail(batch_number):
 
 
 
-@app.route('/categories')
-def categories():
-    categories = models.Category.query.order_by(models.Category.name).all()
-    return render_template('category_list.html', categories=categories)
-
-@app.route('/api/categories', methods=['POST'])
-def create_category():
-    try:
-        data = request.get_json()
-        category = models.Category(
-            name=data['name'],
-            description=data.get('description', '')
-        )
-        db.session.add(category)
-        db.session.commit()
-        return jsonify({'success': True})
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 400
-
-@app.route('/api/categories/<int:category_id>', methods=['PUT'])
-def update_category(category_id):
-    try:
-        category = models.Category.query.get_or_404(category_id)
-        data = request.get_json()
-        category.name = data['name']
-        category.description = data.get('description', '')
-        db.session.commit()
-        return jsonify({'success': True})
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 400
-
-@app.route('/api/categories/<int:category_id>', methods=['DELETE'])
-def delete_category(category_id):
-    try:
-        category = models.Category.query.get_or_404(category_id)
-        db.session.delete(category)
-        db.session.commit()
-        return jsonify({'success': True})
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 400
-
 @app.route('/products')
 def products():
+    """Public view for products"""
     products = models.Product.query.all()
     return render_template('product_list.html', products=products)
+
+@app.route('/categories')
+def categories():
+    """Public view for categories"""
+    categories = models.Category.query.order_by(models.Category.name).all()
+    return render_template('category_list.html', categories=categories)
 
 
 def fetch_craftmypdf_templates():
