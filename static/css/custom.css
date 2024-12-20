@@ -315,8 +315,8 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.75rem;
-    background-color: #7d42f4;
-    border: 2px solid #6610f2;
+    background-color: rgba(125, 66, 244, 0.1);
+    border: 2px solid #7d42f4;
     border-radius: 8px;
     color: #ffffff;
     text-decoration: none;
@@ -332,7 +332,7 @@ body {
 }
 
 .coa-download-btn:hover {
-    background-color: rgba(125, 66, 244, 0.9);
+    background-color: rgba(125, 66, 244, 0.2);
     border-color: #7d42f4;
     color: #fff;
     text-decoration: none;
