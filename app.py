@@ -4,13 +4,12 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 import logging
 from werkzeug.utils import secure_filename
-import random
 import requests
 import json
 from PIL import Image
 import datetime
 
-from utils import generate_batch_number, generate_sku, generate_upc_barcode, is_valid_image
+from utils import generate_batch_number
 
 
 class Base(DeclarativeBase):
