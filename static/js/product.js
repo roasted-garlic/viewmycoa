@@ -6,6 +6,42 @@ document.addEventListener('DOMContentLoaded', async function() {
     const templateSelect = document.getElementById('template');
     const attributesContainer = document.getElementById('attributesContainer');
     const addAttributeBtn = document.getElementById('addAttribute');
+    const productImage = document.getElementById('productImage');
+    const labelImage = document.getElementById('labelImage');
+    const productImagePreview = document.getElementById('productImagePreview');
+    const labelImagePreview = document.getElementById('labelImagePreview');
+
+    // Handle product image preview
+    if (productImage && productImagePreview) {
+        productImage.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = productImagePreview.querySelector('img');
+                    img.src = e.target.result;
+                    productImagePreview.classList.remove('d-none');
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    // Handle label image preview
+    if (labelImage && labelImagePreview) {
+        labelImage.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = labelImagePreview.querySelector('img');
+                    img.src = e.target.result;
+                    labelImagePreview.classList.remove('d-none');
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
 
     // Auto generate batch number on page load for create page
     if (batchInput && !batchInput.value) {
