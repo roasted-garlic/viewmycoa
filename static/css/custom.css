@@ -135,7 +135,7 @@
     }
 }
 
-@media (max-width: 1199px) {
+@media (max-width: 767px) {
     .list-group-item .d-flex.gap-2 {
         flex-direction: column;
         width: 100%;
