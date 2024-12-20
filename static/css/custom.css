@@ -346,7 +346,6 @@ body {
 
 .category-content {
     display: flex;
-    flex-wrap: wrap;
     gap: 1rem;
     justify-content: space-between;
     align-items: center;
@@ -355,12 +354,13 @@ body {
 .category-info {
     flex: 1;
     min-width: 200px;
+    margin-right: auto;
 }
 
 .category-actions {
     display: flex;
     gap: 0.5rem;
-    flex-wrap: wrap;
+    flex-shrink: 0;
 }
 
 .category-actions .btn {
@@ -379,10 +379,12 @@ body {
     
     .category-info {
         min-width: 100%;
+        margin-right: 0;
     }
     
     .category-actions {
         width: 100%;
+        justify-content: flex-end;
     }
     
     .category-actions .btn {
