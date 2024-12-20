@@ -9,20 +9,32 @@ document.addEventListener('DOMContentLoaded', async function() {
     const batchNumberInput = document.getElementById('batchNumber');
 
     // Auto generate batch number on page load for create page
-    if (batchInput && !batchInput.value) {
-        try {
-            const response = await fetch('/api/generate_batch', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
+    if (batchInput) {
+        if (!batchInput.value) {
+            try {
+                const response = await fetch('/api/generate_batch', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    batchInput.value = data.batch_number;
+                }
+            } catch (error) {
+                console.error('Error generating batch number:', error);
+            }
+        }
+
+        // Enable batch edit functionality for both create and edit pages
+        if (enableBatchEdit) {
+            enableBatchEdit.addEventListener('change', function() {
+                batchNumberInput.readOnly = !this.checked;
+                if (generateBatchBtn) {
+                    generateBatchBtn.disabled = this.checked;
                 }
             });
-            if (response.ok) {
-                const data = await response.json();
-                batchInput.value = data.batch_number;
-            }
-        } catch (error) {
-            console.error('Error generating batch number:', error);
         }
     }
 
