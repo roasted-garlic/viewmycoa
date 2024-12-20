@@ -7,15 +7,10 @@
     color: #fff;
 }
 
-.form-control[type="file"]::-webkit-file-upload-button {
-    display: none;
-}
-
+.form-control[type="file"]::-webkit-file-upload-button,
 .form-control[type="file"]::file-selector-button {
     display: none;
 }
-
-/* Custom styles to complement Bootstrap */
 
 /* Navbar styling */
 .navbar {
@@ -36,278 +31,79 @@
     color: #0dcaf0 !important;
 }
 
-.nav-link {
-    font-weight: 500;
-    padding: 0.6rem 1.2rem !important;
-    margin: 0 0.3rem;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-    letter-spacing: 0.3px;
-}
-
-
-/* Responsive button styles for Historical Batches */
-@media (max-width: 767px) {
-    .list-group-item .btn {
-        width: 100%;
-    }
-}
-
-@media (min-width: 768px) {
-    .list-group-item .d-flex.flex-column.flex-md-row {
-        width: auto;
-    }
-}
-
-.nav-link:hover {
-    background-color: rgba(13, 202, 240, 0.1);
-    color: #0dcaf0 !important;
-    transform: translateY(-1px);
-}
-
-.navbar-toggler {
-    border-color: rgba(13, 202, 240, 0.5);
-}
-
-.navbar-toggler:focus {
-    box-shadow: 0 0 0 0.2rem rgba(13, 202, 240, 0.25);
-}
-
-.product-card {
-    transition: transform 0.2s;
-}
-
-.product-card:hover {
-    transform: translateY(-5px);
-}
-
-.card-img-top {
-    height: 200px;
-    object-fit: cover;
-}
-
-.attribute-group {
-    transition: all 0.3s ease;
-}
-
-.attribute-group:hover {
-    background-color: var(--bs-secondary-bg);
-    padding: 0.5rem;
-    border-radius: 0.25rem;
-}
-
-.remove-attribute {
-    transition: transform 0.2s;
-}
-
-.remove-attribute:hover {
-    transform: scale(1.1);
-}
-
-/* PDF list styles */
-.list-group-item {
-    transition: all 0.2s ease;
-    padding: 0.75rem 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 0.375rem !important;
-}
-
-.list-group-item:hover {
-    background-color: var(--bs-secondary-bg);
-}
-
-.list-group-item > span {
-    display: block;
-    margin-bottom: 0.5rem;
-}
-
-@media (min-width: 1200px) {
-    .list-group-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .list-group-item > span {
-        margin-bottom: 0;
-    }
-    
-    .list-group-item .d-flex.gap-2 {
-        width: auto;
-    }
-}
-
-@media (max-width: 767px) {
-    .list-group-item .d-flex.gap-2 {
-        flex-direction: column;
-        width: 100%;
-    }
-    
-    .list-group-item .btn {
-        width: 100%;
-        margin-top: 0.5rem;
-    }
-}
-
-.list-group-item .btn {
-    padding: 0.375rem 0.75rem;
-    display: flex;
+/* Button and container styles */
+.btn {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    min-height: 38px;
+    white-space: nowrap;
+    transition: all 0.2s ease;
 }
 
-/* Form validation styles */
-.form-control:focus {
-    border-color: var(--bs-primary);
-    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+.btn i {
+    flex-shrink: 0;
+    font-size: 0.9rem;
 }
 
-.is-invalid {
-    border-color: var(--bs-danger);
+.list-group-item {
+    padding: 1rem;
+    overflow: hidden;
 }
 
-/* Image preview container */
-.img-thumbnail {
-    background-color: var(--bs-secondary-bg);
-    border-color: var(--bs-border-color);
+.list-group-item .d-flex {
+    gap: 0.5rem;
 }
 
-/* Toast notifications */
-.toast-container {
-    z-index: 1050;
+/* Responsive layout styles */
+@media (min-width: 1400px) {
+    .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .card-header .d-flex {
+        flex: 0 0 auto;
+    }
 }
 
+@media (max-width: 1399px) {
+    .card-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
 
-/* Template card styles */
-.template-card .card {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
+    .card-header h3 {
+        width: 100%;
+        margin-bottom: 0;
+    }
 
-.template-card .card-body {
-    display: flex;
-    flex-direction: column;
-}
+    .card-header .d-flex {
+        width: 100%;
+        display: flex !important;
+        gap: 0.5rem;
+    }
 
-.badge {
-    font-size: 0.85rem;
-    padding: 0.5rem 0.75rem;
-    transition: transform 0.2s;
-}
-
-.badge:hover {
-    transform: translateY(-2px);
-}
-
-.template-card .btn {
-    min-width: 100px;
-}
-
-/* Loading states */
-.btn .loading-state,
-.btn .normal-state {
-    display: inline-block;
-    min-width: 90px;
-}
-
-@keyframes fa-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    .card-header .btn {
+        flex: 1;
+    }
 }
 
 @media (min-width: 768px) {
-    .w-md-auto {
-        width: auto !important;
-    }
-    
     .list-group-item .d-flex.flex-column.flex-sm-row {
         flex-direction: row !important;
-        gap: 0.5rem;
     }
-    
+
     .list-group-item .btn {
         min-width: 120px;
         width: auto;
     }
 }
 
-
-.fa-spin {
-    animation: fa-spin 1s linear infinite;
-    display: inline-block;
-}
-
-.btn i {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 4px;
-    vertical-align: middle;
-}
-
-.btn-danger i {
-    color: #fff;
-}
-
-.btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.75;
-}
-
-/* Mobile-friendly button styles */
-@media (max-width: 1400px) {
-    .card-header {
-        flex-direction: column !important;
-        gap: 1rem;
-    }
-
-    .card-header h3 {
-        margin-bottom: 0;
-        text-align: left;
-        width: 100%;
-    }
-
-    .card-header .d-flex {
-        width: 100%;
-        display: flex !important;
-        flex-direction: row !important;
-        gap: 0.5rem;
-    }
-
-    .card-header .btn {
-        flex: 1;
-        min-width: 140px;
-        display: flex !important;
-    }
-}
-
-@media (max-width: 990px) and (min-width: 768px) {
-    .btn {
-        padding: 0.5rem;
-        font-size: 0.9rem;
-        white-space: nowrap;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .list-group-item {
-        flex-direction: column;
-    }
-
-    .list-group-item .d-flex {
-        width: 100%;
-        flex-direction: row !important;
-        gap: 0.5rem;
-    }
-
-    .list-group-item .d-flex.gap-2 {
-        justify-content: space-between;
-    }
-}
-
-@media (max-width: 767px) {    
+@media (max-width: 767px) {
     .list-group-item .d-flex {
         width: 100%;
     }
@@ -319,44 +115,37 @@
     .list-group-item .btn {
         width: 100%;
         margin-bottom: 0.5rem;
-        white-space: normal;
-        height: auto;
-        min-height: 38px;
-    }
-
-    .list-group-item .btn i {
-        min-width: 16px;
     }
 }
 
-.list-group-item {
-    overflow: hidden;
+/* Product list styles */
+.product-card {
+    transition: transform 0.2s;
 }
 
-.list-group-item .btn {
-    text-overflow: ellipsis;
-    overflow: hidden;
+.product-card:hover {
+    transform: translateY(-5px);
+}
+
+.product-actions {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
 }
-    
-    .btn i {
-        margin-right: 4px;
-        font-size: 0.9rem;
-    }
 
-    .product-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        width: 100%;
-    }
+.product-actions .btn {
+    flex: 1;
+    min-width: 120px;
+}
 
-    .product-actions .btn {
-        width: 100%;
-        margin: 0;
-    }
+/* Form and utility styles */
+.form-control:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+.w-md-auto {
+    width: auto;
 }
 
 @media (max-width: 767px) {
@@ -367,25 +156,4 @@
 
 body {
     background-color: #000000;
-}
-
-.search-container {
-    min-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 2rem;
-}
-
-.form-control-lg {
-    padding: 1rem 1.5rem;
-    font-size: 1.2rem;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-.form-control-lg:focus {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: #0dcaf0;
-    box-shadow: 0 0 0 0.25rem rgba(13, 202, 240, 0.25);
 }
