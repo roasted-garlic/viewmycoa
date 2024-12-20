@@ -72,48 +72,60 @@
         </div>
 
         </div>
-    <!-- Financial Information -->
+    <!-- COA Status and other info -->
     <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card bg-dark border-secondary h-100">
+        <div class="col-md">
+            <div class="card {% if product.coa_pdf %}bg-success{% else %}bg-danger{% endif %} border-secondary h-100">
                 <div class="card-body">
-                    <h5 class="card-title text-info">
-                        <i class="fas fa-dollar-sign"></i> Cost
+                    <h5 class="card-title text-white">
+                        <i class="fas {% if product.coa_pdf %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i> COA Status
                     </h5>
-                    <p class="card-text h4">${{ '%.2f'|format(product.cost) if product.cost else '0.00' }}</p>
+                    <p class="card-text h4 text-white">{% if product.coa_pdf %}COA Attached{% else %}Needs COA{% endif %}</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md">
             <div class="card bg-dark border-secondary h-100">
                 <div class="card-body">
                     <h5 class="card-title text-info">
-                        <i class="fas fa-tag"></i> Price
+                        <i class="fas fa-folder"></i> Category
                     </h5>
-                    <p class="card-text h4">${{ '%.2f'|format(product.price) if product.price else '0.00' }}</p>
+                    <p class="card-text h4">{{ product.categories.first().name if product.categories.count() > 0 else 'Uncategorized' }}</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md">
             <div class="card bg-dark border-secondary h-100">
                 <div class="card-body">
                     <h5 class="card-title text-info">
-                        <i class="fas fa-chart-line"></i> Profit
+                        <i class="fas fa-hashtag"></i> Batch Number
                     </h5>
-                    <p class="card-text h4">${{ '%.2f'|format(product.price - product.cost) if (product.price and product.cost) else '0.00' }}</p>
+                    <p class="card-text h4">{{ product.batch_number }}</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md">
             <div class="card bg-dark border-secondary h-100">
                 <div class="card-body">
                     <h5 class="card-title text-info">
-                        <i class="fas fa-percentage"></i> Margin
+                        <i class="fas fa-tags"></i> SKU
                     </h5>
-                    <p class="card-text h4">{{ '%.1f'|format((((product.price - product.cost) / product.price) * 100) if (product.price and product.cost and product.price > 0) else 0) }}%</p>
+                    <p class="card-text h4">{{ product.sku }}</p>
                 </div>
             </div>
         </div>
+        {% if product.barcode %}
+        <div class="col-md">
+            <div class="card bg-dark border-secondary h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-info">
+                        <i class="fas fa-barcode"></i> UPC-A Barcode
+                    </h5>
+                    <p class="card-text h4">{{ product.barcode }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <!-- COA Status -->
@@ -172,6 +184,50 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Financial Information -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-dark border-secondary h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-info">
+                        <i class="fas fa-dollar-sign"></i> Product Cost
+                    </h5>
+                    <p class="card-text h4">${{ '%.2f'|format(product.cost) if product.cost else '0.00' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark border-secondary h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-info">
+                        <i class="fas fa-tag"></i> Product Price
+                    </h5>
+                    <p class="card-text h4">${{ '%.2f'|format(product.price) if product.price else '0.00' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark border-secondary h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-info">
+                        <i class="fas fa-chart-line"></i> Profit Per Unit
+                    </h5>
+                    <p class="card-text h4">${{ '%.2f'|format(product.price - product.cost) if (product.price and product.cost) else '0.00' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-dark border-secondary h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-info">
+                        <i class="fas fa-percentage"></i> Profit Margin
+                    </h5>
+                    <p class="card-text h4">{{ '%.1f'|format((((product.price - product.cost) / product.price) * 100) if (product.price and product.cost and product.price > 0) else 0) }}%</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
 <div class="row">
     <div class="col-md-6 mb-5">
