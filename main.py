@@ -22,11 +22,7 @@ def init_app():
         with app.app_context():
             import models  # Import models before creating tables
             db.create_all()
-            db.session.commit()  # Ensure all tables are created
             logger.info("Database tables created successfully")
-            
-            # Database is initialized and admin user is created through migrations
-            logger.info("Database initialization complete")
 
     except Exception as e:
         logger.error(f"Error during application initialization: {str(e)}")

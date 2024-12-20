@@ -1,4 +1,4 @@
-modules = ["python-3.11", "postgresql-16"]
+modules = ["python-3.11"]
 
 [nix]
 channel = "stable-24_05"
@@ -31,7 +31,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "FLASK_APP=app.py flask run --host=0.0.0.0"
+args = "python main.py"
 waitForPort = 5000
 
 [[workflows.workflow]]
@@ -46,10 +46,10 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "FLASK_APP=app.py flask db upgrade"
+args = "FLASK_APP=app.py flask db init && FLASK_APP=app.py flask db migrate -m 'Add product cost and price' && FLASK_APP=app.py flask db upgrade"
 
 [deployment]
-run = ["sh", "-c", "FLASK_APP=app.py flask run --host=0.0.0.0"]
+run = ["sh", "-c", "python main.py"]
 
 [[ports]]
 localPort = 5000

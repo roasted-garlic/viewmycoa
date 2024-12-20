@@ -1,5 +1,3 @@
-import os
-from werkzeug.utils import secure_filename
 
 import random
 import string
@@ -50,29 +48,3 @@ def generate_batch_number():
     """Generate a unique batch number"""
     chars = string.ascii_uppercase + string.digits
     return ''.join(random.choice(chars) for _ in range(8))
-
-def save_image(file, product_id, image_type):
-    """Save an uploaded image file and return the relative path"""
-    if not file:
-        return None
-        
-    # Get file extension
-    filename = secure_filename(file.filename)
-    _, ext = os.path.splitext(filename)
-    
-    # Generate new filename using product ID and image type
-    new_filename = f"{image_type}_{product_id}{ext}"
-    
-    # Create uploads directory if it doesn't exist
-    upload_dir = os.path.join('static', 'uploads')
-    os.makedirs(upload_dir, exist_ok=True)
-    
-    # Save the file
-    filepath = os.path.join(upload_dir, new_filename)
-    
-    # Process and optimize the image
-    img = Image.open(file)
-    img.save(os.path.join(filepath), optimize=True)
-    
-    # Return relative path from static directory
-    return os.path.join('uploads', new_filename)

@@ -1,4 +1,4 @@
-from database import db
+from app import db
 import datetime
 import json
 
@@ -133,28 +133,3 @@ class GeneratedPDF(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     pdf_url = db.Column(db.String(500))
     batch_history = db.relationship('BatchHistory', backref='pdfs')
-
-class AdminUser(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    password_hash = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-
-    @staticmethod
-    def create(username, password):
-        """Create a new admin user with hashed password"""
-        from werkzeug.security import generate_password_hash
-        password_hash = generate_password_hash(password)
-        print(f"Creating admin user with hash: {password_hash[:20]}...")  # Log partial hash for debugging
-        user = AdminUser(
-            username=username,
-            password_hash=password_hash
-        )
-        return user
-
-    def verify_password(self, password):
-        """Verify the user's password"""
-        from werkzeug.security import check_password_hash
-        result = check_password_hash(self.password_hash, password)
-        print(f"Password verification for {self.username}: {'success' if result else 'failed'}")
-        return result
