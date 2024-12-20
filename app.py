@@ -1,7 +1,5 @@
 import os
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_from_directory
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
 import logging
 from werkzeug.utils import secure_filename
 import string
@@ -10,16 +8,20 @@ import requests
 import json
 from PIL import Image
 import datetime
+import os
 
 from utils import generate_batch_number, generate_sku, generate_upc_barcode, is_valid_image
+from database import db, init_db
+from flask_migrate import Migrate
 
-
-class Base(DeclarativeBase):
-    pass
-
-
-db = SQLAlchemy(model_class=Base)
 app = Flask(__name__)
+
+# Register blueprints
+from admin import admin
+app.register_blueprint(admin)
+
+# Initialize Flask-Migrate
+migrate = Migrate(app, db)
 
 # Configuration
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"

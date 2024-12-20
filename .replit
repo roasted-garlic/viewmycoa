@@ -31,7 +31,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python main.py"
+args = "python app.py"
 waitForPort = 5000
 
 [[workflows.workflow]]
@@ -49,7 +49,7 @@ task = "shell.exec"
 args = "FLASK_APP=app.py flask db init && FLASK_APP=app.py flask db migrate -m 'Add product cost and price' && FLASK_APP=app.py flask db upgrade"
 
 [deployment]
-run = ["sh", "-c", "python main.py"]
+run = ["sh", "-c", "python app.py"]
 
 [[ports]]
 localPort = 5000
