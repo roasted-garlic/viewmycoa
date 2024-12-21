@@ -6,10 +6,12 @@ import requests
 import json
 from PIL import Image
 import datetime
+from flask_migrate import Migrate
 from utils import generate_batch_number, is_valid_image
 from models import db, product_categories
 
 app = Flask(__name__)
+migrate = Migrate(app, db)
 
 # Configuration
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"

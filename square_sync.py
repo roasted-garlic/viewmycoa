@@ -49,6 +49,11 @@ def sync_product_to_square(product):
         except requests.exceptions.RequestException:
             pass
 
+    # Handle image upload first if needed
+    if product.product_image and not product.square_image_id:
+        from square_image_upload import upload_product_image_to_square
+        upload_product_image_to_square(product)
+        
     # Create product data structure
     sku_id = f"#{product.sku}"
     variation_id = f"#{product.sku}_regular"
@@ -75,7 +80,8 @@ def sync_product_to_square(product):
             "item_data": {
                 "name": product.title,
                 "description": next(iter(product.get_attributes().values()), ""),
-                "variations": [variation_data]
+                "variations": [variation_data],
+                "image_ids": [product.square_image_id] if product.square_image_id else []
             }
         }
     }
