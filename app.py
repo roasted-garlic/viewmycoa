@@ -21,34 +21,7 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_pre_ping": True,
 }
 
-@app.route('/vmc-admin/settings', methods=['GET', 'POST'])
-def settings():
-    settings = models.Settings.query.first()
-    if not settings:
-        settings = models.Settings()
-        db.session.add(settings)
-        db.session.commit()
-        
-    if request.method == 'POST':
-        settings.show_square_id_controls = 'show_square_id' in request.form
-        settings.show_square_image_id_controls = 'show_square_image_id' in request.form
-        db.session.commit()
-        flash('Settings updated successfully!', 'success')
-        return redirect(url_for('settings'))
-        
-    return render_template('settings.html', settings=settings)
 
-def get_settings():
-    settings = models.Settings.query.first()
-    if not settings:
-        settings = models.Settings()
-        db.session.add(settings)
-        db.session.commit()
-    return settings
-
-@app.context_processor
-def inject_settings():
-    return {'settings': get_settings()}
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Disable caching for development

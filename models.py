@@ -145,8 +145,5 @@ class GeneratedPDF(db.Model):
 
 
 
-class Settings(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    show_square_id_controls = db.Column(db.Boolean, default=False)
-    show_square_image_id_controls = db.Column(db.Boolean, default=False)
+
 
