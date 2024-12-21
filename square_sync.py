@@ -36,6 +36,19 @@ def sync_product_to_square(product):
     
     existing_id = product.square_catalog_id
     
+    # If updating existing item, fetch current version first
+    current_version = 0
+    if existing_id:
+        try:
+            response = requests.get(
+                f"{SQUARE_BASE_URL}/v2/catalog/object/{existing_id}",
+                headers=get_square_headers()
+            )
+            if response.status_code == 200:
+                current_version = response.json().get('object', {}).get('version', 0)
+        except requests.exceptions.RequestException:
+            pass
+
     # Create product data structure
     sku_id = f"#{product.sku}"
     variation_id = f"#{product.sku}_regular"
@@ -57,6 +70,7 @@ def sync_product_to_square(product):
         "object": {
             "type": "ITEM",
             "id": existing_id if existing_id else sku_id,
+            "version": current_version,
             "present_at_location_ids": [location_id],
             "item_data": {
                 "name": product.title,
