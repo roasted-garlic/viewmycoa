@@ -791,6 +791,28 @@ def edit_product(product_id):
                            pdf_templates=pdf_templates)
 
 
+
+@app.context_processor
+def inject_settings():
+    """Make settings available to all templates."""
+    return {'settings': models.Settings.get_settings()}
+
+@app.route('/vmc-admin/settings', methods=['GET', 'POST'])
+def settings():
+    settings = models.Settings.get_settings()
+    
+    if request.method == 'POST':
+        try:
+            settings.show_square_id_controls = bool(request.form.get('show_square_id'))
+            settings.show_square_image_id_controls = bool(request.form.get('show_square_image_id'))
+            db.session.commit()
+            flash('Settings updated successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating settings: {str(e)}', 'danger')
+    
+    return render_template('settings.html', settings=settings)
+
 @app.route('/api/delete_batch_history/<int:history_id>', methods=['DELETE'])
 def delete_batch_history(history_id):
     try:

@@ -144,6 +144,21 @@ class GeneratedPDF(db.Model):
     batch_history = db.relationship('BatchHistory', backref='pdfs')
 
 
+class Settings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    show_square_id_controls = db.Column(db.Boolean, default=False, nullable=False)
+    show_square_image_id_controls = db.Column(db.Boolean, default=False, nullable=False)
+
+    @classmethod
+    def get_settings(cls):
+        """Get the settings instance, creating it if it doesn't exist."""
+        settings = cls.query.first()
+        if not settings:
+            settings = cls()
+            db.session.add(settings)
+            db.session.commit()
+        return settings
+
 
 
 
