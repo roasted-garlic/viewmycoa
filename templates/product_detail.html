@@ -417,8 +417,6 @@
     </div>
 </div>
 
-{% endblock %}
-
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -496,31 +494,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const response = await fetch(`/api/square/sync/${productId}`, {
                     method: 'POST'
                 });
-
-<!-- Square Update Reminder Modal -->
-<div class="modal fade" id="squareUpdateReminderModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle"></i> Square Update Reminder
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>This product is linked to Square. Don't forget to sync your changes!</p>
-                <p>Would you like to update the product in Square now?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Not Now</button>
-                <button type="button" class="btn btn-primary" id="updateSquareFromReminder">
-                    <i class="fas fa-sync"></i> Update in Square
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
                 const data = await response.json();
                 
                 const resultsDiv = document.getElementById('syncResults');
@@ -753,17 +726,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 {% endblock %}
 
-    // Show Square update reminder if returning from edit
-    if (document.referrer.includes('/edit') && document.getElementById('syncSquare')) {
-        const reminderModal = new bootstrap.Modal(document.getElementById('squareUpdateReminderModal'));
-        reminderModal.show();
-    }
-
-    // Handle update from reminder modal
-    document.getElementById('updateSquareFromReminder')?.addEventListener('click', async function() {
-        const syncButton = document.getElementById('syncSquare');
-        bootstrap.Modal.getInstance(document.getElementById('squareUpdateReminderModal')).hide();
-        if (syncButton) {
-            syncButton.click();
-        }
-    });
+{% endblock %}
