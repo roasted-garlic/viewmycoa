@@ -775,8 +775,7 @@ def edit_product(product_id):
 
             db.session.commit()
             flash('Product updated successfully!', 'success')
-            show_reminder = '&showSquareReminder=true' if product.square_catalog_id else ''
-            return redirect(url_for('product_detail', product_id=product.id) + show_reminder)
+            return redirect(url_for('product_detail', product_id=product.id))
 
         except Exception as e:
             db.session.rollback()
