@@ -676,7 +676,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Unsync from Square functionality
     const unsyncButton = document.getElementById('unsyncSquare');
-    if (unsyncButton) {
+    if (unsyncButton && !unsyncButton.hasListener) {
+        unsyncButton.hasListener = true;
         unsyncButton.addEventListener('click', async function() {
             const productId = this.dataset.productId;
             const button = this;
