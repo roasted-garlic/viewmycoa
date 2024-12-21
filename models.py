@@ -9,6 +9,23 @@ class Base(DeclarativeBase):
 
 db = SQLAlchemy(model_class=Base)
 
+class Settings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    show_square_id = db.Column(db.Boolean, default=False, nullable=False)
+    show_square_image_id = db.Column(db.Boolean, default=False, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    @staticmethod
+    def get_settings():
+        """Get the current settings or create default settings if none exist"""
+        settings = Settings.query.first()
+        if not settings:
+            settings = Settings()
+            db.session.add(settings)
+            db.session.commit()
+        return settings
+
 class ProductTemplate(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)

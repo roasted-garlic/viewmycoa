@@ -9,6 +9,7 @@ import datetime
 from flask_migrate import Migrate
 from utils import generate_batch_number, is_valid_image
 from models import db, product_categories
+from models import db, product_categories, Settings
 
 app = Flask(__name__)
 migrate = Migrate(app, db)
@@ -782,18 +783,19 @@ def edit_product(product_id):
                                    templates=templates,
                                    pdf_templates=pdf_templates)
 
+    settings = Settings.get_settings()
     return render_template('product_edit.html',
                            product=product,
                            templates=templates,
                            categories=categories,
-                           pdf_templates=pdf_templates)
+                           pdf_templates=pdf_templates,
+                           settings=settings)
 
 
 @app.route('/api/delete_batch_history/<int:history_id>', methods=['DELETE'])
 def delete_batch_history(history_id):
     try:
         history = models.BatchHistory.query.get_or_404(history_id)
-        
         # Delete the entire batch directory
         batch_dir = os.path.join('static', 'pdfs', history.batch_number)
         if os.path.exists(batch_dir):
@@ -820,6 +822,22 @@ def delete_batch_history(history_id):
         db.session.rollback()
         app.logger.error(f"Error deleting batch history: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+@app.route('/vmc-admin/settings', methods=['GET'])
+def settings():
+    """Display the settings page"""
+    current_settings = Settings.get_settings()
+    return render_template('settings.html', settings=current_settings)
+
+@app.route('/vmc-admin/settings/update', methods=['POST'])
+def update_settings():
+    """Update settings"""
+    current_settings = Settings.get_settings()
+    current_settings.show_square_id = 'show_square_id' in request.form
+    current_settings.show_square_image_id = 'show_square_image_id' in request.form
+    db.session.commit()
+    flash('Settings updated successfully!', 'success')
+    return redirect(url_for('settings'))
 
 @app.route('/api/delete_coa/<int:product_id>', methods=['DELETE'])
 def delete_coa(product_id):
