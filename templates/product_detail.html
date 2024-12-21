@@ -191,6 +191,27 @@
         </div>
     </div>
 
+    <!-- Square Sync Reminder Modal -->
+    <div class="modal fade" id="squareSyncReminderModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Square Sync Reminder</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>This product is synced with Square. Would you like to update the product in Square with your recent changes?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Not Now</button>
+                    <button type="button" class="btn btn-primary" onclick="document.getElementById('syncSquare').click(); bootstrap.Modal.getInstance(document.getElementById('squareSyncReminderModal')).hide();">
+                        <i class="fas fa-sync"></i> Update in Square
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-md-6 mb-5">
             {% if product.product_image %}
@@ -423,6 +444,13 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Show Square sync reminder if needed
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('showSquareReminder') === 'true') {
+        const squareModal = new bootstrap.Modal(document.getElementById('squareSyncReminderModal'));
+        squareModal.show();
+    }
+
     // Initialize all modals
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
     const duplicateModal = new bootstrap.Modal(document.getElementById('duplicateConfirmModal'));
