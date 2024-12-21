@@ -42,8 +42,7 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
             request_data = {
                 'idempotency_key': idempotency_key,
                 'image': {
-                    'type': 'IMAGE',
-                    'id': None  # Let Square generate the ID
+                    'type': 'IMAGE'
                 }
             }
             
