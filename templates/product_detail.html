@@ -616,6 +616,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Duplicate product functionality
+    let duplicating = false;
     const duplicateButton = document.querySelector('.duplicate-product');
     if (duplicateButton) {
         duplicateButton.addEventListener('click', function() {
@@ -626,6 +627,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmDuplicateButton = document.getElementById('confirmDuplicate');
     if (confirmDuplicateButton && duplicateButton) {
         confirmDuplicateButton.addEventListener('click', async function() {
+            if (duplicating) return;
+            duplicating = true;
             const productId = duplicateButton.dataset.productId;
             try {
                 const response = await fetch(`/api/duplicate_product/${productId}`, {
@@ -637,6 +640,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } catch (error) {
                 console.error('Error:', error);
+                duplicating = false;
             }
             duplicateModal.hide();
         });
