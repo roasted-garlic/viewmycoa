@@ -6,7 +6,8 @@ from flask import jsonify
 from app import db, app
 from models import Product
 
-SQUARE_API_URL = "https://connect.squareup.com/v2/catalog/object"
+SQUARE_BASE_URL = os.environ.get("SQUARE_BASE_URL", "https://connect.squareup.com")
+SQUARE_API_URL = f"{SQUARE_BASE_URL}/v2/catalog/object"
 SQUARE_VERSION = "2024-12-18"
 
 def get_square_headers():
