@@ -712,13 +712,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 const data = await response.json();
                 
+                const resultsDiv = document.getElementById('syncResults');
                 if (data.success) {
-                    showNotification('Product removed from Square successfully', 'success');
+                    resultsDiv.innerHTML = '<div class="alert alert-success">Product removed from Square successfully!</div>';
+                    const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
+                    modal.show();
                     setTimeout(() => {
                         window.location.reload();
                     }, 2000);
                 } else {
-                    const resultsDiv = document.getElementById('syncResults');
                     resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
                     const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
                     modal.show();
