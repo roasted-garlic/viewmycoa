@@ -1,6 +1,6 @@
+
 import os
 import uuid
-import json
 import requests
 from typing import Optional
 from models import Product, db
@@ -28,8 +28,7 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
     url = f"{SQUARE_BASE_URL}/v2/catalog/images"
     headers = {
         'Square-Version': '2024-12-18',
-        'Authorization': f'Bearer {os.environ.get("SQUARE_ACCESS_TOKEN")}',
-        'Accept': 'application/json'
+        'Authorization': f'Bearer {os.environ.get("SQUARE_ACCESS_TOKEN")}'
     }
 
     try:
@@ -41,23 +40,24 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
             # Create request data following Square's format
             request_data = {
                 'idempotency_key': idempotency_key,
+                'object_id': None,  # Leave empty to create unattached image
                 'image': {
-                    'type': 'IMAGE'
+                    'type': 'IMAGE',
+                    'id': f'#{product.sku}_image',  # Temporary ID for reference
+                    'image_data': {
+                        'caption': product.title
+                    }
                 }
             }
             
-            # Prepare file data
+            # Prepare multipart form data
             files = {
-                'request': (None, json.dumps(request_data), 'application/json'),
-                'file': ('image.jpg', image_file, 'image/jpeg')
+                'request': ('', f'{{"idempotency_key": "{idempotency_key}", "object_id": null, "image": {{"type": "IMAGE", "id": "#{product.sku}_image", "image_data": {{"caption": "{product.title}"}}}}}', 'application/json'),
+                'image_file': (os.path.basename(image_path), image_file, 'image/png')
             }
             
             # Make request to Square API
-            response = requests.post(
-                url,
-                headers=headers,
-                files=files
-            )
+            response = requests.post(url, headers=headers, files=files)
             
             if response.status_code != 200:
                 print(f"Error response from Square: {response.text}")
