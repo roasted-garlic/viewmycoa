@@ -38,6 +38,7 @@ def sync_product_to_square(product):
     
     # Create product data structure
     sku_id = f"#{product.sku}"
+    variation_id = f"#{product.sku}_regular"
     product_data = {
         "idempotency_key": idempotency_key,
         "object": {
@@ -49,9 +50,9 @@ def sync_product_to_square(product):
                 "description": next(iter(product.get_attributes().values()), ""),
                 "variations": [{
                     "type": "ITEM_VARIATION",
-                    "id": sku_id + "_regular",
+                    "id": existing_id + "_regular" if existing_id else variation_id,
                     "item_variation_data": {
-                        "item_id": sku_id,
+                        "item_id": existing_id if existing_id else sku_id,
                         "name": "Regular",
                         "pricing_type": "FIXED_PRICING" if product.price else "VARIABLE_PRICING",
                         "price_money": format_price_money(product.price) if product.price else None

@@ -477,7 +477,8 @@ document.addEventListener('DOMContentLoaded', function() {
         syncButton.addEventListener('click', async function() {
             const productId = this.dataset.productId;
             const button = this;
-            const originalText = button.innerHTML;
+            
+            if (button.disabled) return;
             
             try {
                 button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
@@ -491,8 +492,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const resultsDiv = document.getElementById('syncResults');
                 if (data.success) {
                     resultsDiv.innerHTML = '<div class="alert alert-success">Product synced successfully!</div>';
+                    // Update button to show synced state
+                    button.innerHTML = '<i class="fas fa-check"></i> Synced to Square';
+                    button.classList.add('btn-success-light');
+                    button.disabled = true;
                 } else {
                     resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+                    button.innerHTML = '<i class="fas fa-sync"></i> Sync to Square';
+                    button.disabled = false;
                 }
                 
                 const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
@@ -503,8 +510,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
                 const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
                 modal.show();
-            } finally {
-                button.innerHTML = originalText;
+                button.innerHTML = '<i class="fas fa-sync"></i> Sync to Square';
                 button.disabled = false;
             }
         });
