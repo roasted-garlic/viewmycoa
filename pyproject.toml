@@ -16,4 +16,7 @@ dependencies = [
     "barcode>=1.0.4",
     "flask-migrate>=4.0.7",
     "alembic>=1.14.0",
+    "twilio>=9.4.1",
+    "flask-login>=0.6.3",
+    "flask-wtf>=1.2.2",
 ]
