@@ -37,20 +37,21 @@ def sync_product_to_square(product):
     existing_id = product.square_catalog_id
     
     # Create product data structure
+    sku_id = f"#{product.sku}"
     product_data = {
         "idempotency_key": idempotency_key,
         "object": {
             "type": "ITEM",
-            "id": existing_id if existing_id else f"#{product.sku}",
+            "id": existing_id if existing_id else sku_id,
             "present_at_location_ids": [location_id],
             "item_data": {
                 "name": product.title,
                 "description": next(iter(product.get_attributes().values()), ""),
                 "variations": [{
                     "type": "ITEM_VARIATION",
-                    "id": f"#{product.sku}_regular",
+                    "id": sku_id + "_regular",
                     "item_variation_data": {
-                        "item_id": f"#{product.sku}",
+                        "item_id": sku_id,
                         "name": "Regular",
                         "pricing_type": "FIXED_PRICING" if product.price else "VARIABLE_PRICING",
                         "price_money": format_price_money(product.price) if product.price else None
@@ -74,8 +75,9 @@ def sync_product_to_square(product):
         result = response.json()
         
         # Store the catalog ID from Square's response
-        if result.get('object') and result['object'].get('id'):
-            product.square_catalog_id = result['object']['id']
+        catalog_object = result.get('catalog_object', {})
+        if catalog_object and catalog_object.get('id'):
+            product.square_catalog_id = catalog_object['id']
             db.session.commit()
             
         return result
