@@ -58,30 +58,33 @@ function showNotification(message, type = 'success') {
 
 document.getElementById('confirmDelete')?.addEventListener('click', async function() {
     const productId = document.getElementById('deleteProduct').dataset.productId;
+    const confirmationMessage = document.querySelector('.confirmation-message');
+    const resultsDiv = document.getElementById('syncResults');
+    
     try {
+        confirmationMessage.style.display = 'none';
+        resultsDiv.innerHTML = '<div class="alert alert-info">Deleting product...</div>';
+        
         const response = await fetch(`/api/delete_product/${productId}`, {
             method: 'DELETE'
         });
-        const resultsDiv = document.getElementById('syncResults');
-        const squareSyncModal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
         
         if (response.ok) {
             resultsDiv.innerHTML = '<div class="alert alert-success">Product deleted successfully!</div>';
+            const squareSyncModal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
             squareSyncModal.show();
+            deleteModal.hide();
             setTimeout(() => {
                 window.location.href = '/vmc-admin/products';
             }, 2000);
         } else {
             const data = await response.json();
             resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
-            squareSyncModal.show();
+            confirmationMessage.style.display = 'block';
         }
     } catch (error) {
-        console.error('Error deleting product:', error);
-        const resultsDiv = document.getElementById('syncResults');
+        console.error('Error:', error);
         resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
-        const squareSyncModal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
-        squareSyncModal.show();
+        confirmationMessage.style.display = 'block';
     }
-    deleteModal.hide();
 });
