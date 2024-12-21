@@ -172,14 +172,22 @@
                             <input type="file" class="form-control form-control-sm" id="coaPdf" name="coa_pdf" accept=".pdf,.jpg,.jpeg,.png" style="width: 100%;">
                             <small class="form-text text-muted mt-2">Upload a PDF or image file for the Certificate of Analysis</small>
                         </div>
-                        {% if product.square_catalog_id %}
-                        <div class="mt-3">
-                            <button type="button" class="btn btn-warning btn-sm" id="clearSquareId" data-product-id="{{ product.id }}">
-                                <i class="fas fa-unlink"></i> Clear Square ID
-                            </button>
-                            <small class="form-text text-muted mt-2">This will only clear the Square ID locally, not remove the item from Square</small>
-                        </div>
-                        {% endif %}
+                    </div>
+                </div>
+
+                {% if product.square_catalog_id %}
+                <div class="card bg-dark border-secondary mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-info mb-3">
+                            <i class="fas fa-unlink"></i> Square Integration
+                        </h5>
+                        <button type="button" class="btn btn-warning btn-sm" id="clearSquareId" data-product-id="{{ product.id }}">
+                            <i class="fas fa-unlink"></i> Clear Square ID
+                        </button>
+                        <small class="form-text text-muted mt-2">This will only clear the Square ID locally, not remove the item from Square</small>
+                    </div>
+                </div>
+                {% endif %}
 
 <!-- COA Delete Modal -->
 <div class="modal fade" id="coaDeleteModal" tabindex="-1">
