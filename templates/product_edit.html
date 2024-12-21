@@ -180,10 +180,13 @@
                             <h5 class="card-title text-info mb-3">
                                 <i class="fas fa-square"></i> Square Integration
                             </h5>
-                            <button type="button" class="btn btn-warning w-100" id="clearSquareId" data-product-id="{{ product.id }}">
+                            <button type="button" class="btn btn-warning w-100 mb-2" id="clearSquareId" data-product-id="{{ product.id }}">
                                 <i class="fas fa-unlink"></i> Clear Square ID
                             </button>
-                            <small class="form-text text-muted mt-2">This will only clear the Square ID locally, not remove the item from Square</small>
+                            <button type="button" class="btn btn-warning w-100" id="clearSquareImageId" data-product-id="{{ product.id }}">
+                                <i class="fas fa-image"></i> Clear Square Image ID
+                            </button>
+                            <small class="form-text text-muted mt-2">This will only clear the IDs locally, not remove items from Square</small>
                         </div>
                     </div>
                     <script>
@@ -191,6 +194,20 @@
                         const productId = this.dataset.productId;
                         try {
                             const response = await fetch(`/api/square/clear-id/${productId}`, {
+                                method: 'POST'
+                            });
+                            if (response.ok) {
+                                window.location.reload();
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                        }
+                    });
+                    
+                    document.getElementById('clearSquareImageId')?.addEventListener('click', async function() {
+                        const productId = this.dataset.productId;
+                        try {
+                            const response = await fetch(`/api/square/clear-image-id/${productId}`, {
                                 method: 'POST'
                             });
                             if (response.ok) {

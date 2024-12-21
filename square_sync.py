@@ -125,27 +125,38 @@ def sync_all_products():
     return results
 
 def delete_product_from_square(product):
-    """Delete a product from Square catalog"""
+    """Delete a product and its image from Square catalog"""
     if not product.square_catalog_id:
         return {"error": "No Square catalog ID found"}
         
     try:
-        # Store the ID and clear it first
+        # Store IDs and clear them first
         square_id = product.square_catalog_id
+        image_id = product.square_image_id
         product.square_catalog_id = None
+        product.square_image_id = None
         db.session.commit()
         
+        # Delete catalog item
         response = requests.delete(
             f"{SQUARE_BASE_URL}/v2/catalog/object/{square_id}",
             headers=get_square_headers()
         )
         
-        # Even if Square returns 404, we've already cleared the ID locally
+        # Delete image if exists
+        if image_id:
+            image_response = requests.delete(
+                f"{SQUARE_BASE_URL}/v2/catalog/object/{image_id}",
+                headers=get_square_headers()
+            )
+        
+        # Even if Square returns 404, we've already cleared the IDs locally
         if response.status_code in [200, 404]:
             return {"success": True}
         else:
-            # If other error, restore the ID
+            # If other error, restore the IDs
             product.square_catalog_id = square_id
+            product.square_image_id = image_id
             db.session.commit()
             return {"error": f"Square API error: {response.text}"}
             

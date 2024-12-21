@@ -1085,3 +1085,14 @@ def unsync_product(product_id):
             'success': False,
             'error': str(e)
         }), 500
+@app.route('/api/square/clear-image-id/<int:product_id>', methods=['POST'])
+def clear_square_image_id(product_id):
+    """Clear Square image ID from product"""
+    try:
+        product = models.Product.query.get_or_404(product_id)
+        product.square_image_id = None
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
