@@ -531,6 +531,29 @@ document.addEventListener('DOMContentLoaded', function() {
             const button = this;
             
             if (button.disabled) return;
+
+<!-- Square Delete Confirmation Modal -->
+<div class="modal fade" id="squareDeleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i> Remove from Square
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-danger"><i class="fas fa-exclamation-triangle"></i> Warning: This will remove the product from your Square catalog!</p>
+                <p>Are you sure you want to remove this product from Square?</p>
+                <div class="text-end mt-4">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmSquareDelete">Remove from Square</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
             
             try {
                 button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
@@ -746,9 +769,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const unsyncButton = document.getElementById('unsyncSquare');
     if (unsyncButton && !unsyncButton.hasListener) {
         unsyncButton.hasListener = true;
-        unsyncButton.addEventListener('click', async function() {
-            const productId = this.dataset.productId;
-            const button = this;
+        unsyncButton.addEventListener('click', function() {
+            const squareDeleteModal = new bootstrap.Modal(document.getElementById('squareDeleteModal'));
+            squareDeleteModal.show();
+        });
+    }
+
+    const confirmSquareDelete = document.getElementById('confirmSquareDelete');
+    if (confirmSquareDelete && !confirmSquareDelete.hasListener) {
+        confirmSquareDelete.hasListener = true;
+        confirmSquareDelete.addEventListener('click', async function() {
+            const productId = document.getElementById('unsyncSquare').dataset.productId;
+            const button = document.getElementById('unsyncSquare');
             
             try {
                 button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
