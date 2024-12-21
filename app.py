@@ -10,6 +10,7 @@ from PIL import Image
 import datetime
 from utils import generate_batch_number, is_valid_image
 from sqlalchemy.orm import relationship
+from models import product_categories
 class Base(DeclarativeBase):
     pass
 
