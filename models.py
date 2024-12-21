@@ -1,7 +1,13 @@
-from app import db
+
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase, relationship
 import datetime
 import json
-from sqlalchemy.orm import relationship
+
+class Base(DeclarativeBase):
+    pass
+
+db = SQLAlchemy(model_class=Base)
 
 class ProductTemplate(db.Model):
     id = db.Column(db.Integer, primary_key=True)

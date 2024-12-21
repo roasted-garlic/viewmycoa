@@ -3,8 +3,8 @@ import os
 import uuid
 import requests
 from flask import jsonify
-from app import db, app
-from models import Product
+from app import app
+from models import db, Product
 
 SQUARE_BASE_URL = os.environ.get("SQUARE_BASE_URL", "https://connect.squareup.com")
 SQUARE_API_URL = f"{SQUARE_BASE_URL}/v2/catalog/object"

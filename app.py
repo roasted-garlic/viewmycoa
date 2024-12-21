@@ -1,7 +1,5 @@
 import os
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_from_directory
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
 import logging
 from werkzeug.utils import secure_filename
 import requests
@@ -9,13 +7,8 @@ import json
 from PIL import Image
 import datetime
 from utils import generate_batch_number, is_valid_image
-from sqlalchemy.orm import relationship
-from models import product_categories
-class Base(DeclarativeBase):
-    pass
+from models import db, product_categories
 
-
-db = SQLAlchemy(model_class=Base)
 app = Flask(__name__)
 
 # Configuration
