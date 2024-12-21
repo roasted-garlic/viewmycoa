@@ -47,13 +47,17 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
                 }
             }
             
-            # Make request to Square API with proper file handling
-            files = {'file': image_file}
+            # Prepare file data
+            files = {
+                'request': (None, json.dumps(request_data), 'application/json'),
+                'file': ('image.jpg', image_file, 'image/jpeg')
+            }
+            
+            # Make request to Square API
             response = requests.post(
                 url,
                 headers=headers,
-                files=files,
-                data={'request': json.dumps(request_data)}
+                files=files
             )
             
             if response.status_code != 200:
