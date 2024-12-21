@@ -40,12 +40,20 @@
                 <i class="fas fa-external-link-alt"></i> View Public Page
             </a>
             <div class="product-actions d-flex gap-2">
-                <button class="btn btn-success w-md-auto {% if product.square_catalog_id %}btn-success-light disabled{% endif %}" 
-                        id="syncSquare" 
-                        data-product-id="{{ product.id }}"
-                        {% if product.square_catalog_id %}disabled{% endif %}>
-                    <i class="fas fa-sync"></i> {% if product.square_catalog_id %}Synced to Square{% else %}Sync to Square{% endif %}
+                {% if product.square_catalog_id %}
+                <div class="btn-group w-md-auto" role="group">
+                    <button class="btn btn-info" id="syncSquare" data-product-id="{{ product.id }}">
+                        <i class="fas fa-sync"></i> Update in Square
+                    </button>
+                    <button class="btn btn-danger" id="unsyncSquare" data-product-id="{{ product.id }}">
+                        <i class="fas fa-unlink"></i> Remove from Square
+                    </button>
+                </div>
+                {% else %}
+                <button class="btn btn-success w-md-auto" id="syncSquare" data-product-id="{{ product.id }}">
+                    <i class="fas fa-sync"></i> Sync to Square
                 </button>
+                {% endif %}
                 <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-primary w-md-auto">
                     <i class="fas fa-edit"></i> Edit
                 </a>
@@ -666,6 +674,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error:', error);
             }
             historyDeleteModal.hide();
+        });
+    }
+
+    // Unsync from Square functionality
+    const unsyncButton = document.getElementById('unsyncSquare');
+    if (unsyncButton) {
+        unsyncButton.addEventListener('click', async function() {
+            const productId = this.dataset.productId;
+            const button = this;
+            
+            try {
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
+                button.disabled = true;
+                
+                const response = await fetch(`/api/square/unsync/${productId}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    const resultsDiv = document.getElementById('syncResults');
+                    resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+                    const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
+                    modal.show();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                button.disabled = false;
+            }
         });
     }
 });

@@ -1045,3 +1045,25 @@ def save_image(file, product_id, image_type):
     img.save(os.path.join('static', filepath))
 
     return filepath
+@app.route('/api/square/unsync/<int:product_id>', methods=['POST'])
+def unsync_product(product_id):
+    """Remove product from Square"""
+    try:
+        from square_sync import delete_product_from_square
+        product = models.Product.query.get_or_404(product_id)
+        result = delete_product_from_square(product)
+        
+        if 'error' in result:
+            return jsonify({
+                'success': False,
+                'error': result['error']
+            }), 400
+            
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        app.logger.error(f"Error unsyncing product from Square: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500

@@ -101,3 +101,23 @@ def sync_all_products():
     return results
 
 
+def delete_product_from_square(product):
+    """Delete a product from Square catalog"""
+    if not product.square_catalog_id:
+        return {"error": "No Square catalog ID found"}
+        
+    try:
+        response = requests.delete(
+            f"{SQUARE_BASE_URL}/v2/catalog/object/{product.square_catalog_id}",
+            headers=get_square_headers()
+        )
+        
+        if response.status_code == 200:
+            product.square_catalog_id = None
+            db.session.commit()
+            return {"success": True}
+        else:
+            return {"error": f"Square API error: {response.text}"}
+            
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}
