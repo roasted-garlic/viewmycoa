@@ -444,11 +444,14 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Show Square sync reminder if needed
+    // Show Square sync reminder only after product update
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('showSquareReminder') === 'true') {
+    const referrer = document.referrer;
+    if (urlParams.get('showSquareReminder') === 'true' && referrer.includes('/edit')) {
         const squareModal = new bootstrap.Modal(document.getElementById('squareSyncReminderModal'));
         squareModal.show();
+        // Clean up URL
+        window.history.replaceState({}, '', window.location.pathname);
     }
 
     // Initialize all modals
