@@ -56,25 +56,32 @@ function showNotification(message, type = 'success') {
     });
 }
 
-document.getElementById('confirmDelete').addEventListener('click', async function() {
+document.getElementById('confirmDelete')?.addEventListener('click', async function() {
     const productId = document.getElementById('deleteProduct').dataset.productId;
     try {
         const response = await fetch(`/api/delete_product/${productId}`, {
             method: 'DELETE'
         });
+        const resultsDiv = document.getElementById('syncResults');
+        const squareSyncModal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
+        
         if (response.ok) {
-            showNotification('Product deleted successfully', 'success');
+            resultsDiv.innerHTML = '<div class="alert alert-success">Product deleted successfully!</div>';
+            squareSyncModal.show();
             setTimeout(() => {
                 window.location.href = '/vmc-admin/products';
             }, 2000);
         } else {
             const data = await response.json();
-            console.error('Failed to delete product:', data.error);
-            showNotification('Failed to delete product', 'danger');
+            resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+            squareSyncModal.show();
         }
     } catch (error) {
         console.error('Error deleting product:', error);
-        showNotification('Error deleting product', 'danger');
+        const resultsDiv = document.getElementById('syncResults');
+        resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        const squareSyncModal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
+        squareSyncModal.show();
     }
     deleteModal.hide();
 });
