@@ -65,7 +65,11 @@ def sync_product_to_square(product):
             headers=get_square_headers(),
             json=product_data
         )
-        response.raise_for_status()
+        if response.status_code == 401:
+            return {"error": "Square API authentication failed. Please verify your access token."}
+        elif response.status_code != 200:
+            return {"error": f"Square API error: {response.text}"}
+            
         result = response.json()
         
         # Store the catalog ID from Square's response
