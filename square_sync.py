@@ -72,8 +72,7 @@ def sync_product_to_square(product):
             "track_inventory": True,
             "item_option_values": [],
             "location_overrides": [{
-                "location_id": location_id,
-                "purchase_cost_money": format_price_money(product.cost) if product.cost else None
+                "location_id": location_id
             }]
         }
     }
