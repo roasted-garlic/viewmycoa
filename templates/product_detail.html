@@ -695,7 +695,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
                 
                 if (data.success) {
-                    window.location.reload();
+                    showNotification('Product removed from Square successfully', 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
                 } else {
                     const resultsDiv = document.getElementById('syncResults');
                     resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;

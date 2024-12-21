@@ -63,13 +63,18 @@ document.getElementById('confirmDelete').addEventListener('click', async functio
             method: 'DELETE'
         });
         if (response.ok) {
-            window.location.href = '/vmc-admin/products';
+            showNotification('Product deleted successfully', 'success');
+            setTimeout(() => {
+                window.location.href = '/vmc-admin/products';
+            }, 2000);
         } else {
             const data = await response.json();
             console.error('Failed to delete product:', data.error);
+            showNotification('Failed to delete product', 'danger');
         }
     } catch (error) {
         console.error('Error deleting product:', error);
+        showNotification('Error deleting product', 'danger');
     }
     deleteModal.hide();
 });
