@@ -475,10 +475,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const productId = this.dataset.productId;
             const button = this;
             const originalText = button.innerHTML;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
-            button.disabled = true;
-
+            
             try {
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+                button.disabled = true;
+                
                 const response = await fetch(`/api/square/sync/${productId}`, {
                     method: 'POST'
                 });
