@@ -39,6 +39,22 @@ def sync_product_to_square(product):
     # Create product data structure
     sku_id = f"#{product.sku}"
     variation_id = f"#{product.sku}_regular"
+    
+    # For existing items, don't send variation ID in update
+    variation_data = {
+        "type": "ITEM_VARIATION",
+        "item_variation_data": {
+            "item_id": existing_id if existing_id else sku_id,
+            "name": "Regular",
+            "pricing_type": "FIXED_PRICING" if product.price else "VARIABLE_PRICING",
+            "price_money": format_price_money(product.price) if product.price else None
+        }
+    }
+    
+    # Only include variation ID for new items
+    if not existing_id:
+        variation_data["id"] = variation_id
+        
     product_data = {
         "idempotency_key": idempotency_key,
         "object": {
@@ -48,11 +64,10 @@ def sync_product_to_square(product):
             "item_data": {
                 "name": product.title,
                 "description": next(iter(product.get_attributes().values()), ""),
-                "variations": [{
-                    "type": "ITEM_VARIATION",
-                    "id": existing_id + "_regular" if existing_id else variation_id,
-                    "item_variation_data": {
-                        "item_id": existing_id if existing_id else sku_id,
+                "variations": [variation_data]
+            }
+        }
+    }
                         "name": "Regular",
                         "pricing_type": "FIXED_PRICING" if product.price else "VARIABLE_PRICING",
                         "price_money": format_price_money(product.price) if product.price else None
