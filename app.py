@@ -918,7 +918,11 @@ def delete_product(product_id):
         product = models.Product.query.get_or_404(product_id)
         batch_number = product.batch_number
 
-        # Delete batch history records first
+        # Clear categories first
+        product.categories = []
+        db.session.flush()
+
+        # Delete batch history records
         batch_histories = models.BatchHistory.query.filter_by(product_id=product_id).all()
         for history in batch_histories:
             db.session.delete(history)
