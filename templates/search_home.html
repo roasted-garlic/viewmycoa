@@ -17,18 +17,16 @@
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <form action="{{ url_for('search_results') }}" method="get" onsubmit="return validateSearch()">
-                    <div class="d-flex flex-column gap-3">
-                        <input type="text" name="q" class="form-control form-control-lg" 
+                    <div class="d-flex flex-column flex-sm-row gap-3">
+                        <input type="text" name="q" class="form-control form-control-lg flex-grow-1" 
                                placeholder="Enter batch number or product name..." 
                                aria-label="Search products"
                                required
                                minlength="1"
                                style="border-radius: 25px; border-color: rgba(255, 255, 255, 0.2);">
-                        <div class="d-flex justify-content-center">
-                            <button type="submit" class="btn btn-primary px-4" style="border-radius: 25px; border-color: rgba(255, 255, 255, 0.2); width: 50%;">
-                                <i class="fas fa-search"></i> Search
-                            </button>
-                        </div>
+                        <button type="submit" class="btn btn-primary px-4" style="border-radius: 25px; border-color: rgba(255, 255, 255, 0.2);">
+                            <i class="fas fa-search"></i> Search
+                        </button>
                     </div>
                 </form>
                 <script>
