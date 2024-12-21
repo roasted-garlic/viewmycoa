@@ -31,6 +31,17 @@
                                     data-category-description="{{ category.description or '' }}">
                                 <i class="fas fa-edit"></i> <span class="btn-text">Edit</span>
                             </button>
+                            {% if category.square_category_id %}
+                            <button class="btn btn-outline-warning btn-sm unsync-category" 
+                                    data-category-id="{{ category.id }}">
+                                <i class="fas fa-unlink"></i> <span class="btn-text">Unsync from Square</span>
+                            </button>
+                            {% else %}
+                            <button class="btn btn-outline-success btn-sm sync-category" 
+                                    data-category-id="{{ category.id }}">
+                                <i class="fas fa-sync"></i> <span class="btn-text">Sync to Square</span>
+                            </button>
+                            {% endif %}
                             <button class="btn btn-outline-danger btn-sm delete-category" 
                                     data-category-id="{{ category.id }}">
                                 <i class="fas fa-trash"></i> <span class="btn-text">Delete</span>
@@ -183,6 +194,72 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('categoryName').value = '';
         document.getElementById('categoryDescription').value = '';
         document.querySelector('#categoryModal .modal-title').textContent = 'Add Category';
+    });
+
+    // Handle category sync with Square
+    document.querySelectorAll('.sync-category').forEach(button => {
+        button.addEventListener('click', async function() {
+            const categoryId = this.dataset.categoryId;
+            const button = this;
+            
+            try {
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+                button.disabled = true;
+                
+                const response = await fetch(`/api/categories/${categoryId}/sync`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Error syncing category with Square');
+                    button.innerHTML = '<i class="fas fa-sync"></i> <span class="btn-text">Sync to Square</span>';
+                    button.disabled = false;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error syncing category with Square');
+                button.innerHTML = '<i class="fas fa-sync"></i> <span class="btn-text">Sync to Square</span>';
+                button.disabled = false;
+            }
+        });
+    });
+
+    // Handle category unsync from Square
+    document.querySelectorAll('.unsync-category').forEach(button => {
+        button.addEventListener('click', async function() {
+            const categoryId = this.dataset.categoryId;
+            const button = this;
+            
+            if (!confirm('Are you sure you want to remove this category from Square?')) {
+                return;
+            }
+            
+            try {
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
+                button.disabled = true;
+                
+                const response = await fetch(`/api/categories/${categoryId}/unsync`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Error removing category from Square');
+                    button.innerHTML = '<i class="fas fa-unlink"></i> <span class="btn-text">Unsync from Square</span>';
+                    button.disabled = false;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error removing category from Square');
+                button.innerHTML = '<i class="fas fa-unlink"></i> <span class="btn-text">Unsync from Square</span>';
+                button.disabled = false;
+            }
+        });
     });
 });
 </script>

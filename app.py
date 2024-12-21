@@ -172,6 +172,34 @@ def delete_category(category_id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
 
+@app.route('/api/categories/<int:category_id>/sync', methods=['POST'])
+def sync_category(category_id):
+    try:
+        from square_category_sync import sync_category_to_square
+        category = models.Category.query.get_or_404(category_id)
+        result = sync_category_to_square(category)
+        
+        if 'error' in result:
+            return jsonify({'error': result['error']}), 400
+            
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/categories/<int:category_id>/unsync', methods=['POST'])
+def unsync_category(category_id):
+    try:
+        from square_category_sync import delete_category_from_square
+        category = models.Category.query.get_or_404(category_id)
+        result = delete_category_from_square(category)
+        
+        if 'error' in result:
+            return jsonify({'error': result['error']}), 400
+            
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/vmc-admin/products')
 def products():
     products = models.Product.query.all()
