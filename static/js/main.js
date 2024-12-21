@@ -46,7 +46,9 @@ function showNotification(message, type = 'success') {
     container.appendChild(toast);
     document.body.appendChild(container);
     
-    const bsToast = new bootstrap.Toast(toast);
+    const bsToast = new bootstrap.Toast(toast, {
+        delay: 3000
+    });
     bsToast.show();
     
     toast.addEventListener('hidden.bs.toast', () => {

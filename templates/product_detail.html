@@ -499,16 +499,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 const resultsDiv = document.getElementById('syncResults');
                 if (data.success) {
                     resultsDiv.innerHTML = '<div class="alert alert-success">Product synced successfully!</div>';
-                    // Update button to show synced state
-                    window.location.reload();
+                    const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
+                    modal.show();
+                    // Delay reload to show success message
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
                 } else {
                     resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
                     button.innerHTML = '<i class="fas fa-sync"></i> Sync to Square';
                     button.disabled = false;
+                    const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
+                    modal.show();
                 }
-                
-                const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
-                modal.show();
             } catch (error) {
                 console.error('Error:', error);
                 const resultsDiv = document.getElementById('syncResults');
