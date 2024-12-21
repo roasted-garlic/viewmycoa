@@ -68,14 +68,6 @@ def sync_product_to_square(product):
             }
         }
     }
-                        "name": "Regular",
-                        "pricing_type": "FIXED_PRICING" if product.price else "VARIABLE_PRICING",
-                        "price_money": format_price_money(product.price) if product.price else None
-                    }
-                }]
-            }
-        }
-    }
 
     try:
         response = requests.post(
@@ -114,7 +106,6 @@ def sync_all_products():
         })
     
     return results
-
 
 def delete_product_from_square(product):
     """Delete a product from Square catalog"""
