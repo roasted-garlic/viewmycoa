@@ -31,6 +31,12 @@
 }
 
 /* Button and container styles */
+.btn-success-light {
+    background-color: rgba(40, 167, 69, 0.5) !important;
+    border-color: rgba(40, 167, 69, 0.3) !important;
+    cursor: not-allowed !important;
+}
+
 .btn {
     display: inline-flex;
     align-items: center;

@@ -40,8 +40,11 @@
                 <i class="fas fa-external-link-alt"></i> View Public Page
             </a>
             <div class="product-actions d-flex gap-2">
-                <button class="btn btn-success w-md-auto" id="syncSquare" data-product-id="{{ product.id }}">
-                    <i class="fas fa-sync"></i> Sync to Square
+                <button class="btn btn-success w-md-auto {% if product.square_catalog_id %}btn-success-light disabled{% endif %}" 
+                        id="syncSquare" 
+                        data-product-id="{{ product.id }}"
+                        {% if product.square_catalog_id %}disabled{% endif %}>
+                    <i class="fas fa-sync"></i> {% if product.square_catalog_id %}Synced to Square{% else %}Sync to Square{% endif %}
                 </button>
                 <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-primary w-md-auto">
                     <i class="fas fa-edit"></i> Edit
