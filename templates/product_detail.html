@@ -707,7 +707,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    });
+    // Clear Square ID functionality
+    const clearSquareIdButton = document.getElementById('clearSquareId');
+    if (clearSquareIdButton) {
+        clearSquareIdButton.addEventListener('click', async function() {
+            const productId = this.dataset.productId;
+            try {
+                const response = await fetch(`/api/square/clear-id/${productId}`, {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    }
+});
 </script>
 {% endblock %}
 
