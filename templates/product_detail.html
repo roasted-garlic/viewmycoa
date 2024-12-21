@@ -501,7 +501,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const resultsDiv = document.getElementById('syncResults');
                 if (data.success) {
-                    resultsDiv.innerHTML = '<div class="alert alert-success">Product synced successfully!</div>';
+                    const successMessage = product.square_catalog_id ? 
+                        'Product updated in Square successfully!' : 
+                        'Product added to Square successfully!';
+                    resultsDiv.innerHTML = `<div class="alert alert-success">${successMessage}</div>`;
                     const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
                     modal.show();
                     // Delay reload to show success message
@@ -714,7 +717,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const resultsDiv = document.getElementById('syncResults');
                 if (data.success) {
-                    resultsDiv.innerHTML = '<div class="alert alert-success">Product removed from Square successfully!</div>';
+                    resultsDiv.innerHTML = '<div class="alert alert-success">Product deleted from Square successfully!</div>';
                     const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
                     modal.show();
                     setTimeout(() => {
