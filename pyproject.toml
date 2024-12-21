@@ -19,4 +19,5 @@ dependencies = [
     "twilio>=9.4.1",
     "flask-login>=0.6.3",
     "flask-wtf>=1.2.2",
+    "squareup>=39.1.0.20241218",
 ]
