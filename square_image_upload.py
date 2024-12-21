@@ -1,5 +1,6 @@
 import os
 import uuid
+import json
 import requests
 from typing import Optional
 from models import Product, db
@@ -37,18 +38,32 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
             # Generate a unique idempotency key
             idempotency_key = str(uuid.uuid4())
             
-            # Create multipart form data
-            files = {'image_file': (os.path.basename(image_path), image_file, 'image/jpeg')}
-            data = {'idempotency_key': idempotency_key}
+            # Create request data following Square's format
+            request_data = {
+                'idempotency_key': idempotency_key,
+                'image': {
+                    'type': 'IMAGE',
+                    'id': None  # Let Square generate the ID
+                }
+            }
             
-            # Make request to Square API
-            response = requests.post(url, headers=headers, files=files, data=data)
-            response.raise_for_status()
+            # Make request to Square API with proper file handling
+            files = {'file': image_file}
+            response = requests.post(
+                url,
+                headers=headers,
+                files=files,
+                data={'request': json.dumps(request_data)}
+            )
             
+            if response.status_code != 200:
+                print(f"Error response from Square: {response.text}")
+                return None
+                
             # Extract image ID from response
-            image_data = response.json()
-            if 'image' in image_data and 'id' in image_data['image']:
-                square_image_id = image_data['image']['id']
+            result = response.json()
+            if 'image' in result and 'id' in result['image']:
+                square_image_id = result['image']['id']
                 
                 # Update product with Square image ID
                 product.square_image_id = square_image_id
