@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Search</title>
+    <title>ViewMyCOA.com - Certificate Search</title>
     <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/custom.css') }}" rel="stylesheet">
@@ -12,20 +12,21 @@
 <body>
     <div class="search-container">
         <div class="text-center mb-4">
-            <h1 class="display-4">View My COA</h1>
+            <svg width="300" height="50" xmlns="http://www.w3.org/2000/svg" class="mb-3">
+                <text x="50" y="40" font-family="Arial" font-size="30" fill="white">ViewMyCOA.com</text>
+            </svg>
+            <h2 class="text-muted mb-4">Secure Certificate Access, Anytime, Anywhere</h2>
         </div>
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <form action="{{ url_for('search_results') }}" method="get" onsubmit="return validateSearch()">
-                    <div class="d-flex flex-column gap-3">
-                        <div class="w-100">
-                            <input type="text" name="q" class="form-control form-control-lg rounded-pill" 
-                                   placeholder="Enter batch number or product name..." 
-                                   aria-label="Search products"
-                                   required
-                                   minlength="1">
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-lg rounded-pill px-4 w-100">
+                    <div class="d-flex gap-2">
+                        <input type="text" name="q" class="form-control form-control-lg rounded-3" 
+                               placeholder="Enter batch number or product name..." 
+                               aria-label="Search products"
+                               required
+                               minlength="1">
+                        <button type="submit" class="btn btn-primary px-4" style="min-width: 120px;">
                             <i class="fas fa-search"></i> Search
                         </button>
                     </div>
