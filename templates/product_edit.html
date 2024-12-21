@@ -186,6 +186,21 @@
                             <small class="form-text text-muted mt-2">This will only clear the Square ID locally, not remove the item from Square</small>
                         </div>
                     </div>
+                    <script>
+                    document.getElementById('clearSquareId')?.addEventListener('click', async function() {
+                        const productId = this.dataset.productId;
+                        try {
+                            const response = await fetch(`/api/square/clear-id/${productId}`, {
+                                method: 'POST'
+                            });
+                            if (response.ok) {
+                                window.location.reload();
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                        }
+                    });
+                    </script>
                     {% endif %}
 
                     <!-- COA Delete Modal -->
