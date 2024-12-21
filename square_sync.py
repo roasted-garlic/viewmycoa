@@ -36,13 +36,15 @@ def sync_product_to_square(product):
     if not location_id:
         return {"error": "Square location ID not configured"}
         
-    # Sync category first if it exists
+    # Always sync category first if it exists
+    category_id = None
     if product.categories and len(product.categories) > 0:
         category = product.categories[0]
-        if not category.square_category_id:
-            category_result = sync_category_to_square(category)
-            if 'error' in category_result:
-                return {"error": f"Failed to sync category: {category_result['error']}"}
+        # Sync category regardless of existing ID to ensure it's up to date
+        category_result = sync_category_to_square(category)
+        if 'error' in category_result:
+            return {"error": f"Failed to sync category: {category_result['error']}"}
+        category_id = category.square_category_id
     
     existing_id = product.square_catalog_id
     
@@ -143,7 +145,7 @@ def sync_all_products():
     return results
 
 def delete_product_from_square(product):
-    """Delete a product and its image from Square catalog"""
+    """Delete a product and its image from Square catalog, preserving categories"""
     if not product.square_catalog_id:
         return {"error": "No Square catalog ID found"}
         
@@ -153,6 +155,7 @@ def delete_product_from_square(product):
         image_id = product.square_image_id
         product.square_catalog_id = None
         product.square_image_id = None
+        # We intentionally do not clear category IDs here to preserve them
         db.session.commit()
         
         # Delete catalog item
