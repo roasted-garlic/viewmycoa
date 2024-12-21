@@ -854,6 +854,8 @@ def duplicate_product(product_id):
         new_product.batch_number = generate_batch_number()
         new_product.sku = generate_sku()
         new_product.barcode = generate_upc_barcode()
+        new_product.cost = original.cost
+        new_product.price = original.price
         new_product.set_attributes(original.get_attributes())
 
         new_product.template_id = original.template_id
@@ -918,8 +920,10 @@ def delete_product(product_id):
         product = models.Product.query.get_or_404(product_id)
         batch_number = product.batch_number
 
-        # Clear categories first
-        product.categories = []
+        # Clear categories using SQL to avoid constraint issues
+        db.session.execute(
+            product_categories.delete().where(product_categories.c.product_id == product_id)
+        )
         db.session.flush()
 
         # Delete batch history records

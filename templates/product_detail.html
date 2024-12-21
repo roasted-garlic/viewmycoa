@@ -625,7 +625,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const confirmDuplicateButton = document.getElementById('confirmDuplicate');
-    if (confirmDuplicateButton && duplicateButton) {
+    if (confirmDuplicateButton && duplicateButton && !confirmDuplicateButton.hasListener) {
+        confirmDuplicateButton.hasListener = true;
         confirmDuplicateButton.addEventListener('click', async function() {
             if (duplicating) return;
             duplicating = true;
