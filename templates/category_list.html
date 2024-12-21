@@ -101,36 +101,6 @@
                 <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
             </div>
         </div>
-
-<!-- Square Unsync Modal -->
-<div class="modal fade" id="unsyncModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle"></i> Remove from Square
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div id="unsyncResults"></div>
-                <div class="confirmation-message">
-                    <p class="text-danger"><i class="fas fa-exclamation-triangle"></i> Warning: This action will:</p>
-                    <ul>
-                        <li>Remove the category from Square catalog</li>
-                        <li>Clear Square ID from the category</li>
-                    </ul>
-                    <p class="fw-bold">Are you sure you want to remove this category from Square?</p>
-                    <div class="text-end mt-4">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-danger" id="confirmUnsync">Remove from Square</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
     </div>
 </div>
 {% endblock %}
@@ -257,54 +227,39 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Unsync from Square functionality
-    const unsyncModal = new bootstrap.Modal(document.getElementById('unsyncModal'));
-    let categoryToUnsync = null;
-    let unsyncButton = null;
-
+    // Handle category unsync from Square
     document.querySelectorAll('.unsync-category').forEach(button => {
-        button.addEventListener('click', function() {
-            categoryToUnsync = this.dataset.categoryId;
-            unsyncButton = this;
-            unsyncModal.show();
-        });
-    });
-
-    document.getElementById('confirmUnsync')?.addEventListener('click', async function() {
-        if (!categoryToUnsync || !unsyncButton) return;
-        
-        const confirmationMessage = document.querySelector('#unsyncModal .confirmation-message');
-        const resultsDiv = document.getElementById('unsyncResults');
-        
-        try {
-            confirmationMessage.style.display = 'none';
-            resultsDiv.innerHTML = '<div class="alert alert-info">Removing from Square...</div>';
-            unsyncButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
-            unsyncButton.disabled = true;
+        button.addEventListener('click', async function() {
+            const categoryId = this.dataset.categoryId;
+            const button = this;
             
-            const response = await fetch(`/api/categories/${categoryToUnsync}/unsync`, {
-                method: 'POST'
-            });
-            
-            if (response.ok) {
-                resultsDiv.innerHTML = '<div class="alert alert-success">Category removed from Square successfully!</div>';
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
-            } else {
-                const data = await response.json();
-                resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
-                confirmationMessage.style.display = 'block';
-                unsyncButton.innerHTML = '<i class="fas fa-unlink"></i> <span class="btn-text">Unsync from Square</span>';
-                unsyncButton.disabled = false;
+            if (!confirm('Are you sure you want to remove this category from Square?')) {
+                return;
             }
-        } catch (error) {
-            console.error('Error:', error);
-            resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
-            confirmationMessage.style.display = 'block';
-            unsyncButton.innerHTML = '<i class="fas fa-unlink"></i> <span class="btn-text">Unsync from Square</span>';
-            unsyncButton.disabled = false;
-        }
+            
+            try {
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
+                button.disabled = true;
+                
+                const response = await fetch(`/api/categories/${categoryId}/unsync`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Error removing category from Square');
+                    button.innerHTML = '<i class="fas fa-unlink"></i> <span class="btn-text">Unsync from Square</span>';
+                    button.disabled = false;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error removing category from Square');
+                button.innerHTML = '<i class="fas fa-unlink"></i> <span class="btn-text">Unsync from Square</span>';
+                button.disabled = false;
+            }
+        });
     });
 });
 </script>
