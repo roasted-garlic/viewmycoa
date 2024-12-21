@@ -66,6 +66,7 @@ def sync_product_to_square(product):
             "item_id": existing_id if existing_id else sku_id,
             "name": "Regular",
             "sku": product.sku,
+            "upc": product.barcode,
             "pricing_type": "FIXED_PRICING" if product.price else "VARIABLE_PRICING",
             "price_money": format_price_money(product.price) if product.price else None,
             "track_inventory": True,
