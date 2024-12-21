@@ -174,18 +174,18 @@
                         </div>
                     </div>
 
-                    {% if product.square_catalog_id or product.square_image_id %}
+                    {% if (settings.show_square_id_controls and product.square_catalog_id) or (settings.show_square_image_id_controls and product.square_image_id) %}
                     <div class="card bg-dark border-secondary mb-4">
                         <div class="card-body">
                             <h5 class="card-title text-info mb-3">
                                 <i class="fas fa-square"></i> Square Integration
                             </h5>
-                            {% if product.square_catalog_id %}
+                            {% if settings.show_square_id_controls and product.square_catalog_id %}
                             <button type="button" class="btn btn-warning w-100 mb-2" id="clearSquareId" data-product-id="{{ product.id }}">
                                 <i class="fas fa-unlink"></i> Clear Square ID
                             </button>
                             {% endif %}
-                            {% if product.square_image_id %}
+                            {% if settings.show_square_image_id_controls and product.square_image_id %}
                             <button type="button" class="btn btn-warning w-100" id="clearSquareImageId" data-product-id="{{ product.id }}">
                                 <i class="fas fa-image"></i> Clear Square Image ID
                             </button>

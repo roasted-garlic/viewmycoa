@@ -142,3 +142,11 @@ class GeneratedPDF(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     pdf_url = db.Column(db.String(500))
     batch_history = db.relationship('BatchHistory', backref='pdfs')
+
+
+
+class Settings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    show_square_id_controls = db.Column(db.Boolean, default=False)
+    show_square_image_id_controls = db.Column(db.Boolean, default=False)
+

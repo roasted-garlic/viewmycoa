@@ -17,6 +17,38 @@ migrate = Migrate(app, db)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+
+
+@app.route('/vmc-admin/settings', methods=['GET', 'POST'])
+def settings():
+    settings = models.Settings.query.first()
+    if not settings:
+        settings = models.Settings()
+        db.session.add(settings)
+        db.session.commit()
+        
+    if request.method == 'POST':
+        settings.show_square_id_controls = 'show_square_id' in request.form
+        settings.show_square_image_id_controls = 'show_square_image_id' in request.form
+        db.session.commit()
+        flash('Settings updated successfully!', 'success')
+        return redirect(url_for('settings'))
+        
+    return render_template('settings.html', settings=settings)
+
+def get_settings():
+    settings = models.Settings.query.first()
+    if not settings:
+        settings = models.Settings()
+        db.session.add(settings)
+        db.session.commit()
+    return settings
+
+@app.context_processor
+def inject_settings():
+    return {'settings': get_settings()}
+
+
     "pool_recycle": 300,
     "pool_pre_ping": True,
 }
