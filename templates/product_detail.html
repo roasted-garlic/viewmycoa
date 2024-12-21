@@ -418,6 +418,36 @@
     </div>
 </div>
 
+<!-- Square Unsync Modal -->
+<div class="modal fade" id="squareUnsyncModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i> Remove from Square
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="unsyncResults"></div>
+                <div class="confirmation-message">
+                    <p class="text-danger"><i class="fas fa-exclamation-triangle"></i> Warning: This action will:</p>
+                    <ul>
+                        <li>Remove the product from Square catalog</li>
+                        <li>Delete associated images from Square</li>
+                        <li>Clear Square IDs from the product</li>
+                    </ul>
+                    <p class="fw-bold">Are you sure you want to remove this product from Square?</p>
+                    <div class="text-end mt-4">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger" id="confirmUnsync">Remove from Square</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Delete Product Modal -->
 <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
     <div class="modal-dialog">
@@ -744,37 +774,51 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Unsync from Square functionality
     const unsyncButton = document.getElementById('unsyncSquare');
+    const unsyncModal = new bootstrap.Modal(document.getElementById('squareUnsyncModal'));
+    
     if (unsyncButton && !unsyncButton.hasListener) {
         unsyncButton.hasListener = true;
-        unsyncButton.addEventListener('click', async function() {
-            const productId = this.dataset.productId;
-            const button = this;
+        unsyncButton.addEventListener('click', function() {
+            unsyncModal.show();
+        });
+    }
+
+    const confirmUnsyncButton = document.getElementById('confirmUnsync');
+    if (confirmUnsyncButton && !confirmUnsyncButton.hasListener) {
+        confirmUnsyncButton.hasListener = true;
+        confirmUnsyncButton.addEventListener('click', async function() {
+            const productId = unsyncButton.dataset.productId;
+            const confirmationMessage = document.querySelector('#squareUnsyncModal .confirmation-message');
+            const resultsDiv = document.getElementById('unsyncResults');
             
             try {
-                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
-                button.disabled = true;
+                confirmationMessage.style.display = 'none';
+                resultsDiv.innerHTML = '<div class="alert alert-info">Removing from Square...</div>';
+                unsyncButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
+                unsyncButton.disabled = true;
                 
                 const response = await fetch(`/api/square/unsync/${productId}`, {
                     method: 'POST'
                 });
                 const data = await response.json();
                 
-                const resultsDiv = document.getElementById('syncResults');
                 if (data.success) {
                     resultsDiv.innerHTML = '<div class="alert alert-success">Product removed from Square successfully!</div>';
-                    const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
-                    modal.show();
                     setTimeout(() => {
                         window.location.reload();
                     }, 2000);
                 } else {
                     resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
-                    const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
-                    modal.show();
+                    confirmationMessage.style.display = 'block';
+                    unsyncButton.innerHTML = '<i class="fas fa-unlink"></i> Remove from Square';
+                    unsyncButton.disabled = false;
                 }
             } catch (error) {
                 console.error('Error:', error);
-                button.disabled = false;
+                resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+                confirmationMessage.style.display = 'block';
+                unsyncButton.innerHTML = '<i class="fas fa-unlink"></i> Remove from Square';
+                unsyncButton.disabled = false;
             }
         });
     }
