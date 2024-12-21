@@ -17,7 +17,9 @@ migrate = Migrate(app, db)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-
+    "pool_recycle": 300,
+    "pool_pre_ping": True,
+}
 
 @app.route('/vmc-admin/settings', methods=['GET', 'POST'])
 def settings():
@@ -47,11 +49,6 @@ def get_settings():
 @app.context_processor
 def inject_settings():
     return {'settings': get_settings()}
-
-
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Disable caching for development
