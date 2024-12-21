@@ -34,13 +34,15 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
     try:
         # Read image file
         with open(image_path, 'rb') as image_file:
-            files = {
-                'image_file': (os.path.basename(image_path), image_file, 'image/jpeg'),
-                'idempotency_key': (None, str(uuid.uuid4()), 'text/plain')
-            }
+            # Generate a unique idempotency key
+            idempotency_key = str(uuid.uuid4())
+            
+            # Create multipart form data
+            files = {'image_file': (os.path.basename(image_path), image_file, 'image/jpeg')}
+            data = {'idempotency_key': idempotency_key}
             
             # Make request to Square API
-            response = requests.post(url, headers=headers, files=files)
+            response = requests.post(url, headers=headers, files=files, data=data)
             response.raise_for_status()
             
             # Extract image ID from response
