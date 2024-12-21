@@ -500,9 +500,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     resultsDiv.innerHTML = '<div class="alert alert-success">Product synced successfully!</div>';
                     // Update button to show synced state
-                    button.innerHTML = '<i class="fas fa-check"></i> Synced to Square';
-                    button.classList.add('btn-success-light');
-                    button.disabled = true;
+                    window.location.reload();
                 } else {
                     resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
                     button.innerHTML = '<i class="fas fa-sync"></i> Sync to Square';
