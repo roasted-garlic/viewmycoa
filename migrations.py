@@ -1,11 +1,7 @@
-
 from flask_migrate import Migrate
 from app import app, db
 
-migrate = Migrate()
+migrate = Migrate(app, db)
 
-def init_migrations():
+if __name__ == '__main__':
     migrate.init_app(app, db)
-
-with app.app_context():
-    init_migrations()
