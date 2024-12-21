@@ -1,6 +1,7 @@
 
 import os
 import uuid
+import json
 import requests
 from typing import Optional
 from models import Product, db
@@ -51,8 +52,20 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
             }
             
             # Prepare multipart form data
+            request_json = {
+                "idempotency_key": idempotency_key,
+                "object_id": None,
+                "image": {
+                    "type": "IMAGE",
+                    "id": f"#{product.sku}_image",
+                    "image_data": {
+                        "caption": product.title
+                    }
+                }
+            }
+            
             files = {
-                'request': ('', f'{{"idempotency_key": "{idempotency_key}", "object_id": null, "image": {{"type": "IMAGE", "id": "#{product.sku}_image", "image_data": {{"caption": "{product.title}"}}}}}', 'application/json'),
+                'request': ('', json.dumps(request_json), 'application/json'),
                 'image_file': (os.path.basename(image_path), image_file, 'image/png')
             }
             
