@@ -1045,6 +1045,19 @@ def save_image(file, product_id, image_type):
     img.save(os.path.join('static', filepath))
 
     return filepath
+
+@app.route('/api/square/clear-id/<int:product_id>', methods=['POST']) 
+def clear_square_id(product_id):
+    """Clear Square catalog ID from product"""
+    try:
+        product = models.Product.query.get_or_404(product_id)
+        product.square_catalog_id = None
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/square/unsync/<int:product_id>', methods=['POST'])
 def unsync_product(product_id):
     """Remove product from Square"""

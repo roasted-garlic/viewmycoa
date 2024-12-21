@@ -1,4 +1,3 @@
-
 <!-- Duplicate Confirmation Modal -->
 <div class="modal fade" id="duplicateConfirmModal" tabindex="-1">
     <div class="modal-dialog">
@@ -704,6 +703,24 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (error) {
                 console.error('Error:', error);
                 button.disabled = false;
+            }
+        });
+    }
+
+    // Clear Square ID functionality
+    const clearSquareIdButton = document.getElementById('clearSquareId');
+    if (clearSquareIdButton) {
+        clearSquareIdButton.addEventListener('click', async function() {
+            const productId = this.dataset.productId;
+            try {
+                const response = await fetch(`/api/square/clear-id/${productId}`, {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error('Error:', error);
             }
         });
     }
