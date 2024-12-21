@@ -28,11 +28,21 @@ def format_price_money(price):
 
 def sync_product_to_square(product):
     """Sync a single product to Square catalog"""
+    from square_category_sync import sync_category_to_square
+    
     idempotency_key = str(uuid.uuid4())
     location_id = os.environ.get('SQUARE_LOCATION_ID')
     
     if not location_id:
         return {"error": "Square location ID not configured"}
+        
+    # Sync category first if it exists
+    if product.categories and len(product.categories) > 0:
+        category = product.categories[0]
+        if not category.square_category_id:
+            category_result = sync_category_to_square(category)
+            if 'error' in category_result:
+                return {"error": f"Failed to sync category: {category_result['error']}"}
     
     existing_id = product.square_catalog_id
     
@@ -88,7 +98,8 @@ def sync_product_to_square(product):
                 "name": product.title,
                 "description": next(iter(product.get_attributes().values()), ""),
                 "variations": [variation_data],
-                "image_ids": [product.square_image_id] if product.square_image_id else []
+                "image_ids": [product.square_image_id] if product.square_image_id else [],
+                "category_id": product.categories[0].square_category_id if product.categories and len(product.categories) > 0 else None
             }
         }
     }
