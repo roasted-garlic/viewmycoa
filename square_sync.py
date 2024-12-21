@@ -124,16 +124,23 @@ def delete_product_from_square(product):
         return {"error": "No Square catalog ID found"}
         
     try:
+        # Store the ID and clear it first
+        square_id = product.square_catalog_id
+        product.square_catalog_id = None
+        db.session.commit()
+        
         response = requests.delete(
-            f"{SQUARE_BASE_URL}/v2/catalog/object/{product.square_catalog_id}",
+            f"{SQUARE_BASE_URL}/v2/catalog/object/{square_id}",
             headers=get_square_headers()
         )
         
-        if response.status_code == 200:
-            product.square_catalog_id = None
-            db.session.commit()
+        # Even if Square returns 404, we've already cleared the ID locally
+        if response.status_code in [200, 404]:
             return {"success": True}
         else:
+            # If other error, restore the ID
+            product.square_catalog_id = square_id
+            db.session.commit()
             return {"error": f"Square API error: {response.text}"}
             
     except requests.exceptions.RequestException as e:
