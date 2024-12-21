@@ -18,12 +18,13 @@
             <div class="col-md-6">
                 <form action="{{ url_for('search_results') }}" method="get" onsubmit="return validateSearch()">
                     <div class="d-flex flex-column gap-3">
-                        <input type="text" name="q" class="form-control form-control-lg rounded-3" 
+                        <input type="text" name="q" class="form-control form-control-lg" 
                                placeholder="Enter batch number or product name..." 
                                aria-label="Search products"
                                required
-                               minlength="1">
-                        <button type="submit" class="btn btn-primary px-3" style="min-width: 100px;">
+                               minlength="1"
+                               style="border-radius: 25px;">
+                        <button type="submit" class="btn btn-primary px-3" style="min-width: 100px; border-radius: 25px;">
                             <i class="fas fa-search"></i> Search
                         </button>
                     </div>
