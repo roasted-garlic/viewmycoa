@@ -330,9 +330,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const warningModal = new bootstrap.Modal(document.getElementById('productsWarningModal'));
                 warningModal.show();
             } else {
-                // If the category was already unsynced, just reload the page
+                // If the category was already unsynced or other error, just reload
                 if (data.error === 'No Square category ID found') {
-                    location.reload();
+                    resultsDiv.innerHTML = '<div class="alert alert-success">Category removed from Square successfully!</div>';
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
                 } else {
                     resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
                     confirmationMessage.style.display = 'block';
