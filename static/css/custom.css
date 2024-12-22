@@ -249,11 +249,11 @@
     position: absolute;
     top: -5px;
     left: -5px;
-    width: 60px;
-    height: 60px;
+    width: 35px;
+    height: 35px;
     background: rgba(255, 255, 255, 0.9);
-    border-radius: 8px;
-    padding: 5px;
+    border-radius: 4px;
+    padding: 3px;
     z-index: 2;
 }
 
