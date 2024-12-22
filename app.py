@@ -211,7 +211,7 @@ def unsync_category(category_id):
 
 @app.route('/vmc-admin/products')
 def products():
-    products = models.Product.query.all()
+    products = models.Product.query.order_by(models.Product.created_at.desc()).all()
     return render_template('product_list.html', products=products)
 
 
