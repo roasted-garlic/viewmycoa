@@ -77,7 +77,6 @@
                 document.getElementById('confirmRemove').addEventListener('click', async function() {
                     const resultsDiv = document.getElementById('removeResults');
                     resultsDiv.innerHTML = '<div class="alert alert-info">Removing products from Square...</div>';
-                    modal.hide();
                     
                     try {
                         const response = await fetch('/api/square/unsync-all', {
@@ -87,6 +86,7 @@
                         
                         if (data.success) {
                             resultsDiv.innerHTML = '<div class="alert alert-success">All products removed from Square successfully!</div>';
+                            modal.hide();
                         } else {
                             resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
                         }
