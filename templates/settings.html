@@ -75,8 +75,8 @@
                 
                 document.getElementById('confirmRemove').addEventListener('click', async function() {
                     const resultsDiv = document.getElementById('removeResults');
-                    const modalBody = document.querySelector('.modal-body');
-                    modalBody.innerHTML = 'Removing products from Square...';
+                    resultsDiv.innerHTML = '<div class="alert alert-info">Removing products from Square...</div>';
+                    modal.hide();
                     
                     try {
                         const response = await fetch('/api/square/unsync-all', {
@@ -85,16 +85,15 @@
                         const data = await response.json();
                         
                         if (data.success) {
-                            modalBody.innerHTML = 'All products removed from Square successfully!';
-                            setTimeout(() => {
-                                modal.hide();
-                                resultsDiv.innerHTML = '<div class="alert alert-success">All products removed from Square successfully!</div>';
-                            }, 1500);
+                            resultsDiv.innerHTML = '<div class="alert alert-success">All products removed from Square successfully!</div>';
+                            removeBtn.classList.add('disabled');
+                            removeBtn.disabled = true;
+                            removeBtn.title = 'No products synced with Square';
                         } else {
-                            modalBody.innerHTML = `Error: ${data.error}`;
+                            resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
                         }
                     } catch (error) {
-                        modalBody.innerHTML = 'Error removing products from Square';
+                        resultsDiv.innerHTML = '<div class="alert alert-danger">Error removing products from Square</div>';
                     }
                 });
             });
