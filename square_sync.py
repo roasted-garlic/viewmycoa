@@ -105,7 +105,7 @@ def sync_product_to_square(product):
                 "description": next(iter(product.get_attributes().values()), ""),
                 "variations": [variation_data],
                 "image_ids": [product.square_image_id] if product.square_image_id else [],
-                "category_id": product.categories[0].square_category_id if product.categories and len(product.categories) > 0 else None
+                "categories": [{"id": product.categories[0].square_category_id}] if product.categories and len(product.categories) > 0 and product.categories[0].square_category_id else []
             }
         }
     }
