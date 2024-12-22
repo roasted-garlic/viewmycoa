@@ -9,8 +9,48 @@ document.addEventListener('DOMContentLoaded', async function() {
     const productImage = document.getElementById('productImage');
     const labelImage = document.getElementById('labelImage');
     const coaPdf = document.getElementById('coaPdf');
-    const productImagePreview = document.getElementById('productImagePreview');
-    const labelImagePreview = document.getElementById('labelImagePreview');
+
+    // Handle product image preview
+    if (productImage) {
+        productImage.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Find the existing image or create a new one
+                    let previewImg = productImage.closest('.card-body').querySelector('img.img-thumbnail');
+                    if (!previewImg) {
+                        previewImg = document.createElement('img');
+                        previewImg.className = 'img-thumbnail mb-3';
+                        productImage.parentElement.insertBefore(previewImg, productImage);
+                    }
+                    previewImg.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    // Handle label image preview
+    if (labelImage) {
+        labelImage.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Find the existing image or create a new one
+                    let previewImg = labelImage.closest('.card-body').querySelector('img.img-thumbnail');
+                    if (!previewImg) {
+                        previewImg = document.createElement('img');
+                        previewImg.className = 'img-thumbnail mb-3';
+                        labelImage.parentElement.insertBefore(previewImg, labelImage);
+                    }
+                    previewImg.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
 
     // Handle COA file preview
     if (coaPdf) {
@@ -74,38 +114,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.error('Error:', error);
         }
     });
-
-    // Handle product image preview
-    if (productImage && productImagePreview) {
-        productImage.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = productImagePreview.querySelector('img');
-                    img.src = e.target.result;
-                    productImagePreview.classList.remove('d-none');
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-
-    // Handle label image preview
-    if (labelImage && labelImagePreview) {
-        labelImage.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = labelImagePreview.querySelector('img');
-                    img.src = e.target.result;
-                    labelImagePreview.classList.remove('d-none');
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-    }
 
     // Auto generate batch number on page load for create page
     if (batchInput && !batchInput.value) {
