@@ -65,13 +65,15 @@ def sync_product_to_square(product):
         except requests.exceptions.RequestException:
             pass
 
-    # Handle image upload first if needed
+    # Always clear existing image ID before upload
+    product.square_image_id = None
+    db.session.commit()
+    
+    # Handle image upload if present
     if product.product_image:
         from square_image_upload import upload_product_image_to_square
-        # Always attempt to upload image to ensure it exists
         result = upload_product_image_to_square(product)
         if not result:
-            # Always return error on upload failure
             return {"error": "Failed to upload product image to Square"}
         
     # Create product data structure
