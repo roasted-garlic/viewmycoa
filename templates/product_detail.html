@@ -501,12 +501,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const pdfDeleteModal = new bootstrap.Modal(document.getElementById('pdfDeleteModal'));
     const historyDeleteModal = new bootstrap.Modal(document.getElementById('historyDeleteModal'));
     const jsonModal = new bootstrap.Modal(document.getElementById('jsonModal'));
+    const squareUnsyncModal = new bootstrap.Modal(document.getElementById('squareUnsyncModal'));
+
+    // Add event listeners for modal close buttons
+    document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(button => {
+        button.addEventListener('click', function() {
+            const modalElement = this.closest('.modal');
+            const modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (modalInstance) {
+                modalInstance.hide();
+            }
+        });
+    });
 
     // Add event listeners for modal cleanup
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => {
-        modal.addEventListener('hidden.bs.modal', function() {
-            document.querySelector('.modal-backdrop')?.remove();
+    document.querySelectorAll('.modal').forEach(modalElement => {
+        modalElement.addEventListener('hidden.bs.modal', function() {
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) {
+                backdrop.remove();
+            }
             document.body.classList.remove('modal-open');
             document.body.style.paddingRight = '';
         });
