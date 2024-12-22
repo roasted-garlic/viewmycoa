@@ -775,21 +775,37 @@ document.addEventListener('DOMContentLoaded', function() {
     // Unsync from Square functionality
     const unsyncButton = document.getElementById('unsyncSquare');
     const unsyncModalElement = document.getElementById('squareUnsyncModal');
-    const unsyncModal = new bootstrap.Modal(unsyncModalElement);
+    let unsyncModal;
     
     if (unsyncButton && !unsyncButton.hasListener) {
         unsyncButton.hasListener = true;
         unsyncButton.addEventListener('click', function() {
+            unsyncModal = new bootstrap.Modal(unsyncModalElement, {
+                backdrop: 'static',
+                keyboard: true
+            });
             unsyncModal.show();
         });
     }
+
+    // Handle modal close button clicks
+    unsyncModalElement.querySelectorAll('[data-bs-dismiss="modal"]').forEach(button => {
+        button.addEventListener('click', function() {
+            if (unsyncModal) {
+                unsyncModal.hide();
+            }
+        });
+    });
 
     // Add event listener for modal cleanup
     unsyncModalElement.addEventListener('hidden.bs.modal', function() {
         document.querySelector('.modal-backdrop')?.remove();
         document.body.classList.remove('modal-open');
         document.body.style.paddingRight = '';
-        unsyncModal.dispose();
+        if (unsyncModal) {
+            unsyncModal.dispose();
+            unsyncModal = null;
+        }
     });
 
     const confirmUnsyncButton = document.getElementById('confirmUnsync');
