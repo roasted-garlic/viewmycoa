@@ -1061,7 +1061,7 @@ def generate_json(product_id):
 def sync_single_product(product_id):
     """Sync a single product to Square"""
     try:
-        from square_sync import sync_product_to_square
+        from square_product_sync import sync_product_to_square
         product = models.Product.query.get_or_404(product_id)
         result = sync_product_to_square(product)
         
