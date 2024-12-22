@@ -36,15 +36,19 @@ def sync_product_to_square(product):
     if not location_id:
         return {"error": "Square location ID not configured"}
         
-    # Always sync category first if it exists
+    # Check if product has a category with Square ID
     category_id = None
     if product.categories and len(product.categories) > 0:
         category = product.categories[0]
-        # Sync category regardless of existing ID to ensure it's up to date
-        category_result = sync_category_to_square(category)
-        if 'error' in category_result:
-            return {"error": f"Failed to sync category: {category_result['error']}"}
-        category_id = category.square_category_id
+        if category.square_category_id:
+            # Use existing Square category ID
+            category_id = category.square_category_id
+        else:
+            # Only sync category if it doesn't have a Square ID
+            category_result = sync_category_to_square(category)
+            if 'error' in category_result:
+                return {"error": f"Failed to sync category: {category_result['error']}"}
+            category_id = category.square_category_id
     
     existing_id = product.square_catalog_id
     
