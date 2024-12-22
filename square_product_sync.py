@@ -77,9 +77,6 @@ def sync_product_to_square(product):
         result = upload_product_image_to_square(product)
         if not result:
             return {"error": "Failed to upload product image to Square"}
-            
-        # Add delay to allow Square to process the image
-        time.sleep(2)
         
     # Create product data structure
     sku_id = f"#{product.sku}"
