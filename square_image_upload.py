@@ -1,3 +1,4 @@
+
 import os
 import uuid
 import json
@@ -8,10 +9,8 @@ from models import Product, db
 def upload_product_image_to_square(product: Product) -> Optional[str]:
     """
     Upload a product's image to Square Catalog API.
-
     Args:
         product: Product instance with product_image path
-
     Returns:
         str: Square image ID if successful, None otherwise
     """
@@ -33,17 +32,17 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
 
     try:
         # Use product ID and SKU as consistent idempotency key
-        idempotency_key = f"{product.id}_{product.sku}_image"
+        idempotency_key = f"{product.id}_{product.sku}_image_{uuid.uuid4()}"
 
         # Read image file
         with open(image_path, 'rb') as image_file:
-
             # Create request data following Square's format
             request_json = {
                 "idempotency_key": idempotency_key,
+                "object_id": product.square_catalog_id if product.square_catalog_id else None,
                 "image": {
-                    "id": f"#{product.id}_{product.sku}_image",
                     "type": "IMAGE",
+                    "id": f"#{product.id}_{product.sku}_image",
                     "image_data": {
                         "caption": product.title
                     }
@@ -70,14 +69,12 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
                 db.session.commit()
                 return square_image_id
 
-            # If we get here, the upload failed without an exception
             product.square_image_id = None
             db.session.commit()
             return None
 
     except Exception as e:
         print(f"Error uploading image to Square: {str(e)}")
-        # Clear the image ID on error
         product.square_image_id = None
         db.session.commit()
         return None
