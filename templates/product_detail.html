@@ -781,6 +781,13 @@ document.addEventListener('DOMContentLoaded', function() {
         unsyncButton.addEventListener('click', function() {
             unsyncModal.show();
         });
+
+        // Add event listener for modal cleanup
+        document.getElementById('squareUnsyncModal').addEventListener('hidden.bs.modal', function() {
+            document.querySelector('.modal-backdrop')?.remove();
+            document.body.classList.remove('modal-open');
+            document.body.style.paddingRight = '';
+        });
     }
 
     const confirmUnsyncButton = document.getElementById('confirmUnsync');
