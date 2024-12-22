@@ -52,7 +52,18 @@ def sync_product_to_square(product):
     
     existing_id = product.square_catalog_id
     
-    # If updating existing item, fetch current version first
+    # Handle image upload first and separately if present
+    if product.product_image:
+        from square_image_upload import upload_product_image_to_square
+        # Clear existing image ID before upload
+        product.square_image_id = None
+        db.session.commit()
+        
+        result = upload_product_image_to_square(product)
+        if not result:
+            return {"error": "Failed to upload product image to Square"}
+        
+    # If updating existing item, fetch current version
     current_version = 0
     if existing_id:
         try:
@@ -64,19 +75,6 @@ def sync_product_to_square(product):
                 current_version = response.json().get('object', {}).get('version', 0)
         except requests.exceptions.RequestException:
             pass
-
-    # Always clear existing image ID before upload
-    product.square_image_id = None
-    db.session.commit()
-    
-    # Handle image upload if present
-    if product.product_image:
-        from square_image_upload import upload_product_image_to_square
-        import time
-        
-        result = upload_product_image_to_square(product)
-        if not result:
-            return {"error": "Failed to upload product image to Square"}
         
     # Create product data structure
     sku_id = f"#{product.sku}"
