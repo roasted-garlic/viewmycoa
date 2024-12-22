@@ -284,14 +284,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let unsyncButton = null;
 
     document.querySelectorAll('.unsync-category').forEach(button => {
-        button.addEventListener('click', function() {
-            categoryToUnsync = this.dataset.categoryId;
-            unsyncButton = this;
-            unsyncModal.show();
-        });
-    });
-
-    document.querySelectorAll('.unsync-category').forEach(button => {
         button.addEventListener('click', async function() {
             const categoryId = this.dataset.categoryId;
             const response = await fetch(`/api/categories/${categoryId}/unsync`, {
