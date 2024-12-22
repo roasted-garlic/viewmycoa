@@ -31,6 +31,10 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
     }
 
     try:
+        # Clear any existing image ID
+        product.square_image_id = None
+        db.session.commit()
+
         # Use product ID and SKU as consistent idempotency key
         idempotency_key = f"{product.id}_{product.sku}_image_{uuid.uuid4()}"
 
@@ -43,7 +47,7 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
                 "is_primary": True,
                 "image": {
                     "type": "IMAGE",
-                    "id": f"#image_{product.id}",
+                    "id": f"#image_{product.id}_{uuid.uuid4().hex[:8]}",
                     "image_data": {
                         "name": product.title,
                         "caption": product.title
