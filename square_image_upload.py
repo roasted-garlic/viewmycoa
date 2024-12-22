@@ -4,6 +4,7 @@ import uuid
 import json
 import requests
 import logging
+import datetime
 from typing import Optional
 from models import Product, db
 from app import app
@@ -49,7 +50,7 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
                 "is_primary": True,
                 "image": {
                     "type": "IMAGE",
-                    "id": f"#image_{product.id}_{product.sku}_{uuid.uuid4().hex}",
+                    "id": f"#image_{product.id}_{product.sku}_{uuid.uuid4().hex}_{int(datetime.datetime.now().timestamp())}",
                     "image_data": {
                         "name": product.title,
                         "caption": product.title
