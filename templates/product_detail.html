@@ -774,21 +774,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Unsync from Square functionality
     const unsyncButton = document.getElementById('unsyncSquare');
-    const unsyncModal = new bootstrap.Modal(document.getElementById('squareUnsyncModal'));
+    const unsyncModalElement = document.getElementById('squareUnsyncModal');
+    const unsyncModal = new bootstrap.Modal(unsyncModalElement);
     
     if (unsyncButton && !unsyncButton.hasListener) {
         unsyncButton.hasListener = true;
         unsyncButton.addEventListener('click', function() {
             unsyncModal.show();
         });
-
-        // Add event listener for modal cleanup
-        document.getElementById('squareUnsyncModal').addEventListener('hidden.bs.modal', function() {
-            document.querySelector('.modal-backdrop')?.remove();
-            document.body.classList.remove('modal-open');
-            document.body.style.paddingRight = '';
-        });
     }
+
+    // Add event listener for modal cleanup
+    unsyncModalElement.addEventListener('hidden.bs.modal', function() {
+        document.querySelector('.modal-backdrop')?.remove();
+        document.body.classList.remove('modal-open');
+        document.body.style.paddingRight = '';
+        unsyncModal.dispose();
+    });
 
     const confirmUnsyncButton = document.getElementById('confirmUnsync');
     if (confirmUnsyncButton && !confirmUnsyncButton.hasListener) {
