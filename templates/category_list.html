@@ -134,6 +134,26 @@
         </div>
     </div>
 </div>
+
+<!-- Products Warning Modal -->
+<div class="modal fade" id="productsWarningModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i> Cannot Unsync Category
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>This category has products attached to it. You must remove all products from this category before unsyncing from Square.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -294,8 +314,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 2000);
             } else {
                 const data = await response.json();
-                resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
-                confirmationMessage.style.display = 'block';
+                if (data.has_products) {
+                    unsyncModal.hide();
+                    const warningModal = new bootstrap.Modal(document.getElementById('productsWarningModal'));
+                    warningModal.show();
+                } else {
+                    resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+                    confirmationMessage.style.display = 'block';
+                }
                 unsyncButton.innerHTML = '<i class="fas fa-unlink"></i> <span class="btn-text">Unsync from Square</span>';
                 unsyncButton.disabled = false;
             }
