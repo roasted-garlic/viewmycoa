@@ -53,16 +53,9 @@ def sync_product_to_square(product):
     
     existing_id = product.square_catalog_id
     
-    # Handle image upload first and separately if present
-    if product.product_image:
-        from square_image_upload import upload_product_image_to_square
-        # Clear existing image ID before upload
-        product.square_image_id = None
-        db.session.commit()
-        
-        result = upload_product_image_to_square(product)
-        if not result:
-            return {"error": "Failed to upload product image to Square"}
+    # First sync product without image
+    product.square_image_id = None
+    db.session.commit()
         
     # If updating existing item, fetch current version
     current_version = 0
@@ -144,6 +137,13 @@ def sync_product_to_square(product):
         if catalog_object and catalog_object.get('id'):
             product.square_catalog_id = catalog_object['id']
             db.session.commit()
+            
+            # Now handle image upload with the product's Square catalog ID
+            if product.product_image:
+                from square_image_upload import upload_product_image_to_square
+                image_result = upload_product_image_to_square(product)
+                if not image_result:
+                    return {"error": "Failed to upload product image to Square"}
             
         return result
     except requests.exceptions.RequestException as e:
