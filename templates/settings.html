@@ -34,7 +34,8 @@
             
             <div class="square-settings">
                 <h4>Square Integration</h4>
-                <button id="removeAllFromSquare" class="btn btn-danger">
+                {% set has_square_products = products|selectattr('square_catalog_id')|list|length > 0 %}
+                <button id="removeAllFromSquare" class="btn btn-danger{% if not has_square_products %} disabled{% endif %}" {% if not has_square_products %}disabled{% endif %} title="{% if not has_square_products %}No products synced with Square{% endif %}">
                     <i class="fas fa-unlink"></i> Remove All Products from Square
                 </button>
                 <div id="removeResults" class="mt-3"></div>
