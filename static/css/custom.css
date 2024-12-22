@@ -247,10 +247,10 @@
 
 .square-logo-overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 80px;
-    height: 80px;
+    top: -5px;
+    left: -5px;
+    width: 60px;
+    height: 60px;
     background: rgba(255, 255, 255, 0.9);
     border-radius: 8px;
     padding: 5px;
