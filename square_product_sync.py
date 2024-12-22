@@ -70,8 +70,8 @@ def sync_product_to_square(product):
         from square_image_upload import upload_product_image_to_square
         # Always attempt to upload image to ensure it exists
         result = upload_product_image_to_square(product)
-        if not result and not product.square_image_id:
-            # Only return error if we couldn't upload and don't have an existing ID
+        if not result:
+            # Always return error on upload failure
             return {"error": "Failed to upload product image to Square"}
         
     # Create product data structure

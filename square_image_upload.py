@@ -82,13 +82,18 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
             result = response.json()
             if 'image' in result and 'id' in result['image']:
                 square_image_id = result['image']['id']
-                
-                # Update product with Square image ID
                 product.square_image_id = square_image_id
                 db.session.commit()
-                
                 return square_image_id
+
+            # If we get here, the upload failed without an exception
+            product.square_image_id = None
+            db.session.commit()
+            return None
                 
     except Exception as e:
         print(f"Error uploading image to Square: {str(e)}")
+        # Clear the image ID on error
+        product.square_image_id = None
+        db.session.commit()
         return None
