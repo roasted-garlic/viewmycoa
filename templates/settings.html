@@ -77,7 +77,7 @@
                 document.getElementById('confirmRemove').addEventListener('click', async function() {
                     const resultsDiv = document.getElementById('removeResults');
                     const modalBody = document.querySelector('.modal-body');
-                    modalBody.innerHTML = '<div class="alert alert-info">Removing products from Square...</div>';
+                    modalBody.innerHTML = 'Removing products from Square...';
                     
                     try {
                         const response = await fetch('/api/square/unsync-all', {
@@ -86,16 +86,16 @@
                         const data = await response.json();
                         
                         if (data.success) {
-                            modalBody.innerHTML = '<div class="alert alert-success">All products removed from Square successfully!</div>';
+                            modalBody.innerHTML = 'All products removed from Square successfully!';
                             setTimeout(() => {
                                 modal.hide();
                                 resultsDiv.innerHTML = '<div class="alert alert-success">All products removed from Square successfully!</div>';
                             }, 1500);
                         } else {
-                            modalBody.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+                            modalBody.innerHTML = `Error: ${data.error}`;
                         }
                     } catch (error) {
-                        modalBody.innerHTML = '<div class="alert alert-danger">Error removing products from Square</div>';
+                        modalBody.innerHTML = 'Error removing products from Square';
                     }
                 });
             });
