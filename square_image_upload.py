@@ -1,4 +1,3 @@
-
 import os
 import uuid
 import json
@@ -9,16 +8,16 @@ from models import Product, db
 def upload_product_image_to_square(product: Product) -> Optional[str]:
     """
     Upload a product's image to Square Catalog API.
-    
+
     Args:
         product: Product instance with product_image path
-        
+
     Returns:
         str: Square image ID if successful, None otherwise
     """
     if not product.product_image:
         return None
-        
+
     # Construct full path to image
     image_path = os.path.join('static', product.product_image)
     if not os.path.exists(image_path):
@@ -35,23 +34,11 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
     try:
         # Use product ID and SKU as consistent idempotency key
         idempotency_key = f"{product.id}_{product.sku}_image"
-        
+
         # Read image file
         with open(image_path, 'rb') as image_file:
-            
+
             # Create request data following Square's format
-            request_data = {
-                'idempotency_key': idempotency_key,
-                'object_id': None,
-                'image': {
-                    'type': 'IMAGE',
-                    'image_data': {
-                        'caption': product.title
-                    }
-                }
-            }
-            
-            # Prepare multipart form data
             request_json = {
                 "idempotency_key": idempotency_key,
                 "object_id": None,
@@ -62,19 +49,19 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
                     }
                 }
             }
-            
+
             files = {
                 'request': ('', json.dumps(request_json), 'application/json'),
                 'image_file': (os.path.basename(image_path), image_file, 'image/png')
             }
-            
+
             # Make request to Square API
             response = requests.post(url, headers=headers, files=files)
-            
+
             if response.status_code != 200:
                 print(f"Error response from Square: {response.text}")
                 return None
-                
+
             # Extract image ID from response
             result = response.json()
             if 'image' in result and 'id' in result['image']:
@@ -87,7 +74,7 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
             product.square_image_id = None
             db.session.commit()
             return None
-                
+
     except Exception as e:
         print(f"Error uploading image to Square: {str(e)}")
         # Clear the image ID on error
