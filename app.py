@@ -1119,7 +1119,7 @@ def clear_square_id(product_id):
 def unsync_product(product_id):
     """Remove product from Square"""
     try:
-        from square_sync import delete_product_from_square
+        from square_product_sync import delete_product_from_square
         product = models.Product.query.get_or_404(product_id)
         result = delete_product_from_square(product)
         
