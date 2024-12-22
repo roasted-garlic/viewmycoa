@@ -33,10 +33,11 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
     }
 
     try:
+        # Use product ID and SKU as consistent idempotency key
+        idempotency_key = f"{product.id}_{product.sku}_image"
+        
         # Read image file
         with open(image_path, 'rb') as image_file:
-            # Generate a unique idempotency key
-            idempotency_key = str(uuid.uuid4())
             
             # Create request data following Square's format
             unique_image_id = f'#{product.id}_{product.sku}_image_{idempotency_key}'
