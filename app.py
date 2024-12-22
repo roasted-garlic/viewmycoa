@@ -191,12 +191,12 @@ def unsync_category(category_id):
     try:
         category = models.Category.query.get_or_404(category_id)
         
-        # Check if category has products
-        if category.products:
+        # Check if any attached products have Square catalog IDs
+        if any(product.square_catalog_id for product in category.products):
             return jsonify({
                 'success': False,
                 'has_products': True,
-                'error': 'Cannot unsync category with attached products'
+                'error': 'Cannot unsync category with Square-synced products'
             }), 400
             
         from square_category_sync import delete_category_from_square
