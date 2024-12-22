@@ -284,8 +284,20 @@ document.addEventListener('DOMContentLoaded', function() {
     let unsyncButton = null;
 
     document.querySelectorAll('.unsync-category').forEach(button => {
-        button.addEventListener('click', function() {
-            categoryToUnsync = this.dataset.categoryId;
+        button.addEventListener('click', async function() {
+            const categoryId = this.dataset.categoryId;
+            const response = await fetch(`/api/categories/${categoryId}/unsync`, {
+                method: 'POST'
+            });
+            const data = await response.json();
+            
+            if (data.has_products) {
+                const warningModal = new bootstrap.Modal(document.getElementById('productsWarningModal'));
+                warningModal.show();
+                return;
+            }
+            
+            categoryToUnsync = categoryId;
             unsyncButton = this;
             unsyncModal.show();
         });
