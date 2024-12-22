@@ -41,8 +41,8 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
             # Create request data following Square's format
             request_json = {
                 "idempotency_key": idempotency_key,
-                "object_id": None,
                 "image": {
+                    "id": f"#{product.id}_{product.sku}_image",
                     "type": "IMAGE",
                     "image_data": {
                         "caption": product.title
