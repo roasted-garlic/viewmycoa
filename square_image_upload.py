@@ -47,7 +47,7 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
                 "is_primary": True,
                 "image": {
                     "type": "IMAGE",
-                    "id": f"#image_{product.id}_{uuid.uuid4().hex[:8]}",
+                    "id": f"#image_{product.id}_{product.sku}_{uuid.uuid4().hex}",
                     "image_data": {
                         "name": product.title,
                         "caption": product.title
