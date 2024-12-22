@@ -24,6 +24,11 @@
         <div class="card">
             {% if product.product_image %}
             <img src="{{ url_for('static', filename=product.product_image) }}" class="card-img-top" alt="{{ product.title }}">
+            {% if product.square_catalog_id %}
+            <div class="square-logo-overlay">
+                <img src="{{ url_for('static', filename='img/Square_Logo.jpg') }}" alt="Synced with Square">
+            </div>
+            {% endif %}
             {% endif %}
             <div class="card-body">
                 <h5 class="card-title">{{ product.title }}</h5>
