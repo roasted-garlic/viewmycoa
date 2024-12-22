@@ -3,8 +3,10 @@ import os
 import uuid
 import json
 import requests
+import logging
 from typing import Optional
 from models import Product, db
+from app import app
 
 def upload_product_image_to_square(product: Product) -> Optional[str]:
     """
