@@ -189,8 +189,17 @@ def sync_category(category_id):
 @app.route('/api/categories/<int:category_id>/unsync', methods=['POST'])
 def unsync_category(category_id):
     try:
-        from square_category_sync import delete_category_from_square
         category = models.Category.query.get_or_404(category_id)
+        
+        # Check if category has products
+        if category.products:
+            return jsonify({
+                'success': False,
+                'has_products': True,
+                'error': 'Cannot unsync category with attached products'
+            }), 400
+            
+        from square_category_sync import delete_category_from_square
         result = delete_category_from_square(category)
         
         if 'error' in result:
