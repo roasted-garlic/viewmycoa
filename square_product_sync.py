@@ -117,11 +117,20 @@ def sync_product_to_square(product):
     }
 
     try:
+        # Log the API request
+        app.logger.info(f"Square API Request URL: {SQUARE_API_URL}")
+        app.logger.info(f"Square API Request Headers: {get_square_headers()}")
+        app.logger.info(f"Square API Request Body: {json.dumps(product_data, indent=2)}")
+        
         response = requests.post(
             SQUARE_API_URL,
             headers=get_square_headers(),
             json=product_data
         )
+        
+        # Log the API response
+        app.logger.info(f"Square API Response Status: {response.status_code}")
+        app.logger.info(f"Square API Response Body: {response.text}")
         if response.status_code == 401:
             return {"error": "Square API authentication failed. Please verify your access token."}
         elif response.status_code != 200:

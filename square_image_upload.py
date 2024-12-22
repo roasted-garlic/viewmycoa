@@ -60,8 +60,17 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
                 'image_file': (os.path.basename(image_path), image_file, 'image/png')
             }
 
+            # Log the API request
+            app.logger.info(f"Square Image Upload URL: {url}")
+            app.logger.info(f"Square Image Upload Headers: {headers}")
+            app.logger.info(f"Square Image Upload Request JSON: {json.dumps(request_json, indent=2)}")
+            
             # Make request to Square API
             response = requests.post(url, headers=headers, files=files)
+            
+            # Log the API response
+            app.logger.info(f"Square Image Upload Response Status: {response.status_code}")
+            app.logger.info(f"Square Image Upload Response: {response.text}")
 
             if response.status_code != 200:
                 print(f"Error response from Square: {response.text}")
