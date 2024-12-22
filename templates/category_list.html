@@ -318,25 +318,28 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(`/api/categories/${categoryToUnsync}/unsync`, {
                 method: 'POST'
             });
+            const data = await response.json();
             
             if (response.ok) {
                 resultsDiv.innerHTML = '<div class="alert alert-success">Category removed from Square successfully!</div>';
                 setTimeout(() => {
                     location.reload();
                 }, 2000);
+            } else if (data.has_products) {
+                unsyncModal.hide();
+                const warningModal = new bootstrap.Modal(document.getElementById('productsWarningModal'));
+                warningModal.show();
             } else {
-                const data = await response.json();
-                if (data.has_products) {
-                    unsyncModal.hide();
-                    const warningModal = new bootstrap.Modal(document.getElementById('productsWarningModal'));
-                    warningModal.show();
+                // If the category was already unsynced, just reload the page
+                if (data.error === 'No Square category ID found') {
+                    location.reload();
                 } else {
                     resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
                     confirmationMessage.style.display = 'block';
                 }
-                unsyncButton.innerHTML = '<i class="fas fa-unlink"></i> <span class="btn-text">Unsync from Square</span>';
-                unsyncButton.disabled = false;
             }
+            unsyncButton.innerHTML = '<i class="fas fa-unlink"></i> <span class="btn-text">Unsync from Square</span>';
+            unsyncButton.disabled = false;
         } catch (error) {
             console.error('Error:', error);
             resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
