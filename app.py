@@ -588,6 +588,32 @@ def create_template():
 
     return render_template('template_create.html')
 
+@app.route('/api/square/unsync-all', methods=['POST'])
+def unsync_all_products():
+    """Remove all products from Square"""
+    try:
+        from square_product_sync import delete_product_from_square
+        products = models.Product.query.filter(models.Product.square_catalog_id.isnot(None)).all()
+        
+        for product in products:
+            result = delete_product_from_square(product)
+            if 'error' in result:
+                return jsonify({
+                    'success': False,
+                    'error': f"Error removing product {product.id}: {result['error']}"
+                }), 400
+                
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        app.logger.error(f"Error removing all products from Square: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+
 
 @app.route('/template/<int:template_id>/edit', methods=['GET', 'POST'])
 def edit_template(template_id):
