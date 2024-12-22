@@ -1,0 +1,278 @@
+Upload and Attach Images 
+Beta release
+Applies to: Catalog API
+
+Learn how to upload images to a Square catalog and attach them to supporting objects in the catalog.
+
+Overview
+An image in the Square catalog is encapsulated by a CatalogImage
+ object.
+
+Uploading an image file to the catalog involves creating a CatalogImage
+ object, specifying the local path to the image file and, optionally, the name or caption of the image.
+
+When creating a CatalogImage object, you can also specify the ID of a catalog object that supports image attachment. This way you can manage to upload an image and attach the uploaded image object to an image-attachable catalog object in a single operation.
+
+To create a catalog image, call the CreateCatalogImage endpoint. This is different from creating any other types of CatalogObject by calling the UpsertCatalogObject or BatchUpsertCatalogObjects endpoint.
+
+You can attach an image object to one of the following catalog objects:
+
+CatalogItem
+CatalogItemVariation
+CatalogCategory
+CatalogModifierList
+To attach a new image object to an image-supporting catalog object, set the catalog object ID on the object_id parameter on the CreateCatalogImage request input. If you don't specify the object_id parameter, an unattached image object is created. In this case, you can call UpsertCatalogObject or BatchUpsertCatalogObjects to attach the unattached image object to an image-attachable catalog object.
+
+For an image object already attached to a catalog object, you can attach it to another image-attachable object. In addition, you can attach multiple image objects to the same catalog object. Image objects attached to a catalog object are referenced through the image-supporting catalog object's image_ids attribute, which is a list containing the IDs of the attached image objects.
+
+When calling CreateCatalogImage while attaching the newly created image object to a specified object, you can choose to have the newly created image as the primary image associated with the object by making the image object ID to appear as the first element of the image_ids list. To do so, set the is_primary input parameter to true. With the Square API version 2021-12-15 or later, the default value of is_primary is false and the newly created image object is appended to the end of the image_ids list. With the Square API version earlier than 2021-12-15, the default value of is_primary is true because only a single image object can be attached to the specified image-supporting catalog object. The primary image is displayed in Square first-party products, such as Square Point of Sale and the Square Online Store.
+
+If you try to upload an image file that has already been uploaded, no new image object is created and you receive in the response the existing image object encapsulating the previously uploaded image file.
+
+Note
+Currently, a seller can manage images attached to items and item variations in the Square Dashboard. Images attached to categories and modifier lists aren't displayed in the Square Dashboard at this time.
+
+Upload an image file as unattached
+The following example shows how to call the CreateCatalogImage endpoint to upload a local image file named image_example.png as an unattached CatalogImage object:
+
+Request: Create an unattached catalog image object
+Create catalog image
+
+
+cURL
+
+
+
+curl https://connect.squareupsandbox.com/v2/catalog/images \
+  -X POST \
+  -H 'Square-Version: 2024-12-18' \
+  -H 'Authorization: Bearer {ACCESS_TOKEN}' \
+  -H 'Accept: application/json' \
+  -F 'file=@image_example.png' \
+  -F 'request={
+    "idempotency_key": "{UNIQUE_KEY}",
+    "image": {
+      "id": "#image_id",
+      "type": "IMAGE",
+      "image_data": {
+        "name": "Image name",
+        "caption": "Image caption"
+      }
+    }
+  }'
+
+
+The filename parameter can be an absolute path to the image file, as in "/myapp/data/image_example.png". If the folder path (such as "/myapp/data/") is not given, the default folder is the working directory where you invoke the command.
+
+The image object is an instance of CatalogImage, also known as an IMAGE type of CatalogObject. For the image object, you must set only the image-specific data on the image_data attribute of the CatalogObject.
+
+The resulting image object is unattached because the request body doesn't specify the object_id attribute.
+
+Response: Create an unattached catalog image object
+A successful call returns a CatalogImage object that includes the image data and a Square-generated image URL used to access the stored image file:
+
+
+
+{
+    "image": {
+        "type": "IMAGE",
+        "id": "BQC5NCY7VIKL6WQN5MOBJL3V",
+        "updated_at": "2021-12-15T22:34:42.362Z",
+        "created_at": "2021-12-15T05:36:15.441Z",
+        "version": 1630708482362,
+        "is_deleted": false,
+        "present_at_all_locations": true,
+        "image_data": {
+            "name": "Image name",
+            "url": "https://items-images-staging.s3.us-west-2.amazonaws.com/files/{UNIQUE_ID}/original.png",
+            "caption": "Image caption"
+        }
+    }
+}
+When the request succeeds, the local image file (image_exampe.png) is uploaded to an AWS S3 location (https://items-images-staging.s3.us-west-2.amazonaws.com/files/{UNIQUE_ID}/original.png). The local file name has no resemblance to the remote file name. The {UNIQUE_ID} value identifies the image file.
+
+In this example, the ID of the resulting CatalogImage object is BQC5NCY7VIKL6WQN5MOBJL3V. Make note of the image object ID value. You need it to reference this uploaded image (for example, when attaching the image object to an existing image-attachable catalog object).
+
+Upload an image and attach it to an image-supporting object
+The following example shows how to call the CreateCatalogImage endpoint to upload a local image file (image_example_1.png) as a CatalogImage object and attach the resulting image object to an existing CatalogItem (GQKOOBBI4PE3B7MLXDQ7YUSM) that has one variation and no attached images yet.
+
+Request: Attach a new image file to an existing item
+Create catalog image
+
+
+cURL
+
+
+
+curl https://connect.squareupsandbox.com/v2/catalog/images \
+  -X POST \
+  -H 'Square-Version: 2024-12-18' \
+  -H 'Authorization: Bearer {ACCESS_TOKEN}' \
+  -H 'Accept: application/json' \
+  -F 'file=@image_example_1.png' \
+  -F 'request={
+    "idempotency_key": "{UNIQUE_KEY}",
+    "object_id": "GQKOOBBI4PE3B7MLXDQ7YUSM",
+    "image": {
+      "id": "#image_id",
+      "type": "IMAGE",
+      "image_data": {
+        "name": "Image name 1",
+        "caption": "Image caption 1"
+      }
+    }
+  }'
+
+
+Response: Attach a new image file to an existing item
+
+
+{
+    "image": {
+        "type": "IMAGE",
+        "id": "6SLTAD44Z2QGPBUTMS3KAXEL",
+        "updated_at": "2021-12-15T22:45:20.293Z",
+        "created_at": "2021-12-15T05:36:15.441Z",
+        "version": 1630709120293,
+        "is_deleted": false,
+        "present_at_all_locations": true,
+        "image_data": {
+            "name": "Image name 1",
+            "url": "https://items-images-staging.s3.us-west-2.amazonaws.com/files/{UNIQUE_ID}/original.png",
+            "caption": "Image caption 1"
+        }
+    }
+}
+The resulting CatalogImage object has an ID of 6SLTAD44Z2QGPBUTMS3KAXEL. This image is attached to the CatalogItem object (GQKOOBBI4PE3B7MLXDQ7YUSM) specified in the request.
+
+Verify an image is attached to a specified catalog object
+To verify that the image is attached to the catalog item (GQKOOBBI4PE3B7MLXDQ7YUSM) specified in the previous CreateCatalogImage call, you can call the RetrieveCatalogObject endpoint and verify that the catalog item contains the image object (6SLTAD44Z2QGPBUTMS3KAXEL). This is illustrated in the following example.
+
+Request: Retrieve the catalog item to verify the attached image IDs
+Retrieve catalog object
+
+
+cURL
+
+
+
+curl https://connect.squareupsandbox.com/v2/catalog/object/GQKOOBBI4PE3B7MLXDQ7YUSM \
+  -H 'Square-Version: 2024-12-18' \
+  -H 'Authorization: Bearer {ACCESS_TOKEN}' \
+  -H 'Content-Type: application/json'
+
+Response: Retrieve the catalog item to verify the attached image IDs
+
+
+{
+    "object": {
+        "type": "ITEM",
+        "id": "GQKOOBBI4PE3B7MLXDQ7YUSM",
+        "updated_at": "2021-12-15T22:46:38.456Z",
+        "created_at": "2021-12-15T05:36:15.441Z",
+        "version": 1630709198456,
+        "is_deleted": false,
+        "present_at_all_locations": true,
+        "item_data": {
+            "name": "Item with images",
+            "variations": [
+                {
+                    "type": "ITEM_VARIATION",
+                    "id": "H7CKRU2WKUGIS6XZ5AOYJ3CF",
+                    "updated_at": "2021-12-15T22:46:38.456Z",
+                    "created_at": "2021-12-15T05:36:15.441Z",
+                    "version": 1630709198456,
+                    "is_deleted": false,
+                    "present_at_all_locations": true,
+                    "item_variation_data": {
+                        "item_id": "GQKOOBBI4PE3B7MLXDQ7YUSM",
+                        "name": "Item variation with images",
+                        "ordinal": 0,
+                        "pricing_type": "FIXED_PRICING",
+                        "price_money": {
+                            "amount": 100,
+                            "currency": "USD"
+                        },
+                        "stockable": true
+                    }
+                }
+            ],
+            "product_type": "REGULAR",
+            "ecom_available": false,
+            "ecom_visibility": "UNINDEXED",
+            "image_ids": [
+                "6SLTAD44Z2QGPBUTMS3KAXEL"
+            ]
+        }
+    }
+}
+
+With the Square API version 2021-12-15 or later, the attached image objects are referenced by the IDs in the image_ids list of the returned catalog object. In this example, the newly created catalog image object ID (6SLTAD44Z2QGPBUTMS3KAXEL) is a member of the image_ids list.
+
+Using an earlier version of the Square API, the ID of the last attached image object is returned in the response. Instead of "image_ids": ["6SLTAD44Z2QGPBUTMS3KAXEL"], the above response would contain "image_id": "6SLTAD44Z2QGPBUTMS3KAXEL".
+
+Attach an image as primary image
+When multiple images are attached to a catalog object, the first element of the image_ids list is the primary image of the object. A primary image is displayed when the image-supporting object is processed in Square Point of Sale and the Square Online Store.
+
+When another image is attached to the catalog object using the Square API version 2021-12-15 or later, the new image object ID is appended to the image_ids list by default. To attach the new image as a primary image, set the is_primary input parameter to true when calling CreateCatalogImage. This is shown as follows.
+
+Request: Attach a new image to an object as the primary image
+Create catalog image
+
+
+cURL
+
+
+
+curl https://connect.squareupsandbox.com/v2/catalog/images \
+  -X POST \
+  -H 'Square-Version: 2024-12-18' \
+  -H 'Authorization: Bearer {ACCESS_TOKEN}' \
+  -H 'Accept: application/json' \
+  -F 'file=@image_example_3.png' \
+  -F 'request={
+    "idempotency_key": "{UNIQUE_KEY}",
+    "object_id": "GQKOOBBI4PE3B7MLXDQ7YUSM",
+    "is_primary": true,
+    "image": {
+      "id": "#image_id",
+      "type": "IMAGE",
+      "image_data": {
+        "name": "Image name 3",
+        "caption": "Image caption 3"
+      }
+    }
+  }'
+
+
+Suppose that the new image object ID is RABIUKVX5EVWO6SOEICY64KM. You can retrieve the object
+ against the object_id (GQKOOBBI4PE3B7MLXDQ7YUSM) value. You should see the new image object ID appearing as the first element of the object identified by GQKOOBBI4PE3B7MLXDQ7YUSM, as shown:
+
+
+
+{
+    "object": {
+        "type": "ITEM",
+        "id": "GQKOOBBI4PE3B7MLXDQ7YUSM",
+        "updated_at": "2021-12-15T22:46:38.456Z",
+        "created_at": "2021-12-15T05:36:15.441Z",
+        "version": 1630709198456,
+        "is_deleted": false,
+        "present_at_all_locations": true,
+        "item_data": {
+            "name": "Item with images",
+            "variations": [
+                {
+                    ...
+                }
+            ],
+            ...,
+            "image_ids": [
+                "RABIUKVX5EVWO6SOEICY64KM",
+                "6SLTAD44Z2QGPBUTMS3KAXEL"
+            ]
+        }
+    }
+}
+
+If you set is_primary to false or leave it unspecified when calling CreateCatalogImage using the Square API version 2021-12-15 or later, the newly created image object ID appears as the last element of the image_ids list.
