@@ -42,7 +42,7 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
                 "object_id": product.square_catalog_id if product.square_catalog_id else None,
                 "image": {
                     "type": "IMAGE",
-                    "id": f"#{product.id}_{product.sku}_image_{uuid.uuid4()}",
+                    "id": f"#image_{product.id}",
                     "image_data": {
                         "caption": product.title
                     }
