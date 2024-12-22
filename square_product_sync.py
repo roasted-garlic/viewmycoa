@@ -178,18 +178,11 @@ def delete_product_from_square(product):
         # We intentionally do not clear category IDs here to preserve them
         db.session.commit()
         
-        # Delete catalog item
+        # Delete catalog item (will also delete associated images)
         response = requests.delete(
             f"{SQUARE_BASE_URL}/v2/catalog/object/{square_id}",
             headers=get_square_headers()
         )
-        
-        # Delete image if exists
-        if image_id:
-            image_response = requests.delete(
-                f"{SQUARE_BASE_URL}/v2/catalog/object/{image_id}",
-                headers=get_square_headers()
-            )
         
         # Even if Square returns 404, we've already cleared the IDs locally
         if response.status_code in [200, 404]:
