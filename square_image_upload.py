@@ -39,12 +39,13 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
             idempotency_key = str(uuid.uuid4())
             
             # Create request data following Square's format
+            unique_image_id = f'#{product.id}_{product.sku}_image_{idempotency_key}'
             request_data = {
                 'idempotency_key': idempotency_key,
-                'object_id': None,  # Leave empty to create unattached image
+                'object_id': None,
                 'image': {
                     'type': 'IMAGE',
-                    'id': f'#{product.sku}_image',  # Temporary ID for reference
+                    'id': unique_image_id,
                     'image_data': {
                         'caption': product.title
                     }
@@ -57,7 +58,7 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
                 "object_id": None,
                 "image": {
                     "type": "IMAGE",
-                    "id": f"#{product.sku}_image",
+                    "id": unique_image_id,
                     "image_data": {
                         "caption": product.title
                     }
