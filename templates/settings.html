@@ -11,6 +11,19 @@
         </div>
         <div class="card-body">
             <form method="POST">
+                <div class="mb-4">
+                    <label class="form-label">Environment</label>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="craftmypdfEnvironment" name="craftmypdf_environment" value="production" {% if settings.craftmypdf_environment == 'production' %}checked{% endif %}>
+                        <label class="form-check-label" for="craftmypdfEnvironment">
+                            <span class="badge {% if settings.craftmypdf_environment == 'production' %}bg-success{% else %}bg-warning{% endif %}">
+                                {{ settings.craftmypdf_environment|title }}
+                            </span>
+                        </label>
+                    </div>
+                    <small class="text-muted">Toggle between Sandbox and Production environments</small>
+                </div>
+
                 <div class="card bg-secondary mb-3">
                     <div class="card-header">
                         <h5 class="card-title mb-0">API Credentials</h5>
@@ -158,17 +171,19 @@
         </div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Existing environment toggle for Square
-    const envToggle = document.getElementById('squareEnvironment');
-    const updateEnvLabel = () => {
-        const label = envToggle.nextElementSibling.querySelector('.badge');
-        if (envToggle.checked) {
+    // Environment toggles
+    const squareEnvToggle = document.getElementById('squareEnvironment');
+    const craftmypdfEnvToggle = document.getElementById('craftmypdfEnvironment');
+
+    // Update Square environment label
+    const updateSquareEnvLabel = () => {
+        const label = squareEnvToggle.nextElementSibling.querySelector('.badge');
+        if (squareEnvToggle.checked) {
             label.textContent = 'Production';
             label.classList.remove('bg-warning');
             label.classList.add('bg-success');
@@ -178,10 +193,9 @@ document.addEventListener('DOMContentLoaded', function() {
             label.classList.add('bg-warning');
         }
     };
-    envToggle.addEventListener('change', updateEnvLabel);
+    squareEnvToggle.addEventListener('change', updateSquareEnvLabel);
 
-    // New environment toggle for CraftMyPDF
-    const craftmypdfEnvToggle = document.getElementById('craftmypdfEnvironment');
+    // Update CraftMyPDF environment label
     const updateCraftMyPDFEnvLabel = () => {
         const label = craftmypdfEnvToggle.nextElementSibling.querySelector('.badge');
         if (craftmypdfEnvToggle.checked) {
