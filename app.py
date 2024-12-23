@@ -869,6 +869,11 @@ def settings():
         try:
             settings.show_square_id_controls = bool(request.form.get('show_square_id'))
             settings.show_square_image_id_controls = bool(request.form.get('show_square_image_id'))
+            settings.square_environment = request.form.get('square_environment', 'sandbox')
+            settings.square_sandbox_access_token = request.form.get('square_sandbox_access_token')
+            settings.square_sandbox_location_id = request.form.get('square_sandbox_location_id')
+            settings.square_production_access_token = request.form.get('square_production_access_token')
+            settings.square_production_location_id = request.form.get('square_production_location_id')
             db.session.commit()
             flash('Settings updated successfully!', 'success')
         except Exception as e:
