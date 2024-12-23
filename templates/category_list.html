@@ -35,6 +35,7 @@
                             <button class="btn btn-outline-warning btn-sm unsync-category" 
                                     data-category-id="{{ category.id }}">
                                 <i class="fas fa-unlink"></i> <span class="btn-text">Unsync from Square</span>
+                                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
                             </button>
                             {% else %}
                             <button class="btn btn-outline-success btn-sm sync-category" 
@@ -286,20 +287,43 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.unsync-category').forEach(button => {
         button.addEventListener('click', async function() {
             const categoryId = this.dataset.categoryId;
-            const response = await fetch(`/api/categories/${categoryId}/unsync`, {
-                method: 'POST'
-            });
-            const data = await response.json();
+            const icon = this.querySelector('.fas');
+            const textSpan = this.querySelector('.btn-text');
+            const spinner = this.querySelector('.spinner-border');
             
-            if (data.has_products) {
-                const warningModal = new bootstrap.Modal(document.getElementById('productsWarningModal'));
-                warningModal.show();
-                return;
+            // Show spinner, hide icon and text
+            icon.classList.add('d-none');
+            textSpan.classList.add('d-none');
+            spinner.classList.remove('d-none');
+            this.disabled = true;
+            
+            try {
+                const response = await fetch(`/api/categories/${categoryId}/unsync`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    // Restore button state on error
+                    icon.classList.remove('d-none');
+                    textSpan.classList.remove('d-none');
+                    spinner.classList.add('d-none');
+                    this.disabled = false;
+                    
+                    const data = await response.json();
+                    alert(data.error || 'Error unsyncing category');
+                }
+            } catch (error) {
+                // Restore button state on error
+                icon.classList.remove('d-none');
+                textSpan.classList.remove('d-none');
+                spinner.classList.add('d-none');
+                this.disabled = false;
+                
+                console.error('Error:', error);
+                alert('Error unsyncing category');
             }
-            
-            categoryToUnsync = categoryId;
-            unsyncButton = this;
-            unsyncModal.show();
         });
     });
 
