@@ -598,7 +598,7 @@ def unsync_all_products():
     try:
         from square_product_sync import delete_product_from_square
         products = models.Product.query.filter(models.Product.square_catalog_id.isnot(None)).all()
-        
+
         for product in products:
             result = delete_product_from_square(product)
             if 'error' in result:
@@ -606,16 +606,22 @@ def unsync_all_products():
                     'success': False,
                     'error': f"Error removing product {product.id}: {result['error']}"
                 }), 400
-                
+
+            # Clear Square IDs after successful removal
+            product.square_catalog_id = None
+            product.square_image_id = None
+            db.session.add(product)
+
+        db.session.commit()
         return jsonify({'success': True})
-        
+
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Error removing all products from Square: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
         }), 500
-
 
 @app.route('/template/<int:template_id>/edit', methods=['GET', 'POST'])
 def edit_template(template_id):
