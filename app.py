@@ -841,25 +841,19 @@ def settings():
 
     if request.method == 'POST':
         try:
-            # Preserve existing values
-            current_square_env = settings.square_environment
-            current_square_sandbox_token = settings.square_sandbox_access_token
-            current_square_sandbox_location = settings.square_sandbox_location_id
-            current_square_prod_token = settings.square_production_access_token
-            current_square_prod_location = settings.square_production_location_id
-            current_craftmypdf_key = settings.craftmypdf_api_key
+            # Update Square settings
+            settings.square_environment = 'production' if request.form.get('square_environment') == 'production' else 'sandbox'
+            settings.square_sandbox_access_token = request.form.get('square_sandbox_access_token')
+            settings.square_sandbox_location_id = request.form.get('square_sandbox_location_id')
+            settings.square_production_access_token = request.form.get('square_production_access_token')
+            settings.square_production_location_id = request.form.get('square_production_location_id')
 
-            # Update Square settings if present
-            if any(key.startswith('square_') for key in request.form):
-                settings.square_environment = 'production' if request.form.get('square_environment') == 'production' else 'sandbox'
-                settings.square_sandbox_access_token = request.form.get('square_sandbox_access_token', current_square_sandbox_token)
-                settings.square_sandbox_location_id = request.form.get('square_sandbox_location_id', current_square_sandbox_location)
-                settings.square_production_access_token = request.form.get('square_production_access_token', current_square_prod_token)
-                settings.square_production_location_id = request.form.get('square_production_location_id', current_square_prod_location)
+            # Update CraftMyPDF settings
+            settings.craftmypdf_api_key = request.form.get('craftmypdf_api_key')
 
-            # Update CraftMyPDF settings if present
-            if 'craftmypdf_api_key' in request.form:
-                settings.craftmypdf_api_key = request.form.get('craftmypdf_api_key', current_craftmypdf_key)
+            # Update Square integration controls
+            settings.allow_catalog_id_clear = request.form.get('allow_catalog_id_clear') == 'on'
+            settings.allow_image_id_clear = request.form.get('allow_image_id_clear') == 'on'
 
             db.session.commit()
             flash('Settings updated successfully!', 'success')

@@ -152,6 +152,8 @@ class Settings(db.Model):
     square_production_access_token = db.Column(db.String(255), nullable=True)
     square_production_location_id = db.Column(db.String(255), nullable=True)
     craftmypdf_api_key = db.Column(db.String(255), nullable=True)
+    allow_catalog_id_clear = db.Column(db.Boolean, default=False, nullable=False)
+    allow_image_id_clear = db.Column(db.Boolean, default=False, nullable=False)
 
     @classmethod
     def get_settings(cls):

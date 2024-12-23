@@ -50,6 +50,34 @@
                     <small class="text-muted">Toggle between Sandbox and Production environments</small>
                 </div>
 
+                <!-- Square Integration Controls -->
+                <div class="card bg-secondary mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Square Integration Controls</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <button type="button" id="unsyncAllProducts" class="btn btn-danger">
+                                <i class="fas fa-unlink"></i> Remove All Products from Square
+                            </button>
+                        </div>
+                        <div class="mb-3 form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="allowCatalogIdClear" name="allow_catalog_id_clear" 
+                                   {% if settings.allow_catalog_id_clear %}checked{% endif %}>
+                            <label class="form-check-label" for="allowCatalogIdClear">
+                                Allow Clearing Square Catalog IDs
+                            </label>
+                        </div>
+                        <div class="mb-3 form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="allowImageIdClear" name="allow_image_id_clear"
+                                   {% if settings.allow_image_id_clear %}checked{% endif %}>
+                            <label class="form-check-label" for="allowImageIdClear">
+                                Allow Clearing Square Image IDs
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row">
                     <div class="col-md-6">
                         <div class="card bg-secondary mb-3">
@@ -117,6 +145,31 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     envToggle.addEventListener('change', updateEnvLabel);
+
+    // Handle "Remove All Products from Square" button
+    const unsyncAllBtn = document.getElementById('unsyncAllProducts');
+    if (unsyncAllBtn) {
+        unsyncAllBtn.addEventListener('click', async () => {
+            if (confirm('Are you sure you want to remove all products from Square? This action cannot be undone.')) {
+                try {
+                    const response = await fetch('/api/square/unsync-all', {
+                        method: 'POST'
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        alert('All products have been removed from Square successfully.');
+                        location.reload();
+                    } else {
+                        alert(`Error: ${data.error || 'Unknown error occurred'}`);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while removing products from Square.');
+                }
+            }
+        });
+    }
 });
 </script>
 {% endblock %}
