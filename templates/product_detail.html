@@ -614,7 +614,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Delete product functionality
-    const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+    const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+    const deleteModal = new bootstrap.Modal(deleteConfirmModal);
     const deleteButton = document.getElementById('deleteProduct');
     if (deleteButton) {
         deleteButton.addEventListener('click', function() {
@@ -649,7 +650,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         const confirmDelete = document.getElementById('confirmDelete');
-        if (confirmDelete) {
+        if (confirmDelete && !confirmDelete.hasListener) {
+            confirmDelete.hasListener = true;
             confirmDelete.addEventListener('click', async function() {
                 const productId = deleteButton.dataset.productId;
                 try {
