@@ -149,11 +149,6 @@ class Settings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     show_square_id_controls = db.Column(db.Boolean, default=False, nullable=False)
     show_square_image_id_controls = db.Column(db.Boolean, default=False, nullable=False)
-    square_environment = db.Column(db.String(20), default='sandbox', nullable=False)
-    square_sandbox_access_token = db.Column(db.String(255))
-    square_sandbox_location_id = db.Column(db.String(255))
-    square_production_access_token = db.Column(db.String(255))
-    square_production_location_id = db.Column(db.String(255))
 
     @classmethod
     def get_settings(cls):

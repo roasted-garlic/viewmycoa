@@ -34,45 +34,6 @@
             
             <div class="square-settings">
                 <h4>Square Integration</h4>
-                <div class="mb-4">
-                    <h5>Environment Settings</h5>
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="radio" id="sandboxEnv" name="square_environment" value="sandbox" {% if settings.square_environment == 'sandbox' %}checked{% endif %}>
-                        <label class="form-check-label" for="sandboxEnv">Sandbox Environment</label>
-                    </div>
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="radio" id="productionEnv" name="square_environment" value="production" {% if settings.square_environment == 'production' %}checked{% endif %}>
-                        <label class="form-check-label" for="productionEnv">Production Environment</label>
-                    </div>
-                    
-                    <div class="card bg-dark border-secondary mb-3">
-                        <div class="card-header">Sandbox Credentials</div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label for="sandboxToken" class="form-label">Access Token</label>
-                                <input type="password" class="form-control" id="sandboxToken" name="square_sandbox_access_token" value="{{ settings.square_sandbox_access_token }}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="sandboxLocation" class="form-label">Location ID</label>
-                                <input type="text" class="form-control" id="sandboxLocation" name="square_sandbox_location_id" value="{{ settings.square_sandbox_location_id }}">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card bg-dark border-secondary mb-3">
-                        <div class="card-header">Production Credentials</div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label for="productionToken" class="form-label">Access Token</label>
-                                <input type="password" class="form-control" id="productionToken" name="square_production_access_token" value="{{ settings.square_production_access_token }}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="productionLocation" class="form-label">Location ID</label>
-                                <input type="text" class="form-control" id="productionLocation" name="square_production_location_id" value="{{ settings.square_production_location_id }}">
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 {% set has_square_products = products|selectattr('square_catalog_id')|list|length > 0 %}
                 <button id="removeAllFromSquare" class="btn btn-danger{% if not has_square_products %} disabled{% endif %}" {% if not has_square_products %}disabled{% endif %} title="{% if not has_square_products %}No products synced with Square{% endif %}">
                     <i class="fas fa-unlink"></i> Remove All Products from Square
