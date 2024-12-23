@@ -153,6 +153,8 @@ class Settings(db.Model):
     square_sandbox_location_id = db.Column(db.String(255), nullable=True)
     square_production_access_token = db.Column(db.String(255), nullable=True)
     square_production_location_id = db.Column(db.String(255), nullable=True)
+    craftmypdf_api_key = db.Column(db.String(255), nullable=True)
+    craftmypdf_environment = db.Column(db.String(20), default='sandbox', nullable=False)
 
     @classmethod
     def get_settings(cls):
@@ -176,4 +178,11 @@ class Settings(db.Model):
             'access_token': self.square_sandbox_access_token,
             'location_id': self.square_sandbox_location_id,
             'is_sandbox': True
+        }
+
+    def get_craftmypdf_credentials(self):
+        """Get the CraftMyPDF API credentials."""
+        return {
+            'api_key': self.craftmypdf_api_key,
+            'environment': self.craftmypdf_environment
         }

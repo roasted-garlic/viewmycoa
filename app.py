@@ -69,7 +69,6 @@ with app.app_context():
     import models
     db.create_all()
 
-
 @app.route('/')
 def index():
     return render_template('search_home.html')
@@ -217,7 +216,10 @@ def products():
 
 def fetch_craftmypdf_templates():
     """Fetch templates from CraftMyPDF API"""
-    api_key = os.environ.get('CRAFTMYPDF_API_KEY')
+    settings = models.Settings.get_settings()
+    credentials = settings.get_craftmypdf_credentials()
+    api_key = credentials['api_key']
+
     if not api_key:
         app.logger.error("CraftMyPDF API key not configured")
         return []
@@ -231,12 +233,12 @@ def fetch_craftmypdf_templates():
         )
 
         response = requests.get('https://api.craftmypdf.com/v1/list-templates',
-                                headers=headers,
-                                params={
-                                    'limit': 300,
-                                    'offset': 0
-                                },
-                                timeout=30)
+                              headers=headers,
+                              params={
+                                  'limit': 300,
+                                  'offset': 0
+                              },
+                              timeout=30)
 
         app.logger.debug(f"API Response Status: {response.status_code}")
         app.logger.debug(f"API Response Headers: {response.headers}")
@@ -377,7 +379,9 @@ def generate_pdf(product_id):
         product = models.Product.query.get_or_404(product_id)
 
         # Get API key from environment
-        api_key = os.environ.get('CRAFTMYPDF_API_KEY')
+        settings = models.Settings.get_settings()
+        credentials = settings.get_craftmypdf_credentials()
+        api_key = credentials['api_key']
         if not api_key:
             app.logger.error("API key not configured")
             return jsonify({'error': 'API key not configured'}), 500
@@ -874,6 +878,10 @@ def settings():
             # Handle development settings
             settings.show_square_id_controls = bool(request.form.get('show_square_id'))
             settings.show_square_image_id_controls = bool(request.form.get('show_square_image_id'))
+
+            # Update CraftMyPDF settings
+            settings.craftmypdf_api_key = request.form.get('craftmypdf_api_key')
+            settings.craftmypdf_environment = 'production' if request.form.get('craftmypdf_environment') == 'production' else 'sandbox'
 
             db.session.commit()
             flash('Settings updated successfully!', 'success')

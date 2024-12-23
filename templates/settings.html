@@ -4,6 +4,45 @@
 <div class="container">
     <h1 class="mb-4">Settings</h1>
 
+    <!-- CraftMyPDF API Settings Card -->
+    <div class="card bg-dark border-secondary mb-4">
+        <div class="card-header">
+            <h3 class="card-title mb-0">CraftMyPDF API Settings</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-4">
+                    <label class="form-label">Environment</label>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="craftmypdfEnvironment" name="craftmypdf_environment" value="production" {% if settings.craftmypdf_environment == 'production' %}checked{% endif %}>
+                        <label class="form-check-label" for="craftmypdfEnvironment">
+                            <span class="badge {% if settings.craftmypdf_environment == 'production' %}bg-success{% else %}bg-warning{% endif %}">
+                                {{ settings.craftmypdf_environment|title }}
+                            </span>
+                        </label>
+                    </div>
+                    <small class="text-muted">Toggle between Sandbox and Production environments</small>
+                </div>
+
+                <div class="card bg-secondary mb-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">API Credentials</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="craftmypdfApiKey" class="form-label">API Key</label>
+                            <input type="password" class="form-control" id="craftmypdfApiKey" name="craftmypdf_api_key" 
+                                   value="{{ settings.craftmypdf_api_key or '' }}">
+                            <small class="text-muted">Your CraftMyPDF API key for authentication</small>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save Settings</button>
+            </form>
+        </div>
+    </div>
+
     <div class="card bg-dark border-secondary mb-4">
         <div class="card-header">
             <h3 class="card-title mb-0">Square API Settings</h3>
@@ -138,7 +177,7 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle environment toggle display updates
+    // Existing environment toggle for Square
     const envToggle = document.getElementById('squareEnvironment');
     const updateEnvLabel = () => {
         const label = envToggle.nextElementSibling.querySelector('.badge');
@@ -152,8 +191,23 @@ document.addEventListener('DOMContentLoaded', function() {
             label.classList.add('bg-warning');
         }
     };
-
     envToggle.addEventListener('change', updateEnvLabel);
+
+    // New environment toggle for CraftMyPDF
+    const craftmypdfEnvToggle = document.getElementById('craftmypdfEnvironment');
+    const updateCraftMyPDFEnvLabel = () => {
+        const label = craftmypdfEnvToggle.nextElementSibling.querySelector('.badge');
+        if (craftmypdfEnvToggle.checked) {
+            label.textContent = 'Production';
+            label.classList.remove('bg-warning');
+            label.classList.add('bg-success');
+        } else {
+            label.textContent = 'Sandbox';
+            label.classList.remove('bg-success');
+            label.classList.add('bg-warning');
+        }
+    };
+    craftmypdfEnvToggle.addEventListener('change', updateCraftMyPDFEnvLabel);
 
     // Handle Square product removal
     const removeBtn = document.getElementById('removeAllFromSquare');
