@@ -94,9 +94,47 @@
 
                 <button type="submit" class="btn btn-primary">Save Settings</button>
             </form>
+
+            <hr class="my-4">
+
+            <div class="square-settings">
+                <h4>Square Integration</h4>
+                {% set has_square_products = products|selectattr('square_catalog_id')|list|length > 0 %}
+                <button id="removeAllFromSquare" class="btn btn-danger{% if not has_square_products %} disabled{% endif %}" {% if not has_square_products %}disabled{% endif %} title="{% if not has_square_products %}No products synced with Square{% endif %}">
+                    <i class="fas fa-unlink"></i> Remove All Products from Square
+                </button>
+                <div id="removeResults" class="mt-3"></div>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmRemoveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Removal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-danger"><i class="fas fa-exclamation-triangle"></i> Warning: This action will:</p>
+                <ul>
+                    <li>Remove all products from Square catalog</li>
+                    <li>Delete associated images from Square</li>
+                    <li>Clear all Square IDs from products</li>
+                </ul>
+                <p class="fw-bold mb-0">This action cannot be undone!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmRemove">Remove All</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
 
 {% block scripts %}
 <script>
@@ -117,8 +155,38 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     envToggle.addEventListener('change', updateEnvLabel);
+
+    // Handle Square product removal
+    const removeBtn = document.getElementById('removeAllFromSquare');
+    if (removeBtn) {
+        const modal = new bootstrap.Modal(document.getElementById('confirmRemoveModal'));
+
+        removeBtn.addEventListener('click', () => modal.show());
+
+        document.getElementById('confirmRemove').addEventListener('click', async function() {
+            const resultsDiv = document.getElementById('removeResults');
+            resultsDiv.innerHTML = '<div class="alert alert-info">Removing products from Square...</div>';
+            modal.hide();
+
+            try {
+                const response = await fetch('/api/square/unsync-all', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    resultsDiv.innerHTML = '<div class="alert alert-success">All products removed from Square successfully!</div>';
+                    removeBtn.classList.add('disabled');
+                    removeBtn.disabled = true;
+                    removeBtn.title = 'No products synced with Square';
+                } else {
+                    resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = '<div class="alert alert-danger">Error removing products from Square</div>';
+            }
+        });
+    }
 });
 </script>
-{% endblock %}
-
 {% endblock %}

@@ -852,7 +852,6 @@ def edit_product(product_id):
                            pdf_templates=pdf_templates)
 
 
-
 @app.context_processor
 def inject_settings():
     """Make settings available to all templates."""
@@ -861,6 +860,7 @@ def inject_settings():
 @app.route('/vmc-admin/settings', methods=['GET', 'POST'])
 def settings():
     settings = models.Settings.get_settings()
+    products = models.Product.query.all()
 
     if request.method == 'POST':
         try:
@@ -883,7 +883,7 @@ def settings():
             db.session.rollback()
             flash(f'Error updating settings: {str(e)}', 'danger')
 
-    return render_template('settings.html', settings=settings)
+    return render_template('settings.html', settings=settings, products=products)
 
 @app.route('/api/delete_batch_history/<int:history_id>', methods=['DELETE'])
 def delete_batch_history(history_id):
