@@ -113,7 +113,7 @@
         <div class="card-body">
                 <div class="mb-3">
                     <div class="form-check form-switch">
-                        <input class="form-check-input auto-save-toggle" type="checkbox" id="showSquareId" name="show_square_id" data-setting-name="show_square_id_controls" {% if settings.show_square_id_controls %}checked{% endif %}>
+                        <input class="form-check-input" type="checkbox" id="showSquareId" name="show_square_id" {% if settings.show_square_id_controls %}checked{% endif %}>
                         <label class="form-check-label" for="showSquareId">Show Square ID Controls</label>
                     </div>
                     <small class="text-muted">Enable/disable Square ID clearing functionality in product edit page</small>
@@ -121,7 +121,7 @@
 
                 <div class="mb-3">
                     <div class="form-check form-switch">
-                        <input class="form-check-input auto-save-toggle" type="checkbox" id="showSquareImageId" name="show_square_image_id" data-setting-name="show_square_image_id_controls" {% if settings.show_square_image_id_controls %}checked{% endif %}>
+                        <input class="form-check-input" type="checkbox" id="showSquareImageId" name="show_square_image_id" {% if settings.show_square_image_id_controls %}checked{% endif %}>
                         <label class="form-check-label" for="showSquareImageId">Show Square Image ID Controls</label>
                     </div>
                     <small class="text-muted">Enable/disable Square Image ID clearing functionality in product edit page</small>
@@ -171,36 +171,6 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle auto-save toggles
-    document.querySelectorAll('.auto-save-toggle').forEach(toggle => {
-        toggle.addEventListener('change', async function() {
-            const settingName = this.dataset.settingName;
-            const value = this.checked;
-            
-            try {
-                const formData = new FormData();
-                formData.append(this.name, value);
-                
-                const response = await fetch('/vmc-admin/settings', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (response.ok) {
-                    showNotification('Setting saved successfully', 'success');
-                } else {
-                    showNotification('Error saving setting', 'danger');
-                    // Revert the toggle if save failed
-                    this.checked = !value;
-                }
-            } catch (error) {
-                console.error('Error saving setting:', error);
-                showNotification('Error saving setting', 'danger');
-                this.checked = !value;
-            }
-        });
-    });
-
     const floatingHeader = document.getElementById('floatingHeader');
     let lastScrollTop = 0;
     
