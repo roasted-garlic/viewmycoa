@@ -422,8 +422,8 @@ def generate_pdf(product_id):
                     "label_data": [{
                         **final_data,
                         "batch_url": url_for('public_product_detail',
-                                            batch_number=product.batch_number,
-                                            _external=True)
+                                             batch_number=product.batch_number,
+                                             _external=True)
                     }]
                 }
 
@@ -611,8 +611,6 @@ def unsync_all_products():
             'success': False,
             'error': str(e)
         }), 500
-
-
 
 
 @app.route('/template/<int:template_id>/edit', methods=['GET', 'POST'])
@@ -863,19 +861,29 @@ def inject_settings():
 @app.route('/vmc-admin/settings', methods=['GET', 'POST'])
 def settings():
     settings = models.Settings.get_settings()
-    products = models.Product.query.all()
-    
+
     if request.method == 'POST':
         try:
+            # Handle Square environment settings
+            settings.square_environment = 'production' if request.form.get('square_environment') == 'production' else 'sandbox'
+            settings.square_sandbox_access_token = request.form.get('square_sandbox_access_token')
+            settings.square_sandbox_location_id = request.form.get('square_sandbox_location_id')
+            settings.square_production_access_token = request.form.get('square_production_access_token')
+            settings.square_production_location_id = request.form.get('square_production_location_id')
+
+            # Handle development settings
             settings.show_square_id_controls = bool(request.form.get('show_square_id'))
             settings.show_square_image_id_controls = bool(request.form.get('show_square_image_id'))
+
             db.session.commit()
             flash('Settings updated successfully!', 'success')
+            return redirect(url_for('settings'))
+
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating settings: {str(e)}', 'danger')
-    
-    return render_template('settings.html', settings=settings, products=products)
+
+    return render_template('settings.html', settings=settings)
 
 @app.route('/api/delete_batch_history/<int:history_id>', methods=['DELETE'])
 def delete_batch_history(history_id):

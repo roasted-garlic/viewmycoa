@@ -1,4 +1,3 @@
-
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, relationship
 import datetime
@@ -149,6 +148,11 @@ class Settings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     show_square_id_controls = db.Column(db.Boolean, default=False, nullable=False)
     show_square_image_id_controls = db.Column(db.Boolean, default=False, nullable=False)
+    square_environment = db.Column(db.String(20), default='sandbox', nullable=False)
+    square_sandbox_access_token = db.Column(db.String(255), nullable=True)
+    square_sandbox_location_id = db.Column(db.String(255), nullable=True)
+    square_production_access_token = db.Column(db.String(255), nullable=True)
+    square_production_location_id = db.Column(db.String(255), nullable=True)
 
     @classmethod
     def get_settings(cls):
@@ -160,6 +164,16 @@ class Settings(db.Model):
             db.session.commit()
         return settings
 
-
-
-
+    def get_active_credentials(self):
+        """Get the active Square API credentials based on current environment."""
+        if self.square_environment == 'production':
+            return {
+                'access_token': self.square_production_access_token,
+                'location_id': self.square_production_location_id,
+                'is_sandbox': False
+            }
+        return {
+            'access_token': self.square_sandbox_access_token,
+            'location_id': self.square_sandbox_location_id,
+            'is_sandbox': True
+        }
