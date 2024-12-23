@@ -68,7 +68,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "alembic revision --autogenerate -m 'Add square_image_id to product' && alembic upgrade head"
+args = "FLASK_APP=app.py flask db migrate -m 'Initial migration' && flask db upgrade"
 
 [[workflows.workflow]]
 name = "Flask Migrate Init"

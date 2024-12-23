@@ -220,18 +220,18 @@ def fetch_craftmypdf_templates():
     credentials = settings.get_craftmypdf_credentials()
     api_key = credentials['api_key']
 
+    app.logger.info("Using CraftMyPDF credentials from database")
+    app.logger.debug(f"CraftMyPDF environment: {credentials['environment']}")
+    app.logger.debug(f"CraftMyPDF API key exists: {bool(api_key)}")
+
     if not api_key:
-        app.logger.error("CraftMyPDF API key not configured")
+        app.logger.error("CraftMyPDF API key not configured in database")
         return []
 
     headers = {'X-API-KEY': api_key, 'Content-Type': 'application/json'}
 
     try:
         app.logger.debug("Fetching templates from CraftMyPDF API")
-        app.logger.debug(
-            "Using API endpoint: https://api.craftmypdf.com/v1/list-templates"
-        )
-
         response = requests.get('https://api.craftmypdf.com/v1/list-templates',
                               headers=headers,
                               params={
@@ -241,20 +241,11 @@ def fetch_craftmypdf_templates():
                               timeout=30)
 
         app.logger.debug(f"API Response Status: {response.status_code}")
-        app.logger.debug(f"API Response Headers: {response.headers}")
-        app.logger.debug(f"API Response Content: {response.text}")
 
         if response.status_code == 200:
             data = response.json()
             templates = data.get('templates', [])
             app.logger.info(f"Successfully fetched {len(templates)} templates")
-
-            # Log template IDs for debugging
-            for template in templates:
-                app.logger.debug(
-                    f"Template ID: {template.get('template_id')}, Name: {template.get('name')}"
-                )
-
             return templates
         else:
             app.logger.error(
@@ -268,7 +259,6 @@ def fetch_craftmypdf_templates():
     except Exception as e:
         app.logger.error(f"Unexpected error fetching templates: {str(e)}")
         return []
-
 
 @app.route('/vmc-admin/products/new', methods=['GET', 'POST'])
 def create_product():
@@ -600,17 +590,16 @@ def unsync_all_products():
         products = models.Product.query.filter(models.Product.square_catalog_id.isnot(None)).all()
 
         for product in products:
-            result = delete_product_from_square(product)
-            if 'error' in result:
-                return jsonify({
-                    'success': False,
-                    'error': f"Error removing product {product.id}: {result['error']}"
-                }), 400
-
-            # Clear Square IDs after successful removal
-            product.square_catalog_id = None
-            product.square_image_id = None
-            db.session.add(product)
+            try:
+                result = delete_product_from_square(product)
+                if 'error' in result:
+                    app.logger.error(f"Error removing product {product.id} from Square: {result['error']}")
+                    continue
+                product.square_catalog_id = None
+                product.square_image_id = None
+            except Exception as e:
+                app.logger.error(f"Error processing product {product.id}: {str(e)}")
+                continue
 
         db.session.commit()
         return jsonify({'success': True})
@@ -870,33 +859,69 @@ def inject_settings():
 @app.route('/vmc-admin/settings', methods=['GET', 'POST'])
 def settings():
     settings = models.Settings.get_settings()
-    products = models.Product.query.all()
+    app.logger.debug("Current settings state:")
+    app.logger.debug(f"CraftMyPDF environment: {settings.craftmypdf_environment}")
+    app.logger.debug(f"CraftMyPDF API key exists: {bool(settings.craftmypdf_api_key)}")
+    app.logger.debug(f"Square environment: {settings.square_environment}")
+    app.logger.debug(f"Square credentials exist: {bool(settings.square_sandbox_access_token or settings.square_production_access_token)}")
 
     if request.method == 'POST':
         try:
-            # Handle Square environment settings
-            settings.square_environment = 'production' if request.form.get('square_environment') == 'production' else 'sandbox'
-            settings.square_sandbox_access_token = request.form.get('square_sandbox_access_token')
-            settings.square_sandbox_location_id = request.form.get('square_sandbox_location_id')
-            settings.square_production_access_token = request.form.get('square_production_access_token')
-            settings.square_production_location_id = request.form.get('square_production_location_id')
+            form_type = request.form.get('form_type', '')
+            app.logger.info(f"Processing settings form submission. Form type: {form_type}")
 
-            # Handle development settings
-            settings.show_square_id_controls = bool(request.form.get('show_square_id'))
-            settings.show_square_image_id_controls = bool(request.form.get('show_square_image_id'))
+            if form_type == 'craftmypdf':
+                # Handle CraftMyPDF settings
+                craftmypdf_api_key = request.form.get('craftmypdf_api_key')
+                if craftmypdf_api_key and craftmypdf_api_key.strip():
+                    settings.craftmypdf_api_key = craftmypdf_api_key.strip()
+                    app.logger.info("Updated CraftMyPDF API key")
 
-            # Update CraftMyPDF settings
-            settings.craftmypdf_api_key = request.form.get('craftmypdf_api_key')
+            elif form_type == 'square':
+                # Handle Square API settings
+                settings.square_environment = 'production' if request.form.get('square_environment') == 'production' else 'sandbox'
+                app.logger.info(f"Set Square environment to: {settings.square_environment}")
+
+                # Update Square credentials if provided and not empty
+                square_sandbox_token = request.form.get('square_sandbox_access_token')
+                if square_sandbox_token and square_sandbox_token.strip():
+                    settings.square_sandbox_access_token = square_sandbox_token.strip()
+                    app.logger.info("Updated Square sandbox access token")
+
+                square_sandbox_location = request.form.get('square_sandbox_location_id')
+                if square_sandbox_location and square_sandbox_location.strip():
+                    settings.square_sandbox_location_id = square_sandbox_location.strip()
+                    app.logger.info("Updated Square sandbox location ID")
+
+                square_prod_token = request.form.get('square_production_access_token')
+                if square_prod_token and square_prod_token.strip():
+                    settings.square_production_access_token = square_prod_token.strip()
+                    app.logger.info("Updated Square production access token")
+
+                square_prod_location = request.form.get('square_production_location_id')
+                if square_prod_location and square_prod_location.strip():
+                    settings.square_production_location_id = square_prod_location.strip()
+                    app.logger.info("Updated Square production location ID")
+
+            elif form_type == 'development':
+                # Handle development settings
+                settings.show_square_id_controls = bool(request.form.get('show_square_id'))
+                settings.show_square_image_id_controls = bool(request.form.get('show_square_image_id'))
+                app.logger.info("Updated Square development settings")
 
             db.session.commit()
+            app.logger.info(f"Successfully saved {form_type} settings")
             flash('Settings updated successfully!', 'success')
             return redirect(url_for('settings'))
 
         except Exception as e:
             db.session.rollback()
-            flash(f'Error updating settings: {str(e)}', 'danger')
+            app.logger.error(f"Error saving settings: {str(e)}")
+            flash(f'Error saving settings: {str(e)}', 'danger')
 
-    return render_template('settings.html', settings=settings, products=products)
+    return render_template('settings.html', 
+                         settings=settings,
+                         products=models.Product.query.filter(models.Product.square_catalog_id.isnot(None)).all())
 
 @app.route('/api/delete_batch_history/<int:history_id>', methods=['DELETE'])
 def delete_batch_history(history_id):
@@ -1068,6 +1093,7 @@ def delete_product(product_id):
         db.session.rollback()
         logging.error(f"Error deleting product: {e}")
         return jsonify({'error': str(e)}), 500
+
 
 
 @app.route('/api/generate_json/<int:product_id>')
