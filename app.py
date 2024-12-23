@@ -881,7 +881,6 @@ def settings():
 
             # Update CraftMyPDF settings
             settings.craftmypdf_api_key = request.form.get('craftmypdf_api_key')
-            settings.craftmypdf_environment = 'production' if request.form.get('craftmypdf_environment') == 'production' else 'sandbox'
 
             db.session.commit()
             flash('Settings updated successfully!', 'success')
