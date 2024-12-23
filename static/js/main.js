@@ -71,9 +71,6 @@ document.getElementById('confirmDelete')?.addEventListener('click', async functi
         
         if (response.ok) {
             resultsDiv.innerHTML = '<div class="alert alert-success">Product deleted successfully!</div>';
-            const squareSyncModal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
-            squareSyncModal.show();
-            deleteModal.hide();
             setTimeout(() => {
                 window.location.href = '/vmc-admin/products';
             }, 2000);
