@@ -1019,6 +1019,13 @@ def delete_product(product_id):
         product = models.Product.query.get_or_404(product_id)
         batch_number = product.batch_number
 
+        # If product has Square ID, remove from Square first
+        if product.square_catalog_id:
+            from square_product_sync import delete_product_from_square
+            result = delete_product_from_square(product)
+            if 'error' in result:
+                return jsonify({'error': f"Failed to remove from Square: {result['error']}"}), 500
+
         # Clear categories using SQL to avoid constraint issues
         db.session.execute(
             product_categories.delete().where(product_categories.c.product_id == product_id)
