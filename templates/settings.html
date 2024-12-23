@@ -179,15 +179,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (scrollTop > 100) {
             floatingHeader.classList.remove('d-none');
-            if (scrollTop > lastScrollTop) {
-                floatingHeader.style.transform = 'translateY(-100%)';
-            } else {
-                floatingHeader.style.transform = 'translateY(0)';
-            }
+            floatingHeader.style.transform = 'translateY(0)';
         } else {
             floatingHeader.classList.add('d-none');
         }
-        lastScrollTop = scrollTop;
     });
     // Existing environment toggle for Square
     const envToggle = document.getElementById('squareEnvironment');
