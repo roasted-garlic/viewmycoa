@@ -588,24 +588,29 @@ def unsync_all_products():
     try:
         from square_product_sync import delete_product_from_square
         products = models.Product.query.filter(models.Product.square_catalog_id.isnot(None)).all()
-        
+
         for product in products:
-            result = delete_product_from_square(product)
-            if 'error' in result:
-                return jsonify({
-                    'success': False,
-                    'error': f"Error removing product {product.id}: {result['error']}"
-                }), 400
-                
+            try:
+                result = delete_product_from_square(product)
+                if 'error' in result:
+                    app.logger.error(f"Error removing product {product.id} from Square: {result['error']}")
+                    continue
+                product.square_catalog_id = None
+                product.square_image_id = None
+            except Exception as e:
+                app.logger.error(f"Error processing product {product.id}: {str(e)}")
+                continue
+
+        db.session.commit()
         return jsonify({'success': True})
-        
+
     except Exception as e:
+        db.session.rollback()
         app.logger.error(f"Error removing all products from Square: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
         }), 500
-
 
 @app.route('/template/<int:template_id>/edit', methods=['GET', 'POST'])
 def edit_template(template_id):
@@ -868,8 +873,8 @@ def settings():
             if form_type == 'craftmypdf':
                 # Handle CraftMyPDF settings
                 craftmypdf_api_key = request.form.get('craftmypdf_api_key')
-                if craftmypdf_api_key:  # Only update if provided
-                    settings.craftmypdf_api_key = craftmypdf_api_key
+                if craftmypdf_api_key and craftmypdf_api_key.strip():
+                    settings.craftmypdf_api_key = craftmypdf_api_key.strip()
                     app.logger.info("Updated CraftMyPDF API key")
 
                 settings.craftmypdf_environment = 'production' if request.form.get('craftmypdf_environment') == 'production' else 'sandbox'
@@ -880,25 +885,25 @@ def settings():
                 settings.square_environment = 'production' if request.form.get('square_environment') == 'production' else 'sandbox'
                 app.logger.info(f"Set Square environment to: {settings.square_environment}")
 
-                # Update Square credentials if provided
+                # Update Square credentials if provided and not empty
                 square_sandbox_token = request.form.get('square_sandbox_access_token')
-                if square_sandbox_token:
-                    settings.square_sandbox_access_token = square_sandbox_token
+                if square_sandbox_token and square_sandbox_token.strip():
+                    settings.square_sandbox_access_token = square_sandbox_token.strip()
                     app.logger.info("Updated Square sandbox access token")
 
                 square_sandbox_location = request.form.get('square_sandbox_location_id')
-                if square_sandbox_location:
-                    settings.square_sandbox_location_id = square_sandbox_location
+                if square_sandbox_location and square_sandbox_location.strip():
+                    settings.square_sandbox_location_id = square_sandbox_location.strip()
                     app.logger.info("Updated Square sandbox location ID")
 
                 square_prod_token = request.form.get('square_production_access_token')
-                if square_prod_token:
-                    settings.square_production_access_token = square_prod_token
+                if square_prod_token and square_prod_token.strip():
+                    settings.square_production_access_token = square_prod_token.strip()
                     app.logger.info("Updated Square production access token")
 
                 square_prod_location = request.form.get('square_production_location_id')
-                if square_prod_location:
-                    settings.square_production_location_id = square_prod_location
+                if square_prod_location and square_prod_location.strip():
+                    settings.square_production_location_id = square_prod_location.strip()
                     app.logger.info("Updated Square production location ID")
 
             elif form_type == 'development':
