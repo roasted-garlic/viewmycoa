@@ -8,23 +8,33 @@ from PIL import Image
 import datetime
 from flask_migrate import Migrate
 from utils import generate_batch_number, is_valid_image
-from models import db, product_categories
+from models import db, product_categories, Settings
 
 app = Flask(__name__)
-migrate = Migrate(app, db)
 
-# Configuration
-app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
+# Basic configuration
+app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Disable caching for development
+
+# Database configuration
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
 }
 
+# Initialize database
+db.init_app(app)
 
-app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Disable caching for development
+# Initialize migrations after database setup
+migrate = Migrate(app, db)
+
+# Create tables and get settings
+with app.app_context():
+    db.create_all()
+    settings = Settings.get_settings()
+    app.secret_key = settings.get_secret_key()
 
 @app.after_request
 def add_header(response):
@@ -46,9 +56,9 @@ def serve_pdf(filename):
             return "PDF not found", 404
 
         download = request.args.get('download', '0') == '1'
-        
+
         return send_from_directory(
-            pdf_dir, 
+            pdf_dir,
             filename,
             as_attachment=download,
             mimetype='application/pdf'
@@ -57,8 +67,6 @@ def serve_pdf(filename):
         app.logger.error(f"Error serving PDF {filename}: {str(e)}")
         return f"Error accessing PDF: {str(e)}", 500
 
-
-db.init_app(app)
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -96,12 +104,12 @@ def search_results():
     products = models.Product.query.filter(
         (models.Product.title.ilike(f'%{query}%'))
         | (models.Product.batch_number.ilike(f'%{query}%'))).all()
-    
+
     # Search batch history
     batch_history = models.BatchHistory.query.filter(
         models.BatchHistory.batch_number.ilike(f'%{query}%')
     ).all()
-    
+
     return render_template('search_results.html',
                            products=products,
                            batch_history=batch_history,
@@ -113,13 +121,13 @@ def public_product_detail(batch_number):
     # First try to find a current product
     product = models.Product.query.filter_by(batch_number=batch_number).first()
     if product:
-        return render_template('public_product_detail.html', 
-                             product=product, 
+        return render_template('public_product_detail.html',
+                             product=product,
                              is_historical=False)
-    
+
     # If not found, look for historical record
     history = models.BatchHistory.query.filter_by(batch_number=batch_number).first_or_404()
-    return render_template('public_product_detail.html', 
+    return render_template('public_product_detail.html',
                          product=history.product,
                          batch_history=history,
                          is_historical=True)
@@ -136,7 +144,7 @@ def create_category():
         data = request.get_json()
         if not data or 'name' not in data:
             return jsonify({'error': 'Name is required'}), 400
-            
+
         category = models.Category()
         category.name = data['name']
         category.description = data.get('description', '')
@@ -177,10 +185,10 @@ def sync_category(category_id):
         from square_category_sync import sync_category_to_square
         category = models.Category.query.get_or_404(category_id)
         result = sync_category_to_square(category)
-        
+
         if 'error' in result:
             return jsonify({'error': result['error']}), 400
-            
+
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -189,7 +197,7 @@ def sync_category(category_id):
 def unsync_category(category_id):
     try:
         category = models.Category.query.get_or_404(category_id)
-        
+
         # Check if any attached products have Square catalog IDs
         if any(product.square_catalog_id for product in category.products):
             return jsonify({
@@ -197,13 +205,13 @@ def unsync_category(category_id):
                 'has_products': True,
                 'error': 'Cannot unsync category with Square-synced products'
             }), 400
-            
+
         from square_category_sync import delete_category_from_square
         result = delete_category_from_square(category)
-        
+
         if 'error' in result:
             return jsonify({'error': result['error']}), 400
-            
+
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -216,7 +224,7 @@ def products():
 
 def fetch_craftmypdf_templates():
     """Fetch templates from CraftMyPDF API"""
-    settings = models.Settings.get_settings()
+    settings = Settings.get_settings()
     credentials = settings.get_craftmypdf_credentials()
     api_key = credentials['api_key']
 
@@ -248,13 +256,6 @@ def fetch_craftmypdf_templates():
             data = response.json()
             templates = data.get('templates', [])
             app.logger.info(f"Successfully fetched {len(templates)} templates")
-
-            # Log template IDs for debugging
-            for template in templates:
-                app.logger.debug(
-                    f"Template ID: {template.get('template_id')}, Name: {template.get('name')}"
-                )
-
             return templates
         else:
             app.logger.error(
@@ -269,7 +270,6 @@ def fetch_craftmypdf_templates():
         app.logger.error(f"Unexpected error fetching templates: {str(e)}")
         return []
 
-
 @app.route('/vmc-admin/products/new', methods=['GET', 'POST'])
 def create_product():
     templates = models.ProductTemplate.query.all()
@@ -279,7 +279,7 @@ def create_product():
     if request.method == 'POST':
         title = request.form.get('title')
         attributes = {}
-        
+
         # Get selected category ID and other fields
         category_id = request.form.get('category_id')
         cost = request.form.get('cost')
@@ -307,7 +307,7 @@ def create_product():
         product.price = float(price) if price else None
         product.craftmypdf_template_id = request.form.get('craftmypdf_template_id')
         product.set_attributes(attributes)
-        
+
         # Add to database to get product ID
         db.session.add(product)
         db.session.flush()
@@ -356,15 +356,15 @@ def product_detail(product_id):
     pdfs = models.GeneratedPDF.query.filter(
         models.GeneratedPDF.product_id == product_id
     ).order_by(models.GeneratedPDF.created_at.desc()).all()
-    
+
     # Debug logging
     app.logger.debug(f"Found {len(pdfs)} PDFs for product {product_id}")
     for pdf in pdfs:
         app.logger.debug(f"PDF ID: {pdf.id}, Filename: {pdf.filename}, Batch History ID: {pdf.batch_history_id}")
-    
-    return render_template('product_detail.html', 
-                         product=product, 
-                         pdfs=pdfs, 
+
+    return render_template('product_detail.html',
+                         product=product,
+                         pdfs=pdfs,
                          BatchHistory=models.BatchHistory)
 
 
@@ -498,7 +498,7 @@ def generate_pdf(product_id):
         if pdf_response.status_code == 200:
             # Ensure directory exists
             os.makedirs(os.path.dirname(pdf_filepath), exist_ok=True)
-            
+
             # Save PDF
             with open(pdf_filepath, 'wb') as f:
                 f.write(pdf_response.content)
@@ -532,12 +532,12 @@ def delete_pdf(pdf_id):
             pdf_path = os.path.join('static', 'pdfs', product.batch_number, pdf.filename)
             if os.path.exists(pdf_path):
                 os.remove(pdf_path)
-                
+
                 # Check if directory is empty and delete it
                 pdf_dir = os.path.dirname(pdf_path)
                 if os.path.exists(pdf_dir) and not os.listdir(pdf_dir):
                     os.rmdir(pdf_dir)
-                    
+
         db.session.delete(pdf)
         db.session.commit()
         return jsonify({'success': True})
@@ -598,7 +598,7 @@ def unsync_all_products():
     try:
         from square_product_sync import delete_product_from_square
         products = models.Product.query.filter(models.Product.square_catalog_id.isnot(None)).all()
-        
+
         for product in products:
             result = delete_product_from_square(product)
             if 'error' in result:
@@ -606,9 +606,9 @@ def unsync_all_products():
                     'success': False,
                     'error': f"Error removing product {product.id}: {result['error']}"
                 }), 400
-                
+
         return jsonify({'success': True})
-        
+
     except Exception as e:
         app.logger.error(f"Error removing all products from Square: {str(e)}")
         return jsonify({
@@ -653,10 +653,10 @@ def duplicate_template(template_id):
         new_template = models.ProductTemplate()
         new_template.name = f"{original.name} - Copy"
         new_template.set_attributes(original.get_attributes())
-        
+
         db.session.add(new_template)
         db.session.commit()
-        
+
         return jsonify({'success': True, 'new_template_id': new_template.id})
     except Exception as e:
         db.session.rollback()
@@ -693,7 +693,7 @@ def edit_product(product_id):
                 batch_history.product_id = product.id
                 batch_history.batch_number = product.batch_number
                 batch_history.set_attributes(product.get_attributes())
-                
+
                 # Move generated PDFs to history
                 pdfs = models.GeneratedPDF.query.filter_by(product_id=product.id, batch_history_id=None).all()
                 for pdf in pdfs:
@@ -704,7 +704,7 @@ def edit_product(product_id):
                         history_dir = os.path.join('pdfs', batch_history.batch_number)
                         new_filepath = os.path.join(history_dir, new_filename)
                         old_filepath = os.path.join('static', 'pdfs', product.batch_number, pdf.filename)
-                        
+
                         try:
                             if os.path.exists(old_filepath):
                                 os.makedirs(os.path.join('static', history_dir), exist_ok=True)
@@ -714,11 +714,11 @@ def edit_product(product_id):
                                     shutil.copy2(old_filepath, os.path.join('static', new_filepath))
                                     # Only remove original after successful copy
                                     os.remove(old_filepath)
-                                    
+
                                     # Update the PDF record
                                     pdf.batch_history_id = batch_history.id
                                     pdf.filename = new_filepath
-                                    pdf.pdf_url = url_for('serve_pdf', 
+                                    pdf.pdf_url = url_for('serve_pdf',
                                                         filename=os.path.join(batch_history.batch_number, new_filename),
                                                         _external=True)
                                     db.session.flush()
@@ -746,7 +746,7 @@ def edit_product(product_id):
                         try:
                             old_coa_path = os.path.join('static', old_coa)
                             new_coa_path = os.path.join('static', new_filepath)
-                            
+
                             if os.path.exists(old_coa_path) and old_coa_path != new_coa_path:
                                 os.makedirs(os.path.join('static', history_dir), exist_ok=True)
                                 import shutil
@@ -896,26 +896,26 @@ def settings():
 def delete_batch_history(history_id):
     try:
         history = models.BatchHistory.query.get_or_404(history_id)
-        
+
         # Delete the entire batch directory
         batch_dir = os.path.join('static', 'pdfs', history.batch_number)
         if os.path.exists(batch_dir):
             import shutil
             shutil.rmtree(batch_dir)
-        
+
         # Delete historical COA if exists and it's not in the batch directory
         if history.coa_pdf:
             coa_path = os.path.join('static', history.coa_pdf)
             if os.path.exists(coa_path) and not coa_path.startswith(batch_dir):
                 os.remove(coa_path)
-        
+
         # Delete PDF records
         pdfs = models.GeneratedPDF.query.filter_by(
             batch_history_id=history.id
         ).all()
         for pdf in pdfs:
             db.session.delete(pdf)
-        
+
         db.session.delete(history)
         db.session.commit()
         return jsonify({'success': True})
@@ -946,7 +946,7 @@ def duplicate_product(product_id):
     try:
         from utils import generate_batch_number, generate_sku, generate_upc_barcode
         original = models.Product.query.get_or_404(product_id)
-        
+
         # Create new product with copied attributes
         new_product = models.Product()
         new_product.title = f"{original.title} - Copy"
@@ -960,14 +960,14 @@ def duplicate_product(product_id):
         new_product.template_id = original.template_id
         new_product.craftmypdf_template_id = original.craftmypdf_template_id
         new_product.label_qty = original.label_qty
-        
+
         # Handle categories properly
         if len(original.categories) > 0:
             new_product.categories = list(original.categories)
-        
+
         db.session.add(new_product)
         db.session.flush()  # Get the new product ID
-        
+
         # Create product directory after we have the ID
         product_dir = os.path.join('static', 'uploads', str(new_product.id))
         os.makedirs(product_dir, exist_ok=True)
@@ -995,22 +995,21 @@ def duplicate_product(product_id):
                 new_product.label_image = os.path.join('uploads', str(new_product.id), new_filename)
         new_product.craftmypdf_template_id = original.craftmypdf_template_id
         new_product.label_qty = original.label_qty
-        
+
         # Handle categories properly
         if len(original.categories) > 0:
             new_product.categories = list(original.categories)
-        
+
         db.session.add(new_product)
         db.session.flush()  # Flush to get the new ID without committing
         db.session.commit()
-        
+
         app.logger.info(f"Successfully duplicated product {product_id} to {new_product.id}")
         return jsonify({'success': True, 'new_product_id': new_product.id})
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"Error duplicating product {product_id}: {str(e)}")
         return jsonify({'error': str(e)}), 500
-
 
 
 @app.route('/api/delete_product/<int:product_id>', methods=['DELETE'])
@@ -1034,7 +1033,7 @@ def delete_product(product_id):
         pdfs = models.GeneratedPDF.query.filter_by(product_id=product_id).all()
         for pdf in pdfs:
             db.session.delete(pdf)
-            
+
         # Delete PDF directory if it exists
         pdf_dir = os.path.join('static', 'pdfs', batch_number)
         if os.path.exists(pdf_dir):
@@ -1115,18 +1114,18 @@ def sync_single_product(product_id):
         from square_product_sync import sync_product_to_square
         product = models.Product.query.get_or_404(product_id)
         result = sync_product_to_square(product)
-        
+
         if 'error' in result:
             return jsonify({
                 'success': False,
                 'error': result['error']
             }), 400
-            
+
         return jsonify({
             'success': True,
             'data': result
         })
-        
+
     except Exception as e:
         app.logger.error(f"Error syncing product to Square: {str(e)}")
         return jsonify({
@@ -1142,7 +1141,7 @@ def save_image(file, product_id, image_type):
 
     # Get file extension
     ext = os.path.splitext(secure_filename(file.filename))[1]
-    
+
     # Create filename based on product_id and type
     filename = f"{image_type}_{product_id}{ext}"
     filepath = os.path.join(product_dir, filename)
@@ -1154,7 +1153,7 @@ def save_image(file, product_id, image_type):
 
     return filepath
 
-@app.route('/api/square/clear-id/<int:product_id>', methods=['POST']) 
+@app.route('/api/square/clear-id/<int:product_id>', methods=['POST'])
 def clear_square_id(product_id):
     """Clear Square catalog ID from product"""
     try:
@@ -1173,15 +1172,15 @@ def unsync_product(product_id):
         from square_product_sync import delete_product_from_square
         product = models.Product.query.get_or_404(product_id)
         result = delete_product_from_square(product)
-        
+
         if 'error' in result:
             return jsonify({
                 'success': False,
                 'error': result['error']
             }), 400
-            
+
         return jsonify({'success': True})
-        
+
     except Exception as e:
         app.logger.error(f"Error unsyncing product from Square: {str(e)}")
         return jsonify({

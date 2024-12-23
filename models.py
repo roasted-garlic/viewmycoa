@@ -154,6 +154,7 @@ class Settings(db.Model):
     square_production_access_token = db.Column(db.String(255), nullable=True)
     square_production_location_id = db.Column(db.String(255), nullable=True)
     craftmypdf_api_key = db.Column(db.String(255), nullable=True)
+    secret_key = db.Column(db.String(255), nullable=False, default='default_secret_key')
 
     @classmethod
     def get_settings(cls):
@@ -184,3 +185,7 @@ class Settings(db.Model):
         return {
             'api_key': self.craftmypdf_api_key
         }
+
+    def get_secret_key(self):
+        """Get the Flask secret key."""
+        return self.secret_key or 'default_secret_key'
