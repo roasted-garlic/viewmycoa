@@ -877,6 +877,9 @@ def settings():
                     settings.craftmypdf_api_key = craftmypdf_api_key.strip()
                     app.logger.info("Updated CraftMyPDF API key")
 
+                settings.craftmypdf_environment = 'production' if request.form.get('craftmypdf_environment') == 'production' else 'sandbox'
+                app.logger.info(f"Set CraftMyPDF environment to: {settings.craftmypdf_environment}")
+
             elif form_type == 'square':
                 # Handle Square API settings
                 settings.square_environment = 'production' if request.form.get('square_environment') == 'production' else 'sandbox'
