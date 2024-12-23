@@ -1,7 +1,6 @@
-
 import os
 import logging
-from app import app
+from app import app, db
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -19,7 +18,11 @@ def init_app():
                 os.makedirs(directory)
                 logger.info(f"Created directory at {directory}")
 
-        logger.info("Application initialized successfully")
+        # Initialize database
+        with app.app_context():
+            import models  # Import models before creating tables
+            db.create_all()
+            logger.info("Database tables created successfully")
 
     except Exception as e:
         logger.error(f"Error during application initialization: {str(e)}")
