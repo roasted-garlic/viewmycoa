@@ -32,8 +32,14 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="craftmypdfApiKey" class="form-label">API Key</label>
-                            <input type="password" class="form-control" id="craftmypdfApiKey" name="craftmypdf_api_key" 
-                                   value="{{ settings.craftmypdf_api_key or '' }}">
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="craftmypdfApiKey" name="craftmypdf_api_key" 
+                                       value="{{ settings.craftmypdf_api_key or '' }}">
+                                <button class="btn btn-outline-secondary" type="button" id="validateCraftMyPDF">
+                                    <i class="fas fa-check"></i> Validate
+                                </button>
+                            </div>
+                            <div id="craftmypdfValidationResult" class="mt-2"></div>
                             <small class="text-muted">Your CraftMyPDF API key for authentication</small>
                         </div>
                     </div>
@@ -74,8 +80,14 @@
                             <div class="card-body">
                                 <div class="mb-3">
                                     <label for="sandboxAccessToken" class="form-label">Access Token</label>
-                                    <input type="password" class="form-control" id="sandboxAccessToken" name="square_sandbox_access_token" 
-                                           value="{{ settings.square_sandbox_access_token or '' }}">
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="sandboxAccessToken" name="square_sandbox_access_token" 
+                                               value="{{ settings.square_sandbox_access_token or '' }}">
+                                        <button class="btn btn-outline-secondary" type="button" id="validateSquareSandbox">
+                                            <i class="fas fa-check"></i> Validate
+                                        </button>
+                                    </div>
+                                    <div id="squareSandboxValidationResult" class="mt-2"></div>
                                 </div>
                                 <div class="mb-3">
                                     <label for="sandboxLocationId" class="form-label">Location ID</label>
@@ -94,8 +106,14 @@
                             <div class="card-body">
                                 <div class="mb-3">
                                     <label for="productionAccessToken" class="form-label">Access Token</label>
-                                    <input type="password" class="form-control" id="productionAccessToken" name="square_production_access_token"
-                                           value="{{ settings.square_production_access_token or '' }}">
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="productionAccessToken" name="square_production_access_token"
+                                               value="{{ settings.square_production_access_token or '' }}">
+                                        <button class="btn btn-outline-secondary" type="button" id="validateSquareProduction">
+                                            <i class="fas fa-check"></i> Validate
+                                        </button>
+                                    </div>
+                                    <div id="squareProductionValidationResult" class="mt-2"></div>
                                 </div>
                                 <div class="mb-3">
                                     <label for="productionLocationId" class="form-label">Location ID</label>
@@ -214,6 +232,115 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     craftmypdfEnvToggle.addEventListener('change', updateCraftMyPDFEnvLabel);
+
+    // CraftMyPDF Validation
+    document.getElementById('validateCraftMyPDF').addEventListener('click', async function() {
+        const apiKey = document.getElementById('craftmypdfApiKey').value;
+        const resultDiv = document.getElementById('craftmypdfValidationResult');
+
+        if (!apiKey) {
+            resultDiv.innerHTML = '<div class="alert alert-warning">Please enter an API key</div>';
+            return;
+        }
+
+        resultDiv.innerHTML = '<div class="alert alert-info">Validating...</div>';
+
+        try {
+            const response = await fetch('/api/validate-craftmypdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ api_key: apiKey })
+            });
+
+            const data = await response.json();
+
+            if (data.valid) {
+                resultDiv.innerHTML = '<div class="alert alert-success">API key is valid!</div>';
+            } else {
+                resultDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+            }
+        } catch (error) {
+            resultDiv.innerHTML = '<div class="alert alert-danger">Error validating API key</div>';
+        }
+    });
+
+    // Square Validation - Sandbox
+    document.getElementById('validateSquareSandbox').addEventListener('click', async function() {
+        const accessToken = document.getElementById('sandboxAccessToken').value;
+        const locationId = document.getElementById('sandboxLocationId').value;
+        const resultDiv = document.getElementById('squareSandboxValidationResult');
+
+        if (!accessToken) {
+            resultDiv.innerHTML = '<div class="alert alert-warning">Please enter an access token</div>';
+            return;
+        }
+
+        resultDiv.innerHTML = '<div class="alert alert-info">Validating...</div>';
+
+        try {
+            const response = await fetch('/api/validate-square', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    access_token: accessToken,
+                    location_id: locationId,
+                    is_sandbox: true
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.valid) {
+                resultDiv.innerHTML = '<div class="alert alert-success">Credentials are valid!</div>';
+            } else {
+                resultDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+            }
+        } catch (error) {
+            resultDiv.innerHTML = '<div class="alert alert-danger">Error validating credentials</div>';
+        }
+    });
+
+    // Square Validation - Production
+    document.getElementById('validateSquareProduction').addEventListener('click', async function() {
+        const accessToken = document.getElementById('productionAccessToken').value;
+        const locationId = document.getElementById('productionLocationId').value;
+        const resultDiv = document.getElementById('squareProductionValidationResult');
+
+        if (!accessToken) {
+            resultDiv.innerHTML = '<div class="alert alert-warning">Please enter an access token</div>';
+            return;
+        }
+
+        resultDiv.innerHTML = '<div class="alert alert-info">Validating...</div>';
+
+        try {
+            const response = await fetch('/api/validate-square', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    access_token: accessToken,
+                    location_id: locationId,
+                    is_sandbox: false
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.valid) {
+                resultDiv.innerHTML = '<div class="alert alert-success">Credentials are valid!</div>';
+            } else {
+                resultDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+            }
+        } catch (error) {
+            resultDiv.innerHTML = '<div class="alert alert-danger">Error validating credentials</div>';
+        }
+    });
 
     // Handle Square product removal
     const removeBtn = document.getElementById('removeAllFromSquare');

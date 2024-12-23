@@ -8,23 +8,25 @@ from PIL import Image
 import datetime
 from flask_migrate import Migrate
 from utils import generate_batch_number, is_valid_image
-from models import db, product_categories
+from models import db, product_categories, Settings, Product, Category, ProductTemplate, BatchHistory, GeneratedPDF
 
 app = Flask(__name__)
-migrate = Migrate(app, db)
 
 # Configuration
-app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
 }
-
+app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
 
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Disable caching for development
+
+# Initialize extensions
+db.init_app(app)
+migrate = Migrate(app, db)
 
 @app.after_request
 def add_header(response):
@@ -56,9 +58,6 @@ def serve_pdf(filename):
     except Exception as e:
         app.logger.error(f"Error serving PDF {filename}: {str(e)}")
         return f"Error accessing PDF: {str(e)}", 500
-
-
-db.init_app(app)
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -768,14 +767,15 @@ def edit_product(product_id):
                 db.session.add(batch_history)
                 product.batch_number = new_batch_number
                 product.coa_pdf = None  # Clear current COA
-            product.label_qty = int(request.form.get('label_qty', 4))
-            product.template_id = request.form.get('template_id', None)
-            if request.form.get('craftmypdf_template_id'):
-                product.craftmypdf_template_id = request.form['craftmypdf_template_id']
+                product.label_qty = int(request.form.get('label_qty', 4))
+                product.template_id = request.form.get('template_id', None)
+                if request.form.get('craftmypdf_template_id'):
+                    product.craftmypdf_template_id = request.form['craftmypdf_template_id']
 
-            # Handle category assignment
+            # Handle category assignment            
             category_id = request.form.get('category_id')
-            if category_id:                category = models.Category.query.get(category_id)
+            if category_id:
+                category = models.Category.query.get(category_id)
                 if category:
                     product.categories = [category]
             else:
@@ -790,7 +790,6 @@ def edit_product(product_id):
                     attributes[name] = value
             product.set_attributes(attributes)
 
-            # Handle product image
             # Handle product image
             if 'product_image' in request.files and request.files['product_image'].filename:
                 file = request.files['product_image']
@@ -1233,3 +1232,90 @@ def clear_square_image_id(product_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+# Add these new routes after your other API routes
+
+@app.route('/api/validate-craftmypdf', methods=['POST'])
+def validate_craftmypdf():
+    """Validate CraftMyPDF API key by attempting to list templates"""
+    try:
+        data = request.get_json()
+        api_key = data.get('api_key')
+
+        if not api_key:
+            return jsonify({'valid': False, 'error': 'API key is required'}), 400
+
+        headers = {
+            'X-API-KEY': api_key,
+            'Content-Type': 'application/json'
+        }
+
+        # Try to list templates as a validation check
+        response = requests.get(
+            'https://api.craftmypdf.com/v1/list-templates',
+            headers=headers,
+            params={'limit': 1, 'offset': 0},
+            timeout=30
+        )
+
+        app.logger.debug(f"CraftMyPDF validation response status: {response.status_code}")
+        app.logger.debug(f"CraftMyPDF validation response: {response.text}")
+
+        if response.status_code == 200:
+            return jsonify({'valid': True})
+        else:
+            error_msg = response.json().get('message', 'Invalid API key')
+            return jsonify({'valid': False, 'error': error_msg}), 400
+
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f"CraftMyPDF validation error: {str(e)}")
+        return jsonify({'valid': False, 'error': str(e)}), 500
+
+@app.route('/api/validate-square', methods=['POST'])
+def validate_square():
+    """Validate Square API credentials by attempting to list locations"""
+    try:
+        credentials = request.json
+        if not credentials.get('access_token'):
+            return jsonify({'valid': False, 'error': 'No access token provided'}), 400
+
+        headers = {
+            'Square-Version': '2024-12-18',
+            'Authorization': f"Bearer {credentials['access_token']}",
+            'Content-Type': 'application/json'
+        }
+
+        base_url = ('https://connect.squareupsandbox.com/v2/locations' 
+                   if credentials.get('is_sandbox', True)
+                   else 'https://connect.squareup.com/v2/locations')
+
+        response = requests.get(
+            base_url,
+            headers=headers,
+            timeout=30
+        )
+
+        if response.status_code == 200:
+            locations = response.json().get('locations', [])
+            if credentials.get('location_id'):
+                location_exists = any(loc['id'] == credentials['location_id'] for loc in locations)
+                if not location_exists:
+                    return jsonify({
+                        'valid': False,
+                        'error': 'Location ID not found in your Square account'
+                    })
+            return jsonify({'valid': True, 'message': 'Credentials are valid'})
+        elif response.status_code == 401:
+            return jsonify({'valid': False, 'error': 'Invalid access token'})
+        else:
+            return jsonify({
+                'valid': False,
+                'error': f'API Error: {response.status_code} - {response.text}'
+            })
+
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f"Square validation error: {str(e)}")
+        return jsonify({'valid': False, 'error': str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
