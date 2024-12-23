@@ -146,15 +146,12 @@ class GeneratedPDF(db.Model):
 
 class Settings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    show_square_id_controls = db.Column(db.Boolean, default=False, nullable=False)
-    show_square_image_id_controls = db.Column(db.Boolean, default=False, nullable=False)
     square_environment = db.Column(db.String(20), default='sandbox', nullable=False)
     square_sandbox_access_token = db.Column(db.String(255), nullable=True)
     square_sandbox_location_id = db.Column(db.String(255), nullable=True)
     square_production_access_token = db.Column(db.String(255), nullable=True)
     square_production_location_id = db.Column(db.String(255), nullable=True)
     craftmypdf_api_key = db.Column(db.String(255), nullable=True)
-    secret_key = db.Column(db.String(255), nullable=False, default='default_secret_key')
 
     @classmethod
     def get_settings(cls):
@@ -185,7 +182,3 @@ class Settings(db.Model):
         return {
             'api_key': self.craftmypdf_api_key
         }
-
-    def get_secret_key(self):
-        """Get the Flask secret key."""
-        return self.secret_key or 'default_secret_key'

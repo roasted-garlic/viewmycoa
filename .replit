@@ -82,7 +82,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "FLASK_APP=app.py flask db init"
+args = "rm -rf migrations && FLASK_APP=app.py flask db init && flask db migrate -m 'initial migration' && flask db upgrade"
 
 [deployment]
 run = ["sh", "-c", "python main.py"]

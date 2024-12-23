@@ -8,7 +8,7 @@ from PIL import Image
 import datetime
 from flask_migrate import Migrate
 from utils import generate_batch_number, is_valid_image
-from models import db, product_categories, Settings
+from models import db, Settings, Product, Category, product_categories, BatchHistory, ProductTemplate, GeneratedPDF
 
 app = Flask(__name__)
 
@@ -16,25 +16,78 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Disable caching for development
+app.config['SECRET_KEY'] = 'your-secret-key-here'  # Add secret key for Flask
 
-# Database configuration
+# Database configuration - Use DATABASE_URL just for initial connection
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
 
 # Initialize database
 db.init_app(app)
 
-# Initialize migrations after database setup
+# Initialize migrations
 migrate = Migrate(app, db)
 
-# Create tables and get settings
-with app.app_context():
-    db.create_all()
+# Create upload directory
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+# Setup logging
+logging.basicConfig(level=logging.DEBUG)
+
+def fetch_craftmypdf_templates():
+    """Fetch templates from CraftMyPDF API using database credentials"""
     settings = Settings.get_settings()
-    app.secret_key = settings.get_secret_key()
+    credentials = settings.get_craftmypdf_credentials()
+    api_key = credentials['api_key']
+
+    if not api_key:
+        app.logger.error("CraftMyPDF API key not configured in database")
+        return []
+
+    headers = {'X-API-KEY': api_key, 'Content-Type': 'application/json'}
+
+    try:
+        response = requests.get('https://api.craftmypdf.com/v1/list-templates',
+                            headers=headers,
+                            params={'limit': 300, 'offset': 0},
+                            timeout=30)
+
+        if response.status_code == 200:
+            data = response.json()
+            templates = data.get('templates', [])
+            return templates
+        else:
+            app.logger.error(f"Failed to fetch templates. Status: {response.status_code}")
+            return []
+    except Exception as e:
+        app.logger.error(f"Error fetching templates: {str(e)}")
+        return []
+
+@app.route('/vmc-admin/settings', methods=['GET', 'POST'])
+def settings():
+    """Handle settings page for API credentials"""
+    settings = Settings.get_settings()
+
+    if request.method == 'POST':
+        try:
+            # Handle Square settings
+            settings.square_environment = 'production' if request.form.get('square_environment') == 'production' else 'sandbox'
+            settings.square_sandbox_access_token = request.form.get('square_sandbox_access_token')
+            settings.square_sandbox_location_id = request.form.get('square_sandbox_location_id')
+            settings.square_production_access_token = request.form.get('square_production_access_token')
+            settings.square_production_location_id = request.form.get('square_production_location_id')
+
+            # Update CraftMyPDF settings
+            settings.craftmypdf_api_key = request.form.get('craftmypdf_api_key')
+
+            db.session.commit()
+            flash('Settings updated successfully!', 'success')
+            return redirect(url_for('settings'))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating settings: {str(e)}', 'danger')
+
+    return render_template('settings.html', settings=settings)
 
 @app.after_request
 def add_header(response):
@@ -67,15 +120,6 @@ def serve_pdf(filename):
         app.logger.error(f"Error serving PDF {filename}: {str(e)}")
         return f"Error accessing PDF: {str(e)}", 500
 
-
-logging.basicConfig(level=logging.DEBUG)
-
-# Ensure upload directory exists
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
-with app.app_context():
-    import models
-    db.create_all()
 
 @app.route('/')
 def index():
@@ -222,54 +266,6 @@ def products():
     return render_template('product_list.html', products=products)
 
 
-def fetch_craftmypdf_templates():
-    """Fetch templates from CraftMyPDF API"""
-    settings = Settings.get_settings()
-    credentials = settings.get_craftmypdf_credentials()
-    api_key = credentials['api_key']
-
-    if not api_key:
-        app.logger.error("CraftMyPDF API key not configured")
-        return []
-
-    headers = {'X-API-KEY': api_key, 'Content-Type': 'application/json'}
-
-    try:
-        app.logger.debug("Fetching templates from CraftMyPDF API")
-        app.logger.debug(
-            "Using API endpoint: https://api.craftmypdf.com/v1/list-templates"
-        )
-
-        response = requests.get('https://api.craftmypdf.com/v1/list-templates',
-                              headers=headers,
-                              params={
-                                  'limit': 300,
-                                  'offset': 0
-                              },
-                              timeout=30)
-
-        app.logger.debug(f"API Response Status: {response.status_code}")
-        app.logger.debug(f"API Response Headers: {response.headers}")
-        app.logger.debug(f"API Response Content: {response.text}")
-
-        if response.status_code == 200:
-            data = response.json()
-            templates = data.get('templates', [])
-            app.logger.info(f"Successfully fetched {len(templates)} templates")
-            return templates
-        else:
-            app.logger.error(
-                f"Failed to fetch templates. Status: {response.status_code}, Response: {response.text}"
-            )
-            return []
-
-    except requests.exceptions.RequestException as e:
-        app.logger.error(f"Request error fetching templates: {str(e)}")
-        return []
-    except Exception as e:
-        app.logger.error(f"Unexpected error fetching templates: {str(e)}")
-        return []
-
 @app.route('/vmc-admin/products/new', methods=['GET', 'POST'])
 def create_product():
     templates = models.ProductTemplate.query.all()
@@ -378,7 +374,7 @@ def generate_pdf(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
 
-        # Get API key from environment
+        # Get API key from database
         settings = models.Settings.get_settings()
         credentials = settings.get_craftmypdf_credentials()
         api_key = credentials['api_key']
@@ -441,9 +437,7 @@ def generate_pdf(product_id):
 
         # Debug log the final payload
         app.logger.debug(f"Final API Request Data: {api_data}")
-
         app.logger.debug(f"Final API Request Data: {api_data}")
-
         app.logger.debug(f"API Request Payload: {api_data}")
 
         # Debug log the request payload
@@ -797,7 +791,6 @@ def edit_product(product_id):
             product.set_attributes(attributes)
 
             # Handle product image
-            # Handle product image
             if 'product_image' in request.files and request.files['product_image'].filename:
                 file = request.files['product_image']
                 if file and is_valid_image(file):
@@ -863,21 +856,17 @@ def inject_settings():
 
 @app.route('/vmc-admin/settings', methods=['GET', 'POST'])
 def settings():
-    settings = models.Settings.get_settings()
-    products = models.Product.query.all()
+    """Handle settings page for API credentials"""
+    settings = Settings.get_settings()
 
     if request.method == 'POST':
         try:
-            # Handle Square environment settings
+            # Handle Square settings
             settings.square_environment = 'production' if request.form.get('square_environment') == 'production' else 'sandbox'
             settings.square_sandbox_access_token = request.form.get('square_sandbox_access_token')
             settings.square_sandbox_location_id = request.form.get('square_sandbox_location_id')
             settings.square_production_access_token = request.form.get('square_production_access_token')
             settings.square_production_location_id = request.form.get('square_production_location_id')
-
-            # Handle development settings
-            settings.show_square_id_controls = bool(request.form.get('show_square_id'))
-            settings.show_square_image_id_controls = bool(request.form.get('show_square_image_id'))
 
             # Update CraftMyPDF settings
             settings.craftmypdf_api_key = request.form.get('craftmypdf_api_key')
@@ -890,7 +879,7 @@ def settings():
             db.session.rollback()
             flash(f'Error updating settings: {str(e)}', 'danger')
 
-    return render_template('settings.html', settings=settings, products=products)
+    return render_template('settings.html', settings=settings)
 
 @app.route('/api/delete_batch_history/<int:history_id>', methods=['DELETE'])
 def delete_batch_history(history_id):
@@ -1198,3 +1187,6 @@ def clear_square_image_id(product_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
