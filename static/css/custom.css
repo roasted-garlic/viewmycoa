@@ -30,29 +30,7 @@
     color: #0dcaf0 !important;
 }
 
-.floating-save-button {
-    position: fixed;
-    top: 74px;
-    right: 20px;
-    z-index: 1000;
-    padding: 10px;
-    border-radius: 4px;
-    background: rgba(33, 37, 41, 0.9);
-    backdrop-filter: blur(8px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
 
-.floating-save-button .btn {
-    min-width: 160px;
-}
-
-@media (max-width: 768px) {
-    .floating-save-button {
-        top: auto;
-        bottom: 20px;
-        right: 20px;
-    }
-}
 
 
 /* Button and container styles */

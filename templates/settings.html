@@ -2,7 +2,12 @@
 
 {% block content %}
 <div class="container">
-    <h1 class="mb-4">Settings</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Settings</h1>
+        <button type="submit" form="settingsForm" class="btn btn-primary">
+            <i class="fas fa-save"></i> Save All Settings
+        </button>
+    </div>
 
     <!-- CraftMyPDF API Settings Card -->
     <div class="card bg-dark border-secondary mb-4">
@@ -10,7 +15,7 @@
             <h3 class="card-title mb-0">CraftMyPDF API Settings</h3>
         </div>
         <div class="card-body">
-            <form method="POST">
+            <form method="POST" id="settingsForm">
                 <div class="card bg-secondary mb-3">
                     <div class="card-header">
                         <h5 class="card-title mb-0">API Credentials</h5>
@@ -111,11 +116,7 @@
                     <small class="text-muted">Enable/disable Square Image ID clearing functionality in product edit page</small>
                 </div>
 
-                <div id="floatingSaveButton" class="floating-save-button">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Save All Settings
-                    </button>
-                </div>
+                
             </form>
 
             <div class="square-settings">
