@@ -1018,6 +1018,8 @@ def delete_product(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
         batch_number = product.batch_number
+        product_dir = os.path.join('static', 'uploads', str(product.id))
+        pdf_dir = os.path.join('static', 'pdfs', batch_number)
 
         # If product has Square ID, remove from Square first
         if product.square_catalog_id:
@@ -1026,48 +1028,41 @@ def delete_product(product_id):
             if 'error' in result:
                 return jsonify({'error': f"Failed to remove from Square: {result['error']}"}), 500
 
-        # Clear categories using SQL to avoid constraint issues
-        db.session.execute(
-            product_categories.delete().where(product_categories.c.product_id == product_id)
-        )
-        db.session.flush()
+        with db.session.begin_nested():
+            # Clear categories using SQL
+            db.session.execute(
+                product_categories.delete().where(product_categories.c.product_id == product_id)
+            )
 
-        # Delete batch history records
-        batch_histories = models.BatchHistory.query.filter_by(product_id=product_id).all()
-        for history in batch_histories:
-            db.session.delete(history)
+            # Delete batch histories and PDFs
+            models.BatchHistory.query.filter_by(product_id=product_id).delete()
+            models.GeneratedPDF.query.filter_by(product_id=product_id).delete()
 
-        # Delete PDFs and their directory
-        pdfs = models.GeneratedPDF.query.filter_by(product_id=product_id).all()
-        for pdf in pdfs:
-            db.session.delete(pdf)
-            
-        # Delete PDF directory if it exists
-        pdf_dir = os.path.join('static', 'pdfs', batch_number)
+            # Delete the product
+            db.session.delete(product)
+
+        # Commit the transaction
+        db.session.commit()
+
+        # Clean up files after successful database operations
         if os.path.exists(pdf_dir):
             try:
                 import shutil
                 shutil.rmtree(pdf_dir)
             except OSError as e:
-                logging.error(f"Error deleting PDF directory: {e}")
+                app.logger.warning(f"Error deleting PDF directory: {e}")
 
-        # Delete product directory with all images
-        product_dir = os.path.join('static', 'uploads', str(product.id))
         if os.path.exists(product_dir):
             try:
                 import shutil
                 shutil.rmtree(product_dir)
             except OSError as e:
-                logging.error(f"Error deleting product directory: {e}")
-
-        # Delete the product and commit all changes
-        db.session.delete(product)
-        db.session.commit()
+                app.logger.warning(f"Error deleting product directory: {e}")
 
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
-        logging.error(f"Error deleting product: {e}")
+        app.logger.error(f"Error deleting product: {e}")
         return jsonify({'error': str(e)}), 500
 
 
