@@ -1,12 +1,11 @@
-
-import os
 import uuid
 import json
 import requests
 import logging
 import datetime
+import os
 from typing import Optional
-from models import Product, db
+from models import Product, db, Settings
 from app import app
 
 def upload_product_image_to_square(product: Product) -> Optional[str]:
@@ -25,12 +24,13 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
     if not os.path.exists(image_path):
         return None
 
-    # Square API endpoint and headers
-    SQUARE_BASE_URL = os.environ.get("SQUARE_BASE_URL", "https://connect.squareup.com")
-    url = f"{SQUARE_BASE_URL}/v2/catalog/images"
+    # Get Square API credentials from database
+    settings = Settings.get_settings()
+    credentials = settings.get_active_square_credentials()
+    url = f"{credentials['base_url']}/v2/catalog/images"
     headers = {
         'Square-Version': '2024-12-18',
-        'Authorization': f'Bearer {os.environ.get("SQUARE_ACCESS_TOKEN")}'
+        'Authorization': f'Bearer {credentials["access_token"]}'
     }
 
     try:
@@ -67,10 +67,10 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
             app.logger.info(f"Square Image Upload URL: {url}")
             app.logger.info(f"Square Image Upload Headers: {headers}")
             app.logger.info(f"Square Image Upload Request JSON: {json.dumps(request_json, indent=2)}")
-            
+
             # Make request to Square API
             response = requests.post(url, headers=headers, files=files)
-            
+
             # Log the API response
             app.logger.info(f"Square Image Upload Response Status: {response.status_code}")
             app.logger.info(f"Square Image Upload Response: {response.text}")

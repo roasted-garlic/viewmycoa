@@ -1,20 +1,18 @@
-
-import os
 import uuid
 import json
 import requests
 from flask import jsonify
 from app import app
-from models import db, Product
+from models import db, Product, Settings
 
-SQUARE_BASE_URL = os.environ.get("SQUARE_BASE_URL", "https://connect.squareup.com")
-SQUARE_API_URL = f"{SQUARE_BASE_URL}/v2/catalog/object"
 SQUARE_VERSION = "2024-12-18"
 
 def get_square_headers():
+    settings = Settings.get_settings()
+    credentials = settings.get_active_square_credentials()
     return {
         'Square-Version': SQUARE_VERSION,
-        'Authorization': f'Bearer {os.environ.get("SQUARE_ACCESS_TOKEN")}',
+        'Authorization': f'Bearer {credentials["access_token"]}',
         'Content-Type': 'application/json'
     }
 
@@ -30,13 +28,17 @@ def format_price_money(price):
 def sync_product_to_square(product):
     """Sync a single product to Square catalog"""
     from square_category_sync import sync_category_to_square
-    
+
+    settings = Settings.get_settings()
+    credentials = settings.get_active_square_credentials()
+    SQUARE_API_URL = f"{credentials['base_url']}/v2/catalog/object"
+
     idempotency_key = str(uuid.uuid4())
-    location_id = os.environ.get('SQUARE_LOCATION_ID')
-    
+    location_id = credentials['location_id']
+
     if not location_id:
         return {"error": "Square location ID not configured"}
-        
+
     # Check if product has a category with Square ID
     category_id = None
     if product.categories and len(product.categories) > 0:
@@ -50,30 +52,30 @@ def sync_product_to_square(product):
             if 'error' in category_result:
                 return {"error": f"Failed to sync category: {category_result['error']}"}
             category_id = category.square_category_id
-    
+
     existing_id = product.square_catalog_id
-    
+
     # First sync product without image
     product.square_image_id = None
     db.session.commit()
-        
+
     # If updating existing item, fetch current version
     current_version = 0
     if existing_id:
         try:
             response = requests.get(
-                f"{SQUARE_BASE_URL}/v2/catalog/object/{existing_id}",
+                f"{credentials['base_url']}/v2/catalog/object/{existing_id}",
                 headers=get_square_headers()
             )
             if response.status_code == 200:
                 current_version = response.json().get('object', {}).get('version', 0)
         except requests.exceptions.RequestException:
             pass
-        
+
     # Create product data structure
     sku_id = f"#{product.sku}"
     variation_id = f"#{product.sku}_regular"
-    
+
     # Create variation data with ID for both new and existing items
     variation_data = {
         "type": "ITEM_VARIATION",
@@ -92,7 +94,7 @@ def sync_product_to_square(product):
             }]
         }
     }
-        
+
     product_data = {
         "idempotency_key": idempotency_key,
         "object": {
@@ -115,36 +117,37 @@ def sync_product_to_square(product):
         app.logger.info(f"Square API Request URL: {SQUARE_API_URL}")
         app.logger.info(f"Square API Request Headers: {get_square_headers()}")
         app.logger.info(f"Square API Request Body: {json.dumps(product_data, indent=2)}")
-        
+
         response = requests.post(
             SQUARE_API_URL,
             headers=get_square_headers(),
             json=product_data
         )
-        
+
         # Log the API response
         app.logger.info(f"Square API Response Status: {response.status_code}")
         app.logger.info(f"Square API Response Body: {response.text}")
+
         if response.status_code == 401:
             return {"error": "Square API authentication failed. Please verify your access token."}
         elif response.status_code != 200:
             return {"error": f"Square API error: {response.text}"}
-            
+
         result = response.json()
-        
+
         # Store the catalog ID from Square's response
         catalog_object = result.get('catalog_object', {})
         if catalog_object and catalog_object.get('id'):
             product.square_catalog_id = catalog_object['id']
             db.session.commit()
-            
+
             # Now handle image upload with the product's Square catalog ID
             if product.product_image:
                 from square_image_upload import upload_product_image_to_square
                 image_result = upload_product_image_to_square(product)
                 if not image_result:
                     return {"error": "Failed to upload product image to Square"}
-            
+
         return result
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
@@ -153,7 +156,7 @@ def sync_all_products():
     """Sync all products to Square catalog"""
     products = Product.query.all()
     results = []
-    
+
     for product in products:
         result = sync_product_to_square(product)
         results.append({
@@ -161,14 +164,14 @@ def sync_all_products():
             "sku": product.sku,
             "result": result
         })
-    
+
     return results
 
 def delete_product_from_square(product):
     """Delete a product and its image from Square catalog, preserving categories"""
     if not product.square_catalog_id:
         return {"error": "No Square catalog ID found"}
-        
+
     try:
         # Store IDs and clear them first
         square_id = product.square_catalog_id
@@ -177,13 +180,16 @@ def delete_product_from_square(product):
         product.square_image_id = None
         # We intentionally do not clear category IDs here to preserve them
         db.session.commit()
-        
+
+        settings = Settings.get_settings()
+        credentials = settings.get_active_square_credentials()
+
         # Delete catalog item (will also delete associated images)
         response = requests.delete(
-            f"{SQUARE_BASE_URL}/v2/catalog/object/{square_id}",
+            f"{credentials['base_url']}/v2/catalog/object/{square_id}",
             headers=get_square_headers()
         )
-        
+
         # Even if Square returns 404, we've already cleared the IDs locally
         if response.status_code in [200, 404]:
             return {"success": True}
@@ -193,6 +199,6 @@ def delete_product_from_square(product):
             product.square_image_id = image_id
             db.session.commit()
             return {"error": f"Square API error: {response.text}"}
-            
+
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}

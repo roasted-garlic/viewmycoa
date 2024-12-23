@@ -146,6 +146,7 @@ class GeneratedPDF(db.Model):
 
 class Settings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    # Square integration settings
     show_square_id_controls = db.Column(db.Boolean, default=False, nullable=False)
     show_square_image_id_controls = db.Column(db.Boolean, default=False, nullable=False)
     square_environment = db.Column(db.String(20), default='sandbox', nullable=False)
@@ -153,6 +154,8 @@ class Settings(db.Model):
     square_sandbox_location_id = db.Column(db.String(255), nullable=True)
     square_production_access_token = db.Column(db.String(255), nullable=True)
     square_production_location_id = db.Column(db.String(255), nullable=True)
+
+    # CraftMyPDF integration settings - no sandbox mode
     craftmypdf_api_key = db.Column(db.String(255), nullable=True)
 
     @classmethod
@@ -165,22 +168,35 @@ class Settings(db.Model):
             db.session.commit()
         return settings
 
-    def get_active_credentials(self):
+    def get_active_square_credentials(self):
         """Get the active Square API credentials based on current environment."""
         if self.square_environment == 'production':
+            if not self.square_production_access_token:
+                raise ValueError("Square production access token not configured in database")
+            if not self.square_production_location_id:
+                raise ValueError("Square production location ID not configured in database")
             return {
                 'access_token': self.square_production_access_token,
                 'location_id': self.square_production_location_id,
+                'base_url': 'https://connect.squareup.com',
                 'is_sandbox': False
             }
+
+        if not self.square_sandbox_access_token:
+            raise ValueError("Square sandbox access token not configured in database")
+        if not self.square_sandbox_location_id:
+            raise ValueError("Square sandbox location ID not configured in database")
         return {
             'access_token': self.square_sandbox_access_token,
             'location_id': self.square_sandbox_location_id,
+            'base_url': 'https://connect.squareupsandbox.com',
             'is_sandbox': True
         }
 
     def get_craftmypdf_credentials(self):
         """Get the CraftMyPDF API credentials."""
+        if not self.craftmypdf_api_key:
+            raise ValueError("CraftMyPDF API key not configured in database")
         return {
             'api_key': self.craftmypdf_api_key
         }
