@@ -58,7 +58,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "FLASK_APP=app.py flask db upgrade"
+args = "FLASK_APP=app.py flask db migrate -m 'initial migration' && flask db upgrade"
 
 [[workflows.workflow]]
 name = "Database Migration"
@@ -86,7 +86,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "FLASK_APP=app.py flask db init"
+args = "rm -rf migrations && FLASK_APP=app.py flask db init"
 
 [[workflows.workflow]]
 name = "Reset Migrations"
