@@ -791,7 +791,7 @@ def edit_product(product_id):
                         except OSError:
                             pass
                     if coa_pdf.filename:
-                        filename = secure_filename(coa_pdf.filename)
+                        filename = securefilename(coa_pdf.filename)
                         batch_dir = os.path.join('pdfs', product.batch_number)
                         filepath = os.path.join(batch_dir, filename)
                         os.makedirs(os.path.join('static', batch_dir), exist_ok=True)
@@ -836,12 +836,12 @@ def inject_settings():
 
 @app.route('/vmc-admin/settings', methods=['GET', 'POST'])
 def settings():
-    """Handle settings page for API credentials"""
+    """Handle settings page and API credentials"""
     settings = Settings.get_settings()
 
     if request.method == 'POST':
         try:
-            # Handle Square settings
+            # Update Square settings
             settings.square_environment = 'production' if request.form.get('square_environment') == 'production' else 'sandbox'
             settings.square_sandbox_access_token = request.form.get('square_sandbox_access_token')
             settings.square_sandbox_location_id = request.form.get('square_sandbox_location_id')
@@ -853,11 +853,13 @@ def settings():
 
             db.session.commit()
             flash('Settings updated successfully!', 'success')
-            return redirect(url_for('settings'))
 
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating settings: {str(e)}', 'danger')
+            app.logger.error(f"Settings update error: {str(e)}")
+
+        return redirect(url_for('settings'))
 
     return render_template('settings.html', settings=settings)
 
