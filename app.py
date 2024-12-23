@@ -20,18 +20,16 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_pre_ping": True,
 }
 app.secret_key = "a secret key"  # Default key for development
+app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Disable caching for development
 
 # Initialize SQLAlchemy with app
 db.init_app(app)
 migrate = Migrate(app, db)
 
+# Create tables within app context
 with app.app_context():
     import models
     db.create_all()
     settings = models.Settings.get_settings()
-
-app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Disable caching for development
-
-# Rest of the file remains the same...
