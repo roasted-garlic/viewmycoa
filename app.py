@@ -197,7 +197,7 @@ def unsync_category(category_id):
                 'has_products': True,
                 'error': 'Cannot unsync category with Square-synced products'
             }), 400
-            
+        
         from square_category_sync import delete_category_from_square
         result = delete_category_from_square(category)
         
@@ -775,8 +775,7 @@ def edit_product(product_id):
 
             # Handle category assignment
             category_id = request.form.get('category_id')
-            if category_id:
-                category = models.Category.query.get(category_id)
+            if category_id:                category = models.Category.query.get(category_id)
                 if category:
                     product.categories = [category]
             else:
