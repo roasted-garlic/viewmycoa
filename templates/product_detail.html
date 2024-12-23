@@ -693,7 +693,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Generate PDF functionality
     const generatePDFButton = document.getElementById('generatePDF');
-    if (generatePDFButton) {
+    if (generatePDFButton && !generatePDFButton.hasEventListener) {
+        generatePDFButton.hasEventListener = true;
         generatePDFButton.addEventListener('click', async function() {
             const productId = this.dataset.productId;
             const button = this;
