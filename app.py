@@ -14,10 +14,12 @@ app = Flask(__name__)
 migrate = Migrate(app, db)
 
 # Configuration
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"  # Set this before db.init_app()
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
 }
+app.secret_key = "a secret key"  # Default key for development
 
 db.init_app(app)
 
@@ -25,8 +27,6 @@ with app.app_context():
     import models
     db.create_all()
     settings = models.Settings.get_settings()
-    app.secret_key = "a secret key"  # Default key for development
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"  # Default SQLite database
 
 
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
