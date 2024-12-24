@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Admin Dashboard</h1>
+    
+    <div class="row">
+        <!-- Products Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card bg-dark border-primary h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Products</h5>
+                    <p class="display-4">{{ product_count }}</p>
+                    <p class="card-text">Total products in system</p>
+                    <a href="{{ url_for('products') }}" class="btn btn-primary">
+                        <i class="fas fa-box"></i> Manage Products
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Categories Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card bg-dark border-success h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Categories</h5>
+                    <p class="display-4">{{ category_count }}</p>
+                    <p class="card-text">Total categories</p>
+                    <a href="{{ url_for('categories') }}" class="btn btn-success">
+                        <i class="fas fa-tags"></i> Manage Categories
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Templates Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card bg-dark border-info h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Templates</h5>
+                    <p class="display-4">{{ template_count }}</p>
+                    <p class="card-text">Product templates</p>
+                    <a href="{{ url_for('template_list') }}" class="btn btn-info">
+                        <i class="fas fa-clipboard-list"></i> Manage Templates
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
