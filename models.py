@@ -200,22 +200,3 @@ class Settings(db.Model):
         return {
             'api_key': self.craftmypdf_api_key
         }
-
-class FeatureRequest(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    description = db.Column(db.Text, nullable=False)
-    user_id = db.Column(db.String(100), nullable=False)
-    user_name = db.Column(db.String(100), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    upvotes = db.relationship('Vote', backref='feature_request', lazy='dynamic')
-
-class Vote(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    feature_request_id = db.Column(db.Integer, db.ForeignKey('feature_request.id', ondelete='CASCADE'))
-    user_id = db.Column(db.String(100), nullable=False)
-    value = db.Column(db.Integer, nullable=False)  # 1 for upvote, -1 for downvote
-
-db.init_app(app)
-
-logging.basicConfig(level=logging.DEBUG)
