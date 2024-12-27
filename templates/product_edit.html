@@ -127,6 +127,11 @@
                             <h5 class="card-title text-info mb-3">
                                 <i class="fas fa-file-pdf"></i> PDF Template
                             </h5>
+                            {% if not has_craftmypdf %}
+                            <div class="alert alert-warning mb-3">
+                                <i class="fas fa-exclamation-triangle"></i> CraftMyPDF API key is not configured. PDF generation will be disabled until configured in settings. Visit <a href="https://craftmypdf.com/" target="_blank">https://craftmypdf.com/</a> to get started.
+                            </div>
+                            {% endif %}
                             <select class="form-select" id="craftmypdf_template" name="craftmypdf_template_id" required>
                                 <option value="">Select a PDF Template</option>
                                 {% for template in pdf_templates %}
