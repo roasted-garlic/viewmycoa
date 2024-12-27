@@ -171,10 +171,8 @@ class Settings(db.Model):
     def get_active_square_credentials(self):
         """Get the active Square API credentials based on current environment."""
         if self.square_environment == 'production':
-            if not self.square_production_access_token:
-                raise ValueError("Square production access token not configured in database")
-            if not self.square_production_location_id:
-                raise ValueError("Square production location ID not configured in database")
+            if not self.square_production_access_token or not self.square_production_location_id:
+                return None
             return {
                 'access_token': self.square_production_access_token,
                 'location_id': self.square_production_location_id,
@@ -182,10 +180,8 @@ class Settings(db.Model):
                 'is_sandbox': False
             }
 
-        if not self.square_sandbox_access_token:
-            raise ValueError("Square sandbox access token not configured in database")
-        if not self.square_sandbox_location_id:
-            raise ValueError("Square sandbox location ID not configured in database")
+        if not self.square_sandbox_access_token or not self.square_sandbox_location_id:
+            return None
         return {
             'access_token': self.square_sandbox_access_token,
             'location_id': self.square_sandbox_location_id,
@@ -196,7 +192,7 @@ class Settings(db.Model):
     def get_craftmypdf_credentials(self):
         """Get the CraftMyPDF API credentials."""
         if not self.craftmypdf_api_key:
-            raise ValueError("CraftMyPDF API key not configured in database")
+            return {'api_key': None}
         return {
             'api_key': self.craftmypdf_api_key
         }

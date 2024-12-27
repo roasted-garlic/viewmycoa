@@ -217,11 +217,11 @@ def products():
 def fetch_craftmypdf_templates():
     """Fetch templates from CraftMyPDF API"""
     settings = models.Settings.get_settings()
-    credentials = settings.get_craftmypdf_credentials()
-    api_key = credentials['api_key']
-
-    if not api_key:
-        app.logger.error("CraftMyPDF API key not configured")
+    try:
+        credentials = settings.get_craftmypdf_credentials()
+        api_key = credentials['api_key']
+    except ValueError:
+        app.logger.warning("CraftMyPDF API key not configured")
         return []
 
     headers = {'X-API-KEY': api_key, 'Content-Type': 'application/json'}
