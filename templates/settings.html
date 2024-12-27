@@ -26,6 +26,13 @@
             <h3 class="card-title mb-0">CraftMyPDF API Settings</h3>
         </div>
         <div class="card-body">
+            {% if not settings.craftmypdf_api_key %}
+            <div class="card bg-warning text-dark mb-3">
+                <div class="card-body">
+                    <i class="fas fa-exclamation-triangle"></i> CraftMyPDF API key is not configured. PDF generation will be disabled until configured in settings. Visit <a href="https://craftmypdf.com/" target="_blank" class="text-dark"><u>https://craftmypdf.com/</u></a> to get started.
+                </div>
+            </div>
+            {% endif %}
             <form method="POST" id="settingsForm">
                 <div class="card bg-secondary mb-3">
                     <div class="card-header">
@@ -48,6 +55,13 @@
             <h3 class="card-title mb-0">Square API Settings</h3>
         </div>
         <div class="card-body">
+            {% if not settings.square_sandbox_access_token and not settings.square_production_access_token %}
+            <div class="card bg-warning text-dark mb-3">
+                <div class="card-body">
+                    <i class="fas fa-exclamation-triangle"></i> Square API credentials are not configured. Square integration will be disabled until configured in settings. Visit <a href="https://developer.squareup.com/" target="_blank" class="text-dark"><u>https://developer.squareup.com/</u></a> to get started.
+                </div>
+            </div>
+            {% endif %}
                 <div class="mb-4">
                     <label class="form-label">Environment</label>
                     <div class="form-check form-switch">
