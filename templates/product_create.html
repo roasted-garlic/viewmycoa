@@ -119,11 +119,13 @@
                                 </div>
                             </div>
                             {% endif %}
-                            <select class="form-select mb-3" id="craftmypdf_template" name="craftmypdf_template_id" required>
-                                <option value="">Select a PDF Template</option>
+                            <select class="form-select mb-3" id="craftmypdf_template" name="craftmypdf_template_id" required {% if not has_craftmypdf %}disabled{% endif %}>
+                                <option value="">{% if not has_craftmypdf %}CraftMyPDF API key required{% else %}Select a PDF Template{% endif %}</option>
+                                {% if has_craftmypdf %}
                                 {% for template in pdf_templates %}
                                 <option value="{{ template.template_id }}">{{ template.name }}</option>
                                 {% endfor %}
+                                {% endif %}
                             </select>
                             <div class="mb-3">
                                 <label class="form-label">Number of Labels</label>
