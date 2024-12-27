@@ -36,7 +36,7 @@ def main():
 
         # Configure host and port
         host = "0.0.0.0"  # Listen on all available interfaces
-        port = 3000       # Use port 3000 for Replit compatibility
+        port = 3001       # Use alternate port 3001
 
         logger.info(f"Starting application on {host}:{port}")
         
