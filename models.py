@@ -196,7 +196,7 @@ class Settings(db.Model):
     def get_craftmypdf_credentials(self):
         """Get the CraftMyPDF API credentials."""
         if not self.craftmypdf_api_key:
-            raise ValueError("CraftMyPDF API key not configured in database")
+            return {'api_key': None}
         return {
             'api_key': self.craftmypdf_api_key
         }
