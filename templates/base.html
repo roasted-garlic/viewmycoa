@@ -11,23 +11,23 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('admin.admin_dashboard') }}">Product Manager</a>
+            <a class="navbar-brand" href="{{ url_for('admin_dashboard') }}">Product Manager</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.products') }}">Products</a>
+                        <a class="nav-link" href="{{ url_for('products') }}">Products</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.categories') }}">Categories</a>
+                        <a class="nav-link" href="{{ url_for('categories') }}">Categories</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.template_list') }}">Templates</a>
+                        <a class="nav-link" href="{{ url_for('template_list') }}">Templates</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.settings') }}">Settings</a>
+                        <a class="nav-link" href="{{ url_for('settings') }}">Settings</a>
                     </li>
                 </ul>
             </div>

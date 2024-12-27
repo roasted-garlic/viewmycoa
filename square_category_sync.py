@@ -7,14 +7,8 @@ from models import db, Category, Settings
 SQUARE_VERSION = "2024-12-18"
 
 def get_square_headers():
-    """Get Square API headers with proper error handling"""
     settings = Settings.get_settings()
     credentials = settings.get_active_square_credentials()
-
-    if not credentials or not credentials.get('access_token'):
-        app.logger.error("Square API credentials not configured")
-        return None
-
     return {
         'Square-Version': SQUARE_VERSION,
         'Authorization': f'Bearer {credentials["access_token"]}',
@@ -25,17 +19,11 @@ def sync_category_to_square(category):
     """Sync a single category to Square catalog"""
     settings = Settings.get_settings()
     credentials = settings.get_active_square_credentials()
-
-    if not credentials or not credentials.get('access_token'):
-        return {"error": "Square API credentials not configured"}
-
-    headers = get_square_headers()
-    if not headers:
-        return {"error": "Could not get Square API headers"}
-
     SQUARE_API_URL = f"{credentials['base_url']}/v2/catalog/object"
+
     idempotency_key = str(uuid.uuid4())
 
+    # Prepare the category data
     category_data = {
         "idempotency_key": idempotency_key,
         "object": {
@@ -50,7 +38,7 @@ def sync_category_to_square(category):
     try:
         response = requests.post(
             SQUARE_API_URL,
-            headers=headers,
+            headers=get_square_headers(),
             json=category_data
         )
 
@@ -60,14 +48,14 @@ def sync_category_to_square(category):
             return {"error": f"Square API error: {response.text}"}
 
         result = response.json()
+
+        # Store the Square category ID
         catalog_object = result.get('catalog_object', {})
         if catalog_object and catalog_object.get('id'):
             category.square_category_id = catalog_object['id']
             db.session.commit()
-            return result
 
-        return {"error": "No catalog object ID in response"}
-
+        return result
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 

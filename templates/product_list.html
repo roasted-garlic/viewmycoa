@@ -6,7 +6,7 @@
         <h1>Product List</h1>
     </div>
     <div class="col text-end">
-        <a href="{{ url_for('admin.create_product') }}" class="btn btn-primary">
+        <a href="{{ url_for('create_product') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Create Product
         </a>
     </div>
@@ -34,7 +34,7 @@
                 <h5 class="card-title">{{ product.title }}</h5>
                 <p class="card-text">Batch: {{ product.batch_number }}</p>
                 <div class="d-flex justify-content-between">
-                    <a href="{{ url_for('admin.product_detail', product_id=product.id) }}" class="btn btn-primary">View Details</a>
+                    <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-primary">View Details</a>
                     <button class="btn btn-secondary duplicate-product" data-product-id="{{ product.id }}">
                         <i class="fas fa-copy"></i> Duplicate
                     </button>
@@ -47,6 +47,7 @@
 {% endblock %}
 
 {% block scripts %}
+
 <!-- Duplicate Confirmation Modal -->
 <div class="modal fade" id="duplicateConfirmModal" tabindex="-1">
     <div class="modal-dialog">
@@ -56,35 +57,20 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to duplicate this product?</p>
-                <p>This will create a copy of the product with:</p>
-                <ul>
-                    <li>New batch number and SKU</li>
-                    <li>All product attributes</li>
-                    <li>All associated images</li>
-                </ul>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="confirmDuplicate">Duplicate Product</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize search functionality
+    // Initialize search functionality (existing code)
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', function(e) {
             const searchText = e.target.value.toLowerCase();
             const products = document.getElementsByClassName('product-card');
-
+            
             Array.from(products).forEach(product => {
                 const title = product.querySelector('.card-title').textContent.toLowerCase();
                 const batch = product.querySelector('.card-text').textContent.toLowerCase();
-
+                
                 if (title.includes(searchText) || batch.includes(searchText)) {
                     product.style.display = '';
                 } else {
@@ -109,14 +95,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle duplicate confirmation
     document.getElementById('confirmDuplicate').addEventListener('click', async function() {
         if (!productToDuplicate) return;
-
+        
         try {
-            const response = await fetch(`/admin/api/duplicate_product/${productToDuplicate}`, {
+            const response = await fetch(`/api/duplicate_product/${productToDuplicate}`, {
                 method: 'POST'
             });
             if (response.ok) {
                 const data = await response.json();
-                window.location.href = `/admin/products/${data.new_product_id}/edit`;
+                window.location.href = `/vmc-admin/products/${data.new_product_id}/edit`;
             } else {
                 showNotification('Error duplicating product', 'danger');
             }
@@ -126,26 +112,59 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         duplicateModal.hide();
     });
+});
+</script>
 
-    // Square sync functionality
-    document.getElementById('syncSquare').addEventListener('click', async function() {
-        try {
-            const response = await fetch('/admin/api/square/sync', {
-                method: 'POST'
-            });
-            const data = await response.json();
+                <p>Are you sure you want to duplicate this product?</p>
+                <p>This will create a copy of the product with:</p>
+                <ul>
+                    <li>New batch number and SKU</li>
+                    <li>All product attributes</li>
+                    <li>All associated images</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmDuplicate">Duplicate Product</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-            const resultsDiv = document.getElementById('syncResults');
-            if (data.success) {
-                resultsDiv.innerHTML = '<div class="alert alert-success">Products synced successfully!</div>';
-            } else {
-                resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
-            }
+<script>
+document.getElementById('syncSquare').addEventListener('click', async function() {
+    try {
+        const response = await fetch('/api/square/sync', {
+            method: 'POST'
+        });
+        const data = await response.json();
+        
+        const resultsDiv = document.getElementById('syncResults');
+        if (data.success) {
+            resultsDiv.innerHTML = '<div class="alert alert-success">Products synced successfully!</div>';
+        } else {
+            resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+        }
+        
+        const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
+        modal.show();
+    } catch (error) {
+        console.error('Error syncing with Square:', error);
+    }
+});
 
-            const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
-            modal.show();
-        } catch (error) {
-            console.error('Error syncing with Square:', error);
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const searchText = e.target.value.toLowerCase();
+    const products = document.getElementsByClassName('product-card');
+    
+    Array.from(products).forEach(product => {
+        const title = product.querySelector('.card-title').textContent.toLowerCase();
+        const batch = product.querySelector('.card-text').textContent.toLowerCase();
+        
+        if (title.includes(searchText) || batch.includes(searchText)) {
+            product.style.display = '';
+        } else {
+            product.style.display = 'none';
         }
     });
 });

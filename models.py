@@ -2,7 +2,6 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, relationship
 import datetime
 import json
-from flask import current_app
 
 class Base(DeclarativeBase):
     pass
@@ -112,7 +111,7 @@ class BatchHistory(db.Model):
     attributes = db.Column(db.Text)  # Stored as JSON
     coa_pdf = db.Column(db.String(500))  # URL/path to COA PDF
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-
+    
     def set_attributes(self, attrs):
         if attrs is None:
             self.attributes = json.dumps({})
@@ -144,6 +143,7 @@ class GeneratedPDF(db.Model):
     pdf_url = db.Column(db.String(500))
     batch_history = db.relationship('BatchHistory', backref='pdfs')
 
+
 class Settings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     # Square integration settings
@@ -170,44 +170,24 @@ class Settings(db.Model):
 
     def get_active_square_credentials(self):
         """Get the active Square API credentials based on current environment."""
-        try:
-            if self.square_environment == 'production':
-                if not self.square_production_access_token or not self.square_production_location_id:
-                    return {
-                        'access_token': None,
-                        'location_id': None,
-                        'base_url': 'https://connect.squareup.com',
-                        'is_sandbox': False
-                    }
-                return {
-                    'access_token': self.square_production_access_token,
-                    'location_id': self.square_production_location_id,
-                    'base_url': 'https://connect.squareup.com',
-                    'is_sandbox': False
-                }
+        if self.square_environment == 'production':
+            if not self.square_production_access_token or not self.square_production_location_id:
+                return None
+            return {
+                'access_token': self.square_production_access_token,
+                'location_id': self.square_production_location_id,
+                'base_url': 'https://connect.squareup.com',
+                'is_sandbox': False
+            }
 
-            # Default to sandbox
-            if not self.square_sandbox_access_token or not self.square_sandbox_location_id:
-                return {
-                    'access_token': None,
-                    'location_id': None,
-                    'base_url': 'https://connect.squareupsandbox.com',
-                    'is_sandbox': True
-                }
-            return {
-                'access_token': self.square_sandbox_access_token,
-                'location_id': self.square_sandbox_location_id,
-                'base_url': 'https://connect.squareupsandbox.com',
-                'is_sandbox': True
-            }
-        except Exception as e:
-            current_app.logger.error(f"Error getting Square credentials: {str(e)}")
-            return {
-                'access_token': None,
-                'location_id': None,
-                'base_url': 'https://connect.squareupsandbox.com',
-                'is_sandbox': True
-            }
+        if not self.square_sandbox_access_token or not self.square_sandbox_location_id:
+            return None
+        return {
+            'access_token': self.square_sandbox_access_token,
+            'location_id': self.square_sandbox_location_id,
+            'base_url': 'https://connect.squareupsandbox.com',
+            'is_sandbox': True
+        }
 
     def get_craftmypdf_credentials(self):
         """Get the CraftMyPDF API credentials."""
