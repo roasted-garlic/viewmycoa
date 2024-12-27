@@ -103,5 +103,6 @@ def serve_pdf(filename):
 
 # Initialize the app when running directly
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 3001))
+    # Use port 3000 for Replit web applications
+    port = int(os.environ.get('PORT', 3000))
     app.run(host='0.0.0.0', port=port, debug=True)

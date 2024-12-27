@@ -36,7 +36,7 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python app.py"
-waitForPort = 3001
+waitForPort = 3000
 
 [[workflows.workflow]]
 name = "Reset Migrations"
@@ -68,6 +68,10 @@ args = "rm -rf migrations && FLASK_APP=app.py flask db init && FLASK_APP=app.py 
 
 [deployment]
 run = ["sh", "-c", "python app.py"]
+
+[[ports]]
+localPort = 443
+externalPort = 3002
 
 [[ports]]
 localPort = 3000
