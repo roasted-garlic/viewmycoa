@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, relationship
 import datetime
 import json
+from flask import current_app
 
 class Base(DeclarativeBase):
     pass
@@ -111,7 +112,7 @@ class BatchHistory(db.Model):
     attributes = db.Column(db.Text)  # Stored as JSON
     coa_pdf = db.Column(db.String(500))  # URL/path to COA PDF
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    
+
     def set_attributes(self, attrs):
         if attrs is None:
             self.attributes = json.dumps({})
@@ -142,7 +143,6 @@ class GeneratedPDF(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     pdf_url = db.Column(db.String(500))
     batch_history = db.relationship('BatchHistory', backref='pdfs')
-
 
 class Settings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -201,7 +201,7 @@ class Settings(db.Model):
                 'is_sandbox': True
             }
         except Exception as e:
-            app.logger.error(f"Error getting Square credentials: {str(e)}")
+            current_app.logger.error(f"Error getting Square credentials: {str(e)}")
             return {
                 'access_token': None,
                 'location_id': None,
