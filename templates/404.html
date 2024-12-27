@@ -2,11 +2,12 @@
 {% extends "base_minimal.html" %}
 
 {% block content %}
-<div class="d-flex align-items-center justify-content-center" style="min-height: 100vh;">
+<div class="container mt-5">
     <div class="text-center">
         <h1 class="display-1">404</h1>
+        <h2>Page Not Found</h2>
         <p>The page you're looking for doesn't exist.</p>
-        <a href="{{ url_for('index') }}" class="btn btn-primary">Return Home</a>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary">Return to Dashboard</a>
     </div>
 </div>
 {% endblock %}
