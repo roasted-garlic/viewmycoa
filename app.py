@@ -1,146 +1,50 @@
 import os
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_from_directory
+from flask_migrate import Migrate
+from models import db, Settings, Product, Category, BatchHistory, GeneratedPDF, ProductTemplate
 import logging
 from werkzeug.utils import secure_filename
 import requests
 import json
-from PIL import Image
 import datetime
-from flask_migrate import Migrate
-from utils import generate_batch_number, is_valid_image
-from models import db, Settings, Product, Category, BatchHistory, GeneratedPDF, ProductTemplate, product_categories
+import shutil
+from PIL import Image
+import random
+import string
 
 app = Flask(__name__)
-migrate = Migrate(app, db)
 
 # Configuration
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
 
-# Initialize database configuration with default URL
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
+# Upload configuration
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Disable caching for development
 
-# Initialize the database
+# Database configuration
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+# Initialize logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Initialize the database and migrations
 db.init_app(app)
+migrate = Migrate(app, db)
 
-@app.before_request
-def before_request():
-    """Configure database URL based on environment settings"""
-    if 'static' in request.path:
-        return
-
-    try:
-        settings = Settings.get_settings()
-        active_db_url = settings.get_active_database_url()
-
-        if active_db_url and active_db_url != app.config["SQLALCHEMY_DATABASE_URI"]:
-            app.logger.info(f"Switching database environment to: {'Production' if settings.use_production_db else 'Development'}")
-
-            # Update the configuration
-            app.config["SQLALCHEMY_DATABASE_URI"] = active_db_url
-            app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-                "pool_pre_ping": True,
-                "pool_recycle": 300,
-            }
-
-            # Clean up existing connections
-            db.session.remove()
-            db.session.close_all()
-
-            # Dispose engine and remove cached properties
-            engine = db.get_engine(app)
-            if engine is not None:
-                engine.dispose()
-
-            # Force SQLAlchemy to create a new engine
-            db.get_engine.cache_clear()
-
-            app.logger.info("Database connection reset completed")
-
-    except Exception as e:
-        app.logger.error(f"Error configuring database environment: {str(e)}")
-        return jsonify({'error': 'Database configuration error'}), 500
-
-@app.route('/api/environment', methods=['GET'])
-def get_environment_status():
-    """Get current database environment status"""
-    try:
-        settings = Settings.get_settings()
-        return jsonify({
-            'success': True,
-            'current_environment': 'production' if settings.use_production_db else 'development',
-            'has_production_url': bool(settings.production_database_url),
-            'has_development_url': bool(settings.development_database_url),
-            'active_url': settings.get_active_database_url()
-        })
-    except Exception as e:
-        app.logger.error(f"Error getting environment status: {str(e)}")
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/environment/switch', methods=['POST'])
-def switch_environment():
-    """Switch between development and production environments"""
-    try:
-        settings = Settings.get_settings()
-        target_env = request.json.get('environment', 'development')
-
-        # Validate target environment
-        if target_env not in ['development', 'production']:
-            return jsonify({'error': 'Invalid environment specified'}), 400
-
-        use_production = (target_env == 'production')
-
-        # Check if target environment URL is configured and valid
-        if not settings.can_switch_to_environment(target_env):
-            return jsonify({'error': f'{target_env.title()} database URL not configured or invalid'}), 400
-
-        # Update setting
-        settings.use_production_db = use_production
-        db.session.commit()
-
-        # Force database reconnection on next request
-        active_db_url = settings.get_active_database_url()
-        if active_db_url:
-            app.config["SQLALCHEMY_DATABASE_URI"] = active_db_url
-            db.session.remove()
-            db.session.close_all()
-
-            # Dispose engine and clear cache
-            engine = db.get_engine(app)
-            if engine is not None:
-                engine.dispose()
-            db.get_engine.cache_clear()
-
-        return jsonify({
-            'success': True,
-            'message': f'Switched to {target_env} environment',
-            'current_environment': target_env
-        })
-    except Exception as e:
-        db.session.rollback()
-        app.logger.error(f"Error switching environment: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+# Ensure required directories exist
+os.makedirs('static/uploads', exist_ok=True)
+os.makedirs('static/pdfs', exist_ok=True)
 
 @app.route('/vmc-admin/settings', methods=['GET', 'POST'])
-def admin_settings():
+def settings():
     """Handle settings page and form submission"""
     settings = Settings.get_settings()
 
     if request.method == 'POST':
         try:
-            # Database environment settings
-            settings.use_production_db = bool(request.form.get('use_production_db'))
-            settings.development_database_url = request.form.get('development_database_url')
-            settings.production_database_url = request.form.get('production_database_url')
-
             # Square settings
             settings.square_environment = 'production' if request.form.get('square_environment') == 'production' else 'sandbox'
             settings.square_sandbox_access_token = request.form.get('square_sandbox_access_token')
@@ -153,25 +57,183 @@ def admin_settings():
 
             db.session.commit()
             flash('Settings updated successfully!', 'success')
+            return redirect(url_for('settings'))
 
-            # Redirect to refresh with new database connection if changed
-            if request.form.get('use_production_db') != str(settings.use_production_db):
-                return redirect(url_for('admin_settings'))
-
-            return redirect(url_for('admin_settings'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating settings: {str(e)}', 'danger')
 
     return render_template('settings.html', settings=settings)
 
-@app.after_request
-def add_header(response):
-    response.headers['Cache-Control'] = 'no-store'
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-    return response
+@app.route('/vmc-admin/products/<int:product_id>/edit', methods=['GET', 'POST'])
+def edit_product(product_id):
+    try:
+        product = Product.query.get_or_404(product_id)
+        templates = ProductTemplate.query.all()
+        categories = Category.query.order_by(Category.name).all()
+        settings = Settings.get_settings()
+        hascraftmypdf = bool(settings.craftmypdf_api_key)
+        pdf_templates = fetch_craftmypdf_templates()
+
+        if request.method == 'POST':
+            try:
+                product.title = request.form['title']
+                product.cost = float(request.form['cost']) if request.form.get('cost') else None
+                product.price = float(request.form['price']) if request.form.get('price') else None
+                new_batch_number = request.form['batch_number']
+
+                if new_batch_number != product.batch_number:
+                    # Create batch history record
+                    batch_history = BatchHistory()
+                    batch_history.product_id = product.id
+                    batch_history.batch_number = product.batch_number
+                    batch_history.set_attributes(product.get_attributes())
+
+                    # Move generated PDFs to history
+                    pdfs = GeneratedPDF.query.filter_by(product_id=product.id, batch_history_id=None).all()
+                    for pdf in pdfs:
+                        try:
+                            if pdf.filename.startswith('label_' + product.batch_number):
+                                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                                new_filename = f"history_label_{batch_history.batch_number}_{timestamp}.pdf"
+                                history_dir = os.path.join('pdfs', batch_history.batch_number)
+                                new_filepath = os.path.join(history_dir, new_filename)
+                                old_filepath = os.path.join('static', 'pdfs', product.batch_number, pdf.filename)
+
+                                if os.path.exists(old_filepath):
+                                    os.makedirs(os.path.join('static', history_dir), exist_ok=True)
+                                    try:
+                                        shutil.copy2(old_filepath, os.path.join('static', new_filepath))
+                                        os.remove(old_filepath)
+                                        pdf.batch_history_id = batch_history.id
+                                        pdf.filename = new_filepath
+                                        pdf.pdf_url = url_for('serve_pdf',
+                                                                filename=os.path.join(batch_history.batch_number, new_filename),
+                                                                _external=True)
+                                        db.session.flush()
+                                    except (shutil.Error, OSError) as e:
+                                        app.logger.error(f"Error moving PDF file: {str(e)}")
+                                        raise
+                        except Exception as e:
+                            app.logger.error(f"Error handling PDF file: {str(e)}")
+                            db.session.rollback()
+                            flash(f"Error preserving PDF files: {str(e)}", 'danger')
+                            return render_template('product_edit.html',
+                                                    product=product,
+                                                    templates=templates,
+                                                    categories=categories,
+                                                    pdf_templates=pdf_templates)
+
+                    if product.coa_pdf:
+                        try:
+                            # Move COA to history
+                            old_coa = product.coa_pdf
+                            if old_coa:
+                                new_filename = f"history_coa_{batch_history.batch_number}.pdf"
+                                history_dir = os.path.join('pdfs', batch_history.batch_number)
+                                new_filepath = os.path.join(history_dir, new_filename)
+                                old_coa_path = os.path.join('static', old_coa)
+                                new_coa_path = os.path.join('static', new_filepath)
+
+                                if os.path.exists(old_coa_path) and old_coa_path != new_coa_path:
+                                    os.makedirs(os.path.join('static', history_dir), exist_ok=True)
+                                    shutil.copy2(old_coa_path, new_coa_path)
+                                    os.remove(old_coa_path)
+                                    batch_history.coa_pdf = new_filepath
+                                    product.coa_pdf = None
+                        except Exception as e:
+                            app.logger.error(f"Error moving COA file: {str(e)}")
+                            db.session.rollback()
+                            flash(f"Error preserving COA file: {str(e)}", 'danger')
+                            return render_template('product_edit.html',
+                                                    product=product,
+                                                    templates=templates,
+                                                    categories=categories,
+                                                    pdf_templates=pdf_templates)
+
+                    db.session.add(batch_history)
+                    product.batch_number = new_batch_number
+
+                product.label_qty = int(request.form.get('label_qty', 4))
+                product.template_id = request.form.get('template_id', None)
+                if request.form.get('craftmypdf_template_id'):
+                    product.craftmypdf_template_id = request.form['craftmypdf_template_id']
+
+                # Handle category assignment
+                category_id = request.form.get('category_id')
+                if category_id:
+                    category = Category.query.get(category_id)
+                    if category:
+                        product.categories = [category]
+                else:
+                    product.categories = []  # Clear categories if none selected
+
+                # Handle attributes
+                attributes = {}
+                attr_names = request.form.getlist('attr_name[]')
+                attr_values = request.form.getlist('attr_value[]')
+                for name, value in zip(attr_names, attr_values):
+                    if name and value:  # Only add if both name and value are provided
+                        attributes[name] = value
+                product.set_attributes(attributes)
+
+                # Handle product image
+                if 'product_image' in request.files and request.files['product_image'].filename:
+                    file = request.files['product_image']
+                    if file and is_valid_image(file):
+                        if product.product_image:  # Delete old image if it exists
+                            try:
+                                os.remove(os.path.join('static', product.product_image))
+                            except OSError:
+                                pass
+                        product.product_image = save_image(file, product.id, 'product_image')
+
+                # Handle COA PDF upload
+                if 'coa_pdf' in request.files and request.files['coa_pdf'].filename:
+                    coa_pdf = request.files['coa_pdf']
+                    if coa_pdf:
+                        if product.coa_pdf:  # Delete old PDF if it exists
+                            try:
+                                os.remove(os.path.join('static', product.coa_pdf))
+                            except OSError:
+                                pass
+                        if coa_pdf.filename:
+                            filename = secure_filename(coa_pdf.filename)
+                            batch_dir = os.path.join('pdfs', product.batch_number)
+                            filepath = os.path.join(batch_dir, filename)
+                            os.makedirs(os.path.join('static', batch_dir), exist_ok=True)
+                            coa_pdf.save(os.path.join('static', filepath))
+                            product.coa_pdf = filepath
+
+                # Handle label image
+                if 'label_image' in request.files and request.files['label_image'].filename:
+                    file = request.files['label_image']
+                    if file and is_valid_image(file):
+                        if product.label_image:  # Delete old image if it exists
+                            try:
+                                os.remove(os.path.join('static', product.label_image))
+                            except OSError:
+                                pass
+                        product.label_image = save_image(file, product.id, 'label_image')
+
+                db.session.commit()
+                flash('Product updated successfully!', 'success')
+                show_reminder = '?showSquareReminder=true' if product.square_catalog_id else ''
+                return redirect(url_for('product_detail', product_id=product.id) + show_reminder)
+
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Error updating product: {str(e)}', 'danger')
+
+        return render_template('product_edit.html',
+                                product=product,
+                                templates=templates,
+                                categories=categories,
+                                pdf_templates=pdf_templates)
+    except Exception as e:
+        app.logger.error(f"Error in edit_product: {str(e)}")
+        flash(f"Error accessing product: {str(e)}", 'danger')
+        return redirect(url_for('products'))
 
 
 @app.route('/static/pdfs/<path:filename>')
@@ -671,9 +733,7 @@ def delete_pdf(pdf_id):
             # Delete physical PDF file
             pdf_path = os.path.join('static', 'pdfs', product.batch_number, pdf.filename)
             if os.path.exists(pdf_path):
-                os.remove(pdf_path)
-
-                # Check if directory is empty and delete it
+                os.remove(pdf_path)                # Check if directory is empty and                delete it
                 pdf_dir = os.path.dirname(pdf_path)
                 if os.path.exists(pdf_dir) and not os.listdir(pdf_dir):
                     os.rmdir(pdf_dir)
@@ -814,225 +874,30 @@ def delete_template(template_id):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/vmc-admin/products/<int:product_id>/edit', methods=['GET', 'POST'])
-def edit_product(product_id):
-    product = models.Product.query.get_or_404(product_id)
-    templates = models.ProductTemplate.query.all()
-    categories = models.Category.query.order_by(models.Category.name).all()
-    settings = models.Settings.get_settings()
-    hascraftmypdf = bool(settings.craftmypdf_api_key)
-    pdf_templates = fetch_craftmypdf_templates()
+def save_image(file, product_id, type_prefix):
+    """Save uploaded image with proper filename"""
+    if file and is_valid_image(file):
+        filename = secure_filename(f"{type_prefix}_{product_id}_{file.filename}")
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(os.path.join('static', filepath))
+        return filepath
+    return None
 
-    if request.method == 'POST':
-        try:
-            product.title = request.form['title']
-            product.cost = float(request.form['cost']) if request.form.get('cost') else None
-            product.price = float(request.form['price']) if request.form.get('price') else None
-            new_batch_number = request.form['batch_number']
-            if new_batch_number != product.batch_number:
-                # Create batch history record
-                batch_history = models.BatchHistory()
-                batch_history.product_id = product.id
-                batch_history.batch_number = product.batch_number
-                batch_history.set_attributes(product.get_attributes())
+def is_valid_image(file):
+    """Validate uploaded file is an image"""
+    try:
+        Image.open(file)
+        return True
+    except IOError:
+        return False
 
-                # Move generated PDFs to history
-                pdfs = models.GeneratedPDF.query.filter_by(product_id=product.id, batch_history_id=None).all()
-                for pdf in pdfs:
-                    if pdf.filename.startswith('label_' + product.batch_number):
-                        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                        # Create historical version of the label PDF
-                        new_filename = f"history_label_{batch_history.batch_number}_{timestamp}.pdf"
-                        history_dir = os.path.join('pdfs', batch_history.batch_number)
-                        new_filepath = os.path.join(history_dir, new_filename)
-                        old_filepath = os.path.join('static', 'pdfs', product.batch_number, pdf.filename)
-
-                        try:
-                            if os.path.exists(old_filepath):
-                                os.makedirs(os.path.join('static', history_dir), exist_ok=True)
-                                import shutil
-                                try:
-                                    # Copy file first
-                                    shutil.copy2(old_filepath, os.path.join('static', new_filepath))
-                                    # Only remove original after successful copy
-                                    os.remove(old_filepath)
-
-                                    # Update the PDF record
-                                    pdf.batch_history_id = batch_history.id
-                                    pdf.filename = new_filepath
-                                    pdf.pdf_url = url_for('serve_pdf',
-                                                        filename=os.path.join(batch_history.batch_number, new_filename),
-                                                        _external=True)
-                                    db.session.flush()
-                                    app.logger.info(f"Successfully moved PDF {pdf.filename} to batch history")
-                                except (shutil.Error, OSError) as e:
-                                    app.logger.error(f"Error moving PDF file: {str(e)}")
-                                    raise
-                        except Exception as e:
-                            app.logger.error(f"Error handling PDF file: {str(e)}")
-                            db.session.rollback()
-                            flash(f"Error preserving PDF files: {str(e)}", 'danger')
-                            return render_template('product_edit.html',
-                                               product=product,
-                                               templates=templates,
-                                               categories=categories,
-                                               pdf_templates=pdf_templates)
-
-                if product.coa_pdf:
-                    # Move COA to history
-                    old_coa = product.coa_pdf
-                    if old_coa:
-                        new_filename = f"history_coa_{batch_history.batch_number}.pdf"
-                        history_dir = os.path.join('pdfs', batch_history.batch_number)
-                        new_filepath = os.path.join(history_dir, new_filename)
-                        try:
-                            old_coa_path = os.path.join('static', old_coa)
-                            new_coa_path = os.path.join('static', new_filepath)
-
-                            if os.path.exists(old_coa_path) and old_coa_path != new_coa_path:
-                                os.makedirs(os.path.join('static', history_dir), exist_ok=True)
-                                import shutil
-                                try:
-                                    shutil.copy2(old_coa_path, new_coa_path)
-                                    # Only remove the old file after successful copy
-                                    os.remove(old_coa_path)
-                                    batch_history.coa_pdf = new_filepath
-                                    product.coa_pdf = None
-                                    app.logger.info(f"Successfully moved COA file for batch {batch_history.batch_number}")
-                                except (shutil.Error, OSError) as e:
-                                    app.logger.error(f"Error moving COA file: {str(e)}")
-                                    raise
-                        except Exception as e:
-                            app.logger.error(f"Error handling COA file: {str(e)}")
-                            db.session.rollback()
-                            flash(f"Error preserving COA file: {str(e)}", 'danger')
-                            return render_template('product_edit.html',
-                                               product=product,
-                                               templates=templates,
-                                               categories=categories,
-                                               pdf_templates=pdf_templates)
-
-                db.session.add(batch_history)
-                product.batch_number = new_batch_number
-                product.coa_pdf = None  # Clear current COA
-            product.label_qty = int(request.form.get('label_qty', 4))
-            product.template_id = request.form.get('template_id', None)
-            if request.form.get('craftmypdf_template_id'):
-                product.craftmypdf_template_id = request.form['craftmypdf_template_id']
-
-            # Handle category assignment
-            category_id = request.form.get('category_id')
-            if category_id:
-                category = models.Category.query.get(category_id)
-                if category:
-                    product.categories = [category]
-            else:
-                product.categories = []  # Clear categories if none selected
-
-            # Handle attributes
-            attributes = {}
-            attr_names = request.form.getlist('attr_name[]')
-            attr_values = request.form.getlist('attr_value[]')
-            for name, value in zip(attr_names, attr_values):
-                if name and value:  # Only add if both name and value are provided
-                    attributes[name] = value
-            product.set_attributes(attributes)
-
-            # Handle product image
-            # Handle product image
-            if 'product_image' in request.files and request.files['product_image'].filename:
-                file = request.files['product_image']
-                if file and is_valid_image(file):
-                    if product.product_image:  # Delete old image if it exists
-                        try:
-                            os.remove(os.path.join('static', product.product_image))
-                        except OSError:
-                            pass
-                    product.product_image = save_image(file, product.id, 'product_image')
-
-            # Handle COA PDF upload
-            if 'coa_pdf' in request.files and request.files['coa_pdf'].filename:
-                coa_pdf = request.files['coa_pdf']
-                if coa_pdf:
-                    if product.coa_pdf:  # Delete old PDF if it exists
-                        try:
-                            os.remove(os.path.join('static', product.coa_pdf))
-                        except OSError:
-                            pass
-                    if coa_pdf.filename:
-                        filename = secure_filename(coa_pdf.filename)
-                        batch_dir = os.path.join('pdfs', product.batch_number)
-                        filepath = os.path.join(batch_dir, filename)
-                        os.makedirs(os.path.join('static', batch_dir), exist_ok=True)
-                        coa_pdf.save(os.path.join('static', filepath))
-                        product.coa_pdf = filepath
-
-            # Handle label image
-            if 'label_image' in request.files and request.files['label_image'].filename:
-                file = request.files['label_image']
-                if file and is_valid_image(file):
-                    if product.label_image:  # Delete old image if it exists
-                        try:
-                            os.remove(os.path.join('static', product.label_image))
-                        except OSError:
-                            pass
-                    product.label_image = save_image(file, product.id, 'label_image')
-
-            db.session.commit()
-            flash('Product updated successfully!', 'success')
-            show_reminder = '?showSquareReminder=true' if product.square_catalog_id else ''
-            return redirect(url_for('product_detail', product_id=product.id) + show_reminder)
-
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error updating product: {str(e)}', 'danger')
-            return render_template('product_edit.html',
-                                   product=product,
-                                   templates=templates,
-                                   pdf_templates=pdf_templates)
-
-    return render_template('product_edit.html',
-                           product=product,
-                           templates=templates,
-                           categories=categories,
-                           pdf_templates=pdf_templates)
-
-
-@app.context_processor
-def inject_settings():
-    """Make settings available to all templates."""
-    return {'settings': models.Settings.get_settings()}
-
-@app.route('/vmc-admin/settings', methods=['GET', 'POST'])
-def settings():
-    settings = models.Settings.get_settings()
-    products = models.Product.query.all()
-
-    if request.method == 'POST':
-        try:
-            # Handle Square environment settings
-            settings.square_environment = 'production' if request.form.get('square_environment') == 'production' else 'sandbox'
-            settings.square_sandbox_access_token = request.form.get('square_sandbox_access_token')
-            settings.square_sandbox_location_id = request.form.get('square_sandbox_location_id')
-            settings.square_production_access_token = request.form.get('square_production_access_token')
-            settings.square_production_location_id = request.form.get('square_production_location_id')
-
-            # Handle development settings
-            settings.show_square_id_controls = bool(request.form.get('show_square_id'))
-            settings.show_square_image_id_controls = bool(request.form.get('show_square_image_id'))
-
-            # Update CraftMyPDF settings
-            settings.craftmypdf_api_key = request.form.get('craftmypdf_api_key')
-
-            db.session.commit()
-            flash('Settings updated successfully!', 'success')
-            return redirect(url_for('settings'))
-
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error updating settings: {str(e)}', 'danger')
-
-    return render_template('settings.html', settings=settings, products=products)
+def generate_batch_number():
+    """Generate a unique batch number"""
+    import random
+    import string
+    prefix = ''.join(random.choices(string.ascii_uppercase, k=2))
+    number = ''.join(random.choices(string.digits, k=6))
+    return f"{prefix}{number}"
 
 @app.route('/api/delete_batch_history/<int:history_id>', methods=['DELETE'])
 def delete_batch_history(history_id):
@@ -1277,26 +1142,6 @@ def sync_single_product(product_id):
             'error': str(e)
         }), 500
 
-def save_image(file, product_id, image_type):
-    # Create product-specific directory
-    product_dir = os.path.join('uploads', str(product_id))
-    full_dir = os.path.join('static', product_dir)
-    os.makedirs(full_dir, exist_ok=True)
-
-    # Get file extension
-    ext = os.path.splitext(secure_filename(file.filename))[1]
-
-    # Create filename based on product_id and type
-    filename = f"{image_type}_{product_id}{ext}"
-    filepath = os.path.join(product_dir, filename)
-
-    # Process and save image
-    img = Image.open(file)
-    img.thumbnail((800, 800))  # Resize if needed
-    img.save(os.path.join('static', filepath))
-
-    return filepath
-
 @app.route('/api/square/clear-id/<int:product_id>', methods=['POST'])
 def clear_square_id(product_id):
     """Clear Square catalog ID from product"""
@@ -1342,3 +1187,50 @@ def clear_square_image_id(product_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+@app.context_processor
+def inject_settings():
+    """Make settings available to all templates."""
+    return {'settings': models.Settings.get_settings()}
+
+@app.route('/vmc-admin/settings', methods=['GET', 'POST'])
+def settings():
+    settings = models.Settings.get_settings()
+    products = models.Product.query.all()
+
+    if request.method == 'POST':
+        try:
+            # Handle Square environment settings
+            settings.square_environment = 'production' if request.form.get('square_environment') == 'production' else 'sandbox'
+            settings.square_sandbox_access_token = request.form.get('square_sandbox_access_token')
+            settings.square_sandbox_location_id = request.form.get('square_sandbox_location_id')
+            settings.square_production_access_token = request.form.get('square_production_access_token')
+            settings.square_production_location_id = request.form.get('square_production_location_id')
+
+            # Handle development settings
+            settings.show_square_id_controls = bool(request.form.get('show_square_id'))
+            settings.show_square_image_id_controls = bool(request.form.get('show_square_image_id'))
+
+            # Update CraftMyPDF settings
+            settings.craftmypdf_api_key = request.form.get('craftmypdf_api_key')
+
+            db.session.commit()
+            flash('Settings updated successfully!', 'success')
+            return redirect(url_for('settings'))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating settings: {str(e)}', 'danger')
+
+    return render_template('settings.html', settings=settings, products=products)
+
+@app.after_request
+def add_header(response):
+    response.headers['Cache-Control'] = 'no-store'
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    return response
+
+if __name__ == '__main__':
+    app.run(debug=True)

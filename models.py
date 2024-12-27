@@ -28,11 +28,6 @@ class Settings(db.Model):
     square_production_access_token = db.Column(db.String(255), nullable=True)
     square_production_location_id = db.Column(db.String(255), nullable=True)
 
-    # Database environment settings
-    use_production_db = db.Column(db.Boolean, server_default='false', nullable=False)
-    production_database_url = db.Column(db.String(500), nullable=True)
-    development_database_url = db.Column(db.String(500), nullable=True)
-
     # CraftMyPDF integration settings - no sandbox mode
     craftmypdf_api_key = db.Column(db.String(255), nullable=True)
 
@@ -42,35 +37,9 @@ class Settings(db.Model):
         settings = cls.query.first()
         if not settings:
             settings = cls()
-            settings.development_database_url = os.environ.get("DATABASE_URL")
-            settings.production_database_url = os.environ.get("PRODUCTION_DATABASE_URL")
             db.session.add(settings)
             db.session.commit()
         return settings
-
-    def validate_database_url(self, url):
-        """Validate database URL format and accessibility."""
-        if not url:
-            return False
-        try:
-            result = urlparse(url)
-            return all([result.scheme, result.netloc])
-        except Exception:
-            return False
-
-    def get_active_database_url(self):
-        """Get the active database URL based on current environment."""
-        if self.use_production_db:
-            if not self.production_database_url:
-                return self.development_database_url or os.environ.get("DATABASE_URL")
-            return self.production_database_url
-        return self.development_database_url or os.environ.get("DATABASE_URL")
-
-    def can_switch_to_environment(self, target_env):
-        """Check if switching to target environment is possible."""
-        if target_env == 'production':
-            return self.validate_database_url(self.production_database_url)
-        return self.validate_database_url(self.development_database_url or os.environ.get("DATABASE_URL"))
 
     def get_active_square_credentials(self):
         """Get the active Square API credentials based on current environment."""
