@@ -38,25 +38,35 @@ os.makedirs(os.path.join('static', 'pdfs'), exist_ok=True)
 # Initialize extensions after app creation but before routes
 from models import db
 
-db.init_app(app)
-migrate = Migrate(app, db)
-
-def init_app(app):
-    with app.app_context():
-        try:
-            # Ensure database connection is working
+def init_db():
+    """Initialize database and verify connection"""
+    try:
+        db.init_app(app)
+        with app.app_context():
             db.engine.connect()
             logger.info("Database connection successful")
+        return True
+    except Exception as e:
+        logger.error(f"Database initialization error: {str(e)}")
+        return False
 
-            # Import models after db initialization
-            from models import Product, Category, ProductTemplate, Settings, BatchHistory, GeneratedPDF
+def init_migrations():
+    """Initialize Flask-Migrate"""
+    try:
+        migrate = Migrate(app, db)
+        with app.app_context():
+            migrate.init_app(app, db, compare_type=True)
+            logger.info("Migration system initialized successfully")
+        return True
+    except Exception as e:
+        logger.error(f"Migration initialization error: {str(e)}")
+        return False
 
-            # Only create tables that don't exist
-            db.create_all()
-            logger.info("Database tables verified successfully")
-        except Exception as e:
-            logger.error(f"Error initializing application: {str(e)}")
-            raise
+# Initialize database and migrations
+if not init_db():
+    raise SystemExit("Failed to initialize database")
+if not init_migrations():
+    raise SystemExit("Failed to initialize migrations")
 
 # Import routes after app initialization to avoid circular imports
 from routes.admin import admin_routes
@@ -94,5 +104,4 @@ def serve_pdf(filename):
 # Initialize the app when running directly
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 3001))
-    init_app(app)
     app.run(host='0.0.0.0', port=port, debug=True)
