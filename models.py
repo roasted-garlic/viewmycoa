@@ -2,11 +2,84 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, relationship
 import datetime
 import json
+import os
 
 class Base(DeclarativeBase):
     pass
 
 db = SQLAlchemy(model_class=Base)
+
+# Association table for Product-Category relationship
+product_categories = db.Table('product_categories',
+    db.Column('product_id', db.Integer, db.ForeignKey('product.id', ondelete='CASCADE')),
+    db.Column('category_id', db.Integer, db.ForeignKey('category.id', ondelete='CASCADE'))
+)
+
+class Settings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    # Square integration settings
+    show_square_id_controls = db.Column(db.Boolean, default=False, nullable=False)
+    show_square_image_id_controls = db.Column(db.Boolean, default=False, nullable=False)
+    square_environment = db.Column(db.String(20), default='sandbox', nullable=False)
+    square_sandbox_access_token = db.Column(db.String(255), nullable=True)
+    square_sandbox_location_id = db.Column(db.String(255), nullable=True)
+    square_production_access_token = db.Column(db.String(255), nullable=True)
+    square_production_location_id = db.Column(db.String(255), nullable=True)
+
+    # Database environment settings
+    use_production_db = db.Column(db.Boolean, server_default='false', nullable=False)
+    production_database_url = db.Column(db.String(500), nullable=True)
+    development_database_url = db.Column(db.String(500), nullable=True)
+
+    # CraftMyPDF integration settings - no sandbox mode
+    craftmypdf_api_key = db.Column(db.String(255), nullable=True)
+
+    @classmethod
+    def get_settings(cls):
+        """Get the settings instance, creating it if it doesn't exist."""
+        settings = cls.query.first()
+        if not settings:
+            settings = cls()
+            settings.development_database_url = os.environ.get("DATABASE_URL")
+            settings.production_database_url = os.environ.get("PRODUCTION_DATABASE_URL")
+            db.session.add(settings)
+            db.session.commit()
+        return settings
+
+    def get_active_database_url(self):
+        """Get the active database URL based on current environment."""
+        if self.use_production_db and self.production_database_url:
+            return self.production_database_url
+        return self.development_database_url or os.environ.get("DATABASE_URL")
+
+    def get_active_square_credentials(self):
+        """Get the active Square API credentials based on current environment."""
+        if self.square_environment == 'production':
+            if not self.square_production_access_token or not self.square_production_location_id:
+                return None
+            return {
+                'access_token': self.square_production_access_token,
+                'location_id': self.square_production_location_id,
+                'base_url': 'https://connect.squareup.com',
+                'is_sandbox': False
+            }
+
+        if not self.square_sandbox_access_token or not self.square_sandbox_location_id:
+            return None
+        return {
+            'access_token': self.square_sandbox_access_token,
+            'location_id': self.square_sandbox_location_id,
+            'base_url': 'https://connect.squareupsandbox.com',
+            'is_sandbox': True
+        }
+
+    def get_craftmypdf_credentials(self):
+        """Get the CraftMyPDF API credentials."""
+        if not self.craftmypdf_api_key:
+            return {'api_key': None}
+        return {
+            'api_key': self.craftmypdf_api_key
+        }
 
 class ProductTemplate(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -40,12 +113,6 @@ class ProductTemplate(db.Model):
             return json.loads(self.attributes)
         except json.JSONDecodeError:
             return {}
-
-# Association table for Product-Category relationship
-product_categories = db.Table('product_categories',
-    db.Column('product_id', db.Integer, db.ForeignKey('product.id', ondelete='CASCADE')),
-    db.Column('category_id', db.Integer, db.ForeignKey('category.id', ondelete='CASCADE'))
-)
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -81,7 +148,6 @@ class Product(db.Model):
         if attrs is None:
             self.attributes = json.dumps({})
         elif isinstance(attrs, (dict, list)):
-            # Convert simple name list to dict with optional values
             if isinstance(attrs, list):
                 attrs = {name: "" for name in attrs}
             self.attributes = json.dumps(attrs)
@@ -111,7 +177,7 @@ class BatchHistory(db.Model):
     attributes = db.Column(db.Text)  # Stored as JSON
     coa_pdf = db.Column(db.String(500))  # URL/path to COA PDF
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    
+
     def set_attributes(self, attrs):
         if attrs is None:
             self.attributes = json.dumps({})
@@ -142,57 +208,3 @@ class GeneratedPDF(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     pdf_url = db.Column(db.String(500))
     batch_history = db.relationship('BatchHistory', backref='pdfs')
-
-
-class Settings(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    # Square integration settings
-    show_square_id_controls = db.Column(db.Boolean, default=False, nullable=False)
-    show_square_image_id_controls = db.Column(db.Boolean, default=False, nullable=False)
-    square_environment = db.Column(db.String(20), default='sandbox', nullable=False)
-    square_sandbox_access_token = db.Column(db.String(255), nullable=True)
-    square_sandbox_location_id = db.Column(db.String(255), nullable=True)
-    square_production_access_token = db.Column(db.String(255), nullable=True)
-    square_production_location_id = db.Column(db.String(255), nullable=True)
-
-    # CraftMyPDF integration settings - no sandbox mode
-    craftmypdf_api_key = db.Column(db.String(255), nullable=True)
-
-    @classmethod
-    def get_settings(cls):
-        """Get the settings instance, creating it if it doesn't exist."""
-        settings = cls.query.first()
-        if not settings:
-            settings = cls()
-            db.session.add(settings)
-            db.session.commit()
-        return settings
-
-    def get_active_square_credentials(self):
-        """Get the active Square API credentials based on current environment."""
-        if self.square_environment == 'production':
-            if not self.square_production_access_token or not self.square_production_location_id:
-                return None
-            return {
-                'access_token': self.square_production_access_token,
-                'location_id': self.square_production_location_id,
-                'base_url': 'https://connect.squareup.com',
-                'is_sandbox': False
-            }
-
-        if not self.square_sandbox_access_token or not self.square_sandbox_location_id:
-            return None
-        return {
-            'access_token': self.square_sandbox_access_token,
-            'location_id': self.square_sandbox_location_id,
-            'base_url': 'https://connect.squareupsandbox.com',
-            'is_sandbox': True
-        }
-
-    def get_craftmypdf_credentials(self):
-        """Get the CraftMyPDF API credentials."""
-        if not self.craftmypdf_api_key:
-            return {'api_key': None}
-        return {
-            'api_key': self.craftmypdf_api_key
-        }
