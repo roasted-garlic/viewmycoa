@@ -3,6 +3,8 @@ from sqlalchemy.orm import DeclarativeBase, relationship
 import datetime
 import json
 import os
+import sqlalchemy as sa
+from urllib.parse import urlparse
 
 class Base(DeclarativeBase):
     pass
@@ -46,11 +48,29 @@ class Settings(db.Model):
             db.session.commit()
         return settings
 
+    def validate_database_url(self, url):
+        """Validate database URL format and accessibility."""
+        if not url:
+            return False
+        try:
+            result = urlparse(url)
+            return all([result.scheme, result.netloc])
+        except Exception:
+            return False
+
     def get_active_database_url(self):
         """Get the active database URL based on current environment."""
-        if self.use_production_db and self.production_database_url:
+        if self.use_production_db:
+            if not self.production_database_url:
+                return self.development_database_url or os.environ.get("DATABASE_URL")
             return self.production_database_url
         return self.development_database_url or os.environ.get("DATABASE_URL")
+
+    def can_switch_to_environment(self, target_env):
+        """Check if switching to target environment is possible."""
+        if target_env == 'production':
+            return self.validate_database_url(self.production_database_url)
+        return self.validate_database_url(self.development_database_url or os.environ.get("DATABASE_URL"))
 
     def get_active_square_credentials(self):
         """Get the active Square API credentials based on current environment."""

@@ -38,19 +38,96 @@ def before_request():
         return
 
     try:
-        with app.app_context():
-            settings = Settings.get_settings()
-            active_db_url = settings.get_active_database_url()
+        settings = Settings.get_settings()
+        active_db_url = settings.get_active_database_url()
 
-            if active_db_url and active_db_url != app.config["SQLALCHEMY_DATABASE_URI"]:
-                app.logger.info(f"Switching database environment to: {'Production' if settings.use_production_db else 'Development'}")
-                app.config["SQLALCHEMY_DATABASE_URI"] = active_db_url
-                db.session.remove()
-                db.engine.dispose()
-                db.session.close_all()
+        if active_db_url and active_db_url != app.config["SQLALCHEMY_DATABASE_URI"]:
+            app.logger.info(f"Switching database environment to: {'Production' if settings.use_production_db else 'Development'}")
+
+            # Update the configuration
+            app.config["SQLALCHEMY_DATABASE_URI"] = active_db_url
+            app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+                "pool_pre_ping": True,
+                "pool_recycle": 300,
+            }
+
+            # Clean up existing connections
+            db.session.remove()
+            db.session.close_all()
+
+            # Dispose engine and remove cached properties
+            engine = db.get_engine(app)
+            if engine is not None:
+                engine.dispose()
+
+            # Force SQLAlchemy to create a new engine
+            db.get_engine.cache_clear()
+
+            app.logger.info("Database connection reset completed")
+
     except Exception as e:
         app.logger.error(f"Error configuring database environment: {str(e)}")
-        flash("Error switching database environment", "danger")
+        return jsonify({'error': 'Database configuration error'}), 500
+
+@app.route('/api/environment', methods=['GET'])
+def get_environment_status():
+    """Get current database environment status"""
+    try:
+        settings = Settings.get_settings()
+        return jsonify({
+            'success': True,
+            'current_environment': 'production' if settings.use_production_db else 'development',
+            'has_production_url': bool(settings.production_database_url),
+            'has_development_url': bool(settings.development_database_url),
+            'active_url': settings.get_active_database_url()
+        })
+    except Exception as e:
+        app.logger.error(f"Error getting environment status: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/environment/switch', methods=['POST'])
+def switch_environment():
+    """Switch between development and production environments"""
+    try:
+        settings = Settings.get_settings()
+        target_env = request.json.get('environment', 'development')
+
+        # Validate target environment
+        if target_env not in ['development', 'production']:
+            return jsonify({'error': 'Invalid environment specified'}), 400
+
+        use_production = (target_env == 'production')
+
+        # Check if target environment URL is configured and valid
+        if not settings.can_switch_to_environment(target_env):
+            return jsonify({'error': f'{target_env.title()} database URL not configured or invalid'}), 400
+
+        # Update setting
+        settings.use_production_db = use_production
+        db.session.commit()
+
+        # Force database reconnection on next request
+        active_db_url = settings.get_active_database_url()
+        if active_db_url:
+            app.config["SQLALCHEMY_DATABASE_URI"] = active_db_url
+            db.session.remove()
+            db.session.close_all()
+
+            # Dispose engine and clear cache
+            engine = db.get_engine(app)
+            if engine is not None:
+                engine.dispose()
+            db.get_engine.cache_clear()
+
+        return jsonify({
+            'success': True,
+            'message': f'Switched to {target_env} environment',
+            'current_environment': target_env
+        })
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error switching environment: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/vmc-admin/settings', methods=['GET', 'POST'])
 def admin_settings():
@@ -118,6 +195,7 @@ def serve_pdf(filename):
     except Exception as e:
         app.logger.error(f"Error serving PDF {filename}: {str(e)}")
         return f"Error accessing PDF: {str(e)}", 500
+
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -742,7 +820,7 @@ def edit_product(product_id):
     templates = models.ProductTemplate.query.all()
     categories = models.Category.query.order_by(models.Category.name).all()
     settings = models.Settings.get_settings()
-    has_craftmypdf = bool(settings.craftmypdf_api_key)
+    hascraftmypdf = bool(settings.craftmypdf_api_key)
     pdf_templates = fetch_craftmypdf_templates()
 
     if request.method == 'POST':
