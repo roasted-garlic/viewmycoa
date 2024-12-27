@@ -14,19 +14,16 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (productImage) {
         productImage.addEventListener('change', function(e) {
             const file = e.target.files[0];
-            if (file) {
+            const previewImg = productImage.closest('.card-body').querySelector('#productImagePreview img');
+            if (file && previewImg) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    // Find the existing image or create a new one
-                    let previewImg = productImage.closest('.card-body').querySelector('img.img-thumbnail');
-                    if (!previewImg) {
-                        previewImg = document.createElement('img');
-                        previewImg.className = 'img-thumbnail mb-3';
-                        productImage.parentElement.insertBefore(previewImg, productImage);
-                    }
                     previewImg.src = e.target.result;
+                    previewImg.classList.remove('d-none');
                 }
                 reader.readAsDataURL(file);
+            } else if (previewImg) {
+                previewImg.classList.add('d-none');
             }
         });
     }
@@ -35,19 +32,16 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (labelImage) {
         labelImage.addEventListener('change', function(e) {
             const file = e.target.files[0];
-            if (file) {
+            const previewImg = labelImage.closest('.card-body').querySelector('#labelImagePreview img');
+            if (file && previewImg) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    // Find the existing image or create a new one
-                    let previewImg = labelImage.closest('.card-body').querySelector('img.img-thumbnail');
-                    if (!previewImg) {
-                        previewImg = document.createElement('img');
-                        previewImg.className = 'img-thumbnail mb-3';
-                        labelImage.parentElement.insertBefore(previewImg, labelImage);
-                    }
                     previewImg.src = e.target.result;
+                    previewImg.classList.remove('d-none');
                 }
                 reader.readAsDataURL(file);
+            } else if (previewImg) {
+                previewImg.classList.add('d-none');
             }
         });
     }
