@@ -106,5 +106,13 @@ args = "rm -rf migrations && FLASK_APP=app.py flask db init && flask db migrate 
 run = ["sh", "-c", "python main.py"]
 
 [[ports]]
+localPort = 3000
+externalPort = 3000
+
+[[ports]]
+localPort = 3001
+externalPort = 3001
+
+[[ports]]
 localPort = 5000
 externalPort = 80
