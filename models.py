@@ -170,24 +170,44 @@ class Settings(db.Model):
 
     def get_active_square_credentials(self):
         """Get the active Square API credentials based on current environment."""
-        if self.square_environment == 'production':
-            if not self.square_production_access_token or not self.square_production_location_id:
-                return None
-            return {
-                'access_token': self.square_production_access_token,
-                'location_id': self.square_production_location_id,
-                'base_url': 'https://connect.squareup.com',
-                'is_sandbox': False
-            }
+        try:
+            if self.square_environment == 'production':
+                if not self.square_production_access_token or not self.square_production_location_id:
+                    return {
+                        'access_token': None,
+                        'location_id': None,
+                        'base_url': 'https://connect.squareup.com',
+                        'is_sandbox': False
+                    }
+                return {
+                    'access_token': self.square_production_access_token,
+                    'location_id': self.square_production_location_id,
+                    'base_url': 'https://connect.squareup.com',
+                    'is_sandbox': False
+                }
 
-        if not self.square_sandbox_access_token or not self.square_sandbox_location_id:
-            return None
-        return {
-            'access_token': self.square_sandbox_access_token,
-            'location_id': self.square_sandbox_location_id,
-            'base_url': 'https://connect.squareupsandbox.com',
-            'is_sandbox': True
-        }
+            # Default to sandbox
+            if not self.square_sandbox_access_token or not self.square_sandbox_location_id:
+                return {
+                    'access_token': None,
+                    'location_id': None,
+                    'base_url': 'https://connect.squareupsandbox.com',
+                    'is_sandbox': True
+                }
+            return {
+                'access_token': self.square_sandbox_access_token,
+                'location_id': self.square_sandbox_location_id,
+                'base_url': 'https://connect.squareupsandbox.com',
+                'is_sandbox': True
+            }
+        except Exception as e:
+            app.logger.error(f"Error getting Square credentials: {str(e)}")
+            return {
+                'access_token': None,
+                'location_id': None,
+                'base_url': 'https://connect.squareupsandbox.com',
+                'is_sandbox': True
+            }
 
     def get_craftmypdf_credentials(self):
         """Get the CraftMyPDF API credentials."""
