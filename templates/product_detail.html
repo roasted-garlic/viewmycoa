@@ -545,12 +545,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add event listeners for modal cleanup
     document.querySelectorAll('.modal').forEach(modalElement => {
         modalElement.addEventListener('hidden.bs.modal', function() {
-            const backdrop = document.querySelector('.modal-backdrop');
-            if (backdrop) {
-                backdrop.remove();
-            }
+            document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
             document.body.classList.remove('modal-open');
             document.body.style.paddingRight = '';
+            document.body.style.overflow = '';
         });
     });
 
