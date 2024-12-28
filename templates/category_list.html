@@ -288,12 +288,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (response.ok) {
                     location.reload();
                 } else {
-                    let errorHtml = `<div class="alert alert-danger">${data.error || 'Error syncing category with Square'}</div>`;
-                    if (data.needs_setup) {
-                        document.querySelector('#syncModal .settings-link').style.display = 'flex';
-                    } else {
-                        document.querySelector('#syncModal .settings-link').style.display = 'none';
-                    }
+                    let errorHtml = `
+                        <div class="text-center">
+                            <div class="alert alert-danger mb-3">
+                                ${data.error || 'Error syncing category with Square'}
+                            </div>
+                            <a href="/vmc-admin/settings" class="btn btn-primary">
+                                <i class="fas fa-cog"></i> Go to Settings
+                            </a>
+                        </div>`;
                     resultsDiv.innerHTML = errorHtml;
                 }
             } catch (error) {
