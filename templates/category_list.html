@@ -260,14 +260,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const response = await fetch(`/api/categories/${categoryId}/sync`, {
                     method: 'POST'
                 });
-                const data = await response.json();
                 
-                if (data.error === 'no_credentials') {
-                    const credentialsModal = new bootstrap.Modal(document.getElementById('squareCredentialsModal'));
-                    credentialsModal.show();
-                    button.innerHTML = '<i class="fas fa-sync"></i> <span class="btn-text">Sync to Square</span>';
-                    button.disabled = false;
-                } else if (response.ok) {
+                if (response.ok) {
                     location.reload();
                 } else {
                     const data = await response.json();

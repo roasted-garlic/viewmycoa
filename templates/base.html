@@ -37,30 +37,6 @@
     <div class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-
-<!-- Square Credentials Error Modal -->
-<div class="modal fade" id="squareCredentialsModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle"></i> Square Configuration Required
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Square API credentials are not configured. Please set up your Square credentials in the settings page to use this feature.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <a href="/vmc-admin/settings" class="btn btn-primary">
-                    <i class="fas fa-cog"></i> Go to Settings
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
                 {% for category, message in messages %}
                     <div class="alert alert-{{ category }} alert-dismissible fade show">
                         {{ message }}
