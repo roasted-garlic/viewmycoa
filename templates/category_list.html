@@ -271,22 +271,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } catch (error) {
                 console.error('Error:', error);
-                const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
-                const resultsDiv = document.getElementById('syncResults');
-                const modalFooter = document.getElementById('syncModalFooter');
-                
-                if (data.needs_setup) {
-                    resultsDiv.innerHTML = `
-                        <div class="alert alert-warning">
-                            <h4 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Square Setup Required</h4>
-                            <p>Square API credentials have not been configured. Please set up your Square credentials in the settings page to enable syncing.</p>
-                        </div>`;
-                    modalFooter.classList.remove('d-none');
-                } else {
-                    resultsDiv.innerHTML = '<div class="alert alert-danger">Error syncing category with Square</div>';
-                    modalFooter.classList.add('d-none');
-                }
-                modal.show();
+                alert('Error syncing category with Square');
                 button.innerHTML = '<i class="fas fa-sync"></i> <span class="btn-text">Sync to Square</span>';
                 button.disabled = false;
             }
