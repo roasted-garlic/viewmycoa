@@ -75,6 +75,11 @@
                         <div class="modal-body">
                             <div id="syncResults"></div>
                         </div>
+                        <div id="syncModalFooter" class="modal-footer d-none">
+                            <a href="{{ url_for('settings') }}" class="btn btn-primary">
+                                <i class="fas fa-cog"></i> Go to Settings
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -594,10 +599,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
                 
                 const resultsDiv = document.getElementById('syncResults');
-                if (data.success) {
+                const modalFooter = document.getElementById('syncModalFooter');
+                const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
+
+                if (data.needs_setup) {
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-warning">
+                            <h4 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Square Setup Required</h4>
+                            <p>Square API credentials have not been configured. Please set up your Square credentials in the settings page to enable syncing.</p>
+                        </div>`;
+                    modalFooter.classList.remove('d-none');
+                } else if (data.success) {
                     resultsDiv.innerHTML = '<div class="alert alert-success">Product synced successfully!</div>';
-                    const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
-                    modal.show();
+                    modalFooter.classList.add('d-none');
                     // Delay reload to show success message
                     setTimeout(() => {
                         window.location.reload();
