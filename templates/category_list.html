@@ -281,6 +281,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     location.reload();
                 } else {
                     const data = await response.json();
+                    // Close any existing modals first
+                    const existingModals = document.querySelectorAll('.modal.show');
+                    existingModals.forEach(modalEl => {
+                        const bsModal = bootstrap.Modal.getInstance(modalEl);
+                        if (bsModal) bsModal.hide();
+                    });
+                    
+                    // Show the sync error modal
                     const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
                     const resultsDiv = document.getElementById('syncResults');
                     resultsDiv.innerHTML = `
@@ -295,7 +303,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <i class="fas fa-cog"></i> Go to Settings
                                 </a>` : ''}
                         </div>`;
-                    modal.show();
+                    setTimeout(() => modal.show(), 100);
                     button.innerHTML = '<i class="fas fa-sync"></i> <span class="btn-text">Sync to Square</span>';
                     button.disabled = false;
                 }
