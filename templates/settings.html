@@ -33,23 +33,23 @@
                 </div>
             </div>
             {% endif %}
-            <div class="card bg-secondary mb-3">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">API Credentials</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label for="craftmypdfApiKey" class="form-label">API Key</label>
-                        <input type="password" class="form-control" id="craftmypdfApiKey" name="craftmypdf_api_key" 
-                               value="{{ settings.craftmypdf_api_key or '' }}">
-                        <small class="text-muted">Your CraftMyPDF API key for authentication</small>
+            <form method="POST" id="settingsForm">
+                <div class="card bg-secondary mb-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">API Credentials</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="craftmypdfApiKey" class="form-label">API Key</label>
+                            <input type="password" class="form-control" id="craftmypdfApiKey" name="craftmypdf_api_key" 
+                                   value="{{ settings.craftmypdf_api_key or '' }}">
+                            <small class="text-muted">Your CraftMyPDF API key for authentication</small>
+                        </div>
                     </div>
                 </div>
-            </div>
         </div>
     </div>
 
-    <!-- Square Settings -->
     <div class="card bg-dark border-secondary mb-4">
         <div class="card-header">
             <h3 class="card-title mb-0">Square API Settings</h3>
@@ -58,69 +58,123 @@
             {% if not settings.square_sandbox_access_token and not settings.square_production_access_token %}
             <div class="card bg-warning text-dark mb-3">
                 <div class="card-body">
-                    <i class="fas fa-exclamation-triangle"></i> Square API credentials are not configured. Square integration will be disabled until configured in settings.
+                    <i class="fas fa-exclamation-triangle"></i> Square API credentials are not configured. Square integration will be disabled until configured in settings. Visit <a href="https://developer.squareup.com/" target="_blank" class="text-dark"><u>https://developer.squareup.com/</u></a> to get started.
                 </div>
             </div>
             {% endif %}
-            <div class="mb-4">
-                <label class="form-label">Environment</label>
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="squareEnvironment" 
-                           name="square_environment" value="production" 
-                           {% if settings.square_environment == 'production' %}checked{% endif %}>
-                    <label class="form-check-label" for="squareEnvironment">
-                        <span class="badge {% if settings.square_environment == 'production' %}bg-success{% else %}bg-warning{% endif %}">
-                            {{ settings.square_environment|title }}
-                        </span>
-                    </label>
+                <div class="mb-4">
+                    <label class="form-label">Environment</label>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="squareEnvironment" name="square_environment" value="production" {% if settings.square_environment == 'production' %}checked{% endif %}>
+                        <label class="form-check-label" for="squareEnvironment">
+                            <span class="badge {% if settings.square_environment == 'production' %}bg-success{% else %}bg-warning{% endif %}">
+                                {{ settings.square_environment|title }}
+                            </span>
+                        </label>
+                    </div>
+                    <small class="text-muted">Toggle between Sandbox and Production environments</small>
                 </div>
-                <small class="text-muted">Toggle between Sandbox and Production environments</small>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card bg-secondary mb-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Sandbox Credentials</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="sandboxAccessToken" class="form-label">Access Token</label>
+                                    <input type="password" class="form-control" id="sandboxAccessToken" name="square_sandbox_access_token" 
+                                           value="{{ settings.square_sandbox_access_token or '' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="sandboxLocationId" class="form-label">Location ID</label>
+                                    <input type="text" class="form-control" id="sandboxLocationId" name="square_sandbox_location_id"
+                                           value="{{ settings.square_sandbox_location_id or '' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card bg-secondary mb-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Production Credentials</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="productionAccessToken" class="form-label">Access Token</label>
+                                    <input type="password" class="form-control" id="productionAccessToken" name="square_production_access_token"
+                                           value="{{ settings.square_production_access_token or '' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="productionLocationId" class="form-label">Location ID</label>
+                                    <input type="text" class="form-control" id="productionLocationId" name="square_production_location_id"
+                                           value="{{ settings.square_production_location_id or '' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                </div>
+    </div>
+
+    <div class="card bg-dark border-secondary mb-4">
+        <div class="card-header">
+            <h3 class="card-title mb-0">Square Development Settings</h3>
+        </div>
+        <div class="card-body">
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="showSquareId" name="show_square_id" {% if settings.show_square_id_controls %}checked{% endif %}>
+                        <label class="form-check-label" for="showSquareId">Show Square ID Controls</label>
+                    </div>
+                    <small class="text-muted">Enable/disable Square ID clearing functionality in product edit page</small>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="showSquareImageId" name="show_square_image_id" {% if settings.show_square_image_id_controls %}checked{% endif %}>
+                        <label class="form-check-label" for="showSquareImageId">Show Square Image ID Controls</label>
+                    </div>
+                    <small class="text-muted">Enable/disable Square Image ID clearing functionality in product edit page</small>
+                </div>
+
+                
+            </form>
+
+            <div class="square-settings">
+                <h4>Square Integration</h4>
+                {% set has_square_products = products|selectattr('square_catalog_id')|list|length > 0 %}
+                <button id="removeAllFromSquare" class="btn btn-danger{% if not has_square_products %} disabled{% endif %}" {% if not has_square_products %}disabled{% endif %} title="{% if not has_square_products %}No products synced with Square{% endif %}">
+                    <i class="fas fa-unlink"></i> Remove All Products from Square
+                </button>
+                <div id="removeResults" class="mt-3"></div>
             </div>
+        </div>
+    </div>
+</div>
 
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card bg-secondary mb-3">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Sandbox Credentials</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label for="sandboxAccessToken" class="form-label">Access Token</label>
-                                <input type="password" class="form-control" id="sandboxAccessToken" 
-                                       name="square_sandbox_access_token" 
-                                       value="{{ settings.square_sandbox_access_token or '' }}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="sandboxLocationId" class="form-label">Location ID</label>
-                                <input type="text" class="form-control" id="sandboxLocationId" 
-                                       name="square_sandbox_location_id"
-                                       value="{{ settings.square_sandbox_location_id or '' }}">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="card bg-secondary mb-3">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Production Credentials</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label for="productionAccessToken" class="form-label">Access Token</label>
-                                <input type="password" class="form-control" id="productionAccessToken" 
-                                       name="square_production_access_token"
-                                       value="{{ settings.square_production_access_token or '' }}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="productionLocationId" class="form-label">Location ID</label>
-                                <input type="text" class="form-control" id="productionLocationId" 
-                                       name="square_production_location_id"
-                                       value="{{ settings.square_production_location_id or '' }}">
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmRemoveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Removal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-danger"><i class="fas fa-exclamation-triangle"></i> Warning: This action will:</p>
+                <ul>
+                    <li>Remove all products from Square catalog</li>
+                    <li>Clear all Square IDs from products</li>
+                </ul>
+                <p class="fw-bold mb-0">This action cannot be undone!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmRemove">Remove All</button>
             </div>
         </div>
     </div>
@@ -133,10 +187,10 @@
 document.addEventListener('DOMContentLoaded', function() {
     const floatingHeader = document.getElementById('floatingHeader');
     let lastScrollTop = 0;
-
+    
     window.addEventListener('scroll', function() {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
+        
         if (scrollTop > 100) {
             floatingHeader.classList.remove('d-none');
             floatingHeader.style.transform = 'translateY(0)';
@@ -144,13 +198,11 @@ document.addEventListener('DOMContentLoaded', function() {
             floatingHeader.classList.add('d-none');
         }
     });
-
-    // Environment toggles handling
-    const squareEnvToggle = document.getElementById('squareEnvironment');
-
-    const updateSquareEnvLabel = () => {
-        const label = squareEnvToggle.nextElementSibling.querySelector('.badge');
-        if (squareEnvToggle.checked) {
+    // Existing environment toggle for Square
+    const envToggle = document.getElementById('squareEnvironment');
+    const updateEnvLabel = () => {
+        const label = envToggle.nextElementSibling.querySelector('.badge');
+        if (envToggle.checked) {
             label.textContent = 'Production';
             label.classList.remove('bg-warning');
             label.classList.add('bg-success');
@@ -160,8 +212,23 @@ document.addEventListener('DOMContentLoaded', function() {
             label.classList.add('bg-warning');
         }
     };
+    envToggle.addEventListener('change', updateEnvLabel);
 
-    squareEnvToggle.addEventListener('change', updateSquareEnvLabel);
+    // New environment toggle for CraftMyPDF
+    const craftmypdfEnvToggle = document.getElementById('craftmypdfEnvironment');
+    const updateCraftMyPDFEnvLabel = () => {
+        const label = craftmypdfEnvToggle.nextElementSibling.querySelector('.badge');
+        if (craftmypdfEnvToggle.checked) {
+            label.textContent = 'Production';
+            label.classList.remove('bg-warning');
+            label.classList.add('bg-success');
+        } else {
+            label.textContent = 'Sandbox';
+            label.classList.remove('bg-success');
+            label.classList.add('bg-warning');
+        }
+    };
+    craftmypdfEnvToggle.addEventListener('change', updateCraftMyPDFEnvLabel);
 
     // Handle Square product removal
     const removeBtn = document.getElementById('removeAllFromSquare');
