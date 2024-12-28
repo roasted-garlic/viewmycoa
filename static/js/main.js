@@ -2,9 +2,12 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl)
+    const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltips.forEach(tooltip => {
+        new bootstrap.Tooltip(tooltip, {
+            placement: 'top',
+            trigger: 'hover'
+        });
     });
 
     // Initialize alerts with auto-dismiss
