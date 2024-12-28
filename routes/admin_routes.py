@@ -30,3 +30,8 @@ def settings():
     """Display and manage system settings"""
     settings = Settings.get_settings()
     return render_template('settings.html', settings=settings)
+@app.route('/api/square/check-credentials')
+def check_square_credentials():
+    settings = Settings.get_settings()
+    credentials = settings.get_active_square_credentials()
+    return jsonify({'has_credentials': credentials is not None})

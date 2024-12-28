@@ -278,10 +278,30 @@ document.addEventListener('DOMContentLoaded', function() {
             const originalHtml = this.innerHTML;
             const resultsDiv = document.getElementById('syncResults');
             
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
-            this.disabled = true;
-            
+            // First check if Square credentials exist
             try {
+                const credentialsCheck = await fetch('/api/square/check-credentials');
+                const credentialsData = await credentialsCheck.json();
+                
+                if (!credentialsData.has_credentials) {
+                    resultsDiv.innerHTML = `
+                        <div class="text-center">
+                            <i class="fas fa-exclamation-circle text-danger fa-3x mb-3"></i>
+                            <div class="alert alert-danger">
+                                <h5 class="mb-2">Square Sync Error</h5>
+                                <p class="mb-0">Square credentials not configured. Please go to Settings to set up your Square integration.</p>
+                            </div>
+                            <a href="/vmc-admin/settings" class="btn btn-primary mt-3">
+                                <i class="fas fa-cog"></i> Go to Settings
+                            </a>
+                        </div>`;
+                    squareSyncModal.show();
+                    return;
+                }
+                
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+                this.disabled = true;
+                
                 const response = await fetch(`/api/categories/${categoryId}/sync`, {
                     method: 'POST'
                 });
