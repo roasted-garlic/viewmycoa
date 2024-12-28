@@ -35,8 +35,6 @@ def sync_category_to_square(category):
         }
     }
 
-    if not credentials:
-        return {"error": "Square credentials not configured", "type": "credentials"}
     try:
         response = requests.post(
             SQUARE_API_URL,

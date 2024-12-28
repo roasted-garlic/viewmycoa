@@ -36,10 +36,8 @@ def sync_product_to_square(product):
     idempotency_key = str(uuid.uuid4())
     location_id = credentials['location_id']
 
-    if not credentials:
-        return {"error": "Square credentials not configured", "type": "credentials"}
     if not location_id:
-        return {"error": "Square location ID not configured", "type": "credentials"}
+        return {"error": "Square location ID not configured"}
 
     # Check if product has a category with Square ID
     category_id = None
