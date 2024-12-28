@@ -281,20 +281,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     location.reload();
                 } else {
                     const data = await response.json();
-                    const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
+                    const squareSyncModal = document.getElementById('squareSyncModal');
                     const resultsDiv = document.getElementById('syncResults');
                     
-                    // Remove any existing modal backdrops
-                    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-                        backdrop.remove();
-                    });
+                    // Clean up any existing modals
+                    document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+                    document.body.classList.remove('modal-open');
+                    document.body.style.paddingRight = '';
                     
-                    // Hide any existing modals without animation
                     const existingModals = document.querySelectorAll('.modal.show');
                     existingModals.forEach(modalEl => {
-                        modalEl.classList.remove('show');
-                        modalEl.style.display = 'none';
+                        const bsModal = bootstrap.Modal.getInstance(modalEl);
+                        if (bsModal) bsModal.hide();
                     });
+
+                    // Create and show new modal
+                    const modal = new bootstrap.Modal(squareSyncModal);
                     
                     resultsDiv.innerHTML = `
                         <div class="text-center">
