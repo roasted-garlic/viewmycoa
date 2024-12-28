@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', async function() {
     const batchInput = document.getElementById('batchNumber');
     const enableBatchEdit = document.getElementById('enableBatchEdit');
@@ -53,7 +52,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (file) {
                 const fileType = file.type;
                 const coaPreviewContainer = document.querySelector('.card-body');
-                
+
                 // Remove existing preview
                 const existingPreview = coaPreviewContainer.querySelector('.mb-3');
                 if (existingPreview) {
@@ -88,17 +87,17 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         });
     }
-    
+
     // COA Delete functionality
     document.getElementById('confirmCoaDelete')?.addEventListener('click', async function() {
         const deleteBtn = document.querySelector('.delete-coa');
         const productId = deleteBtn.dataset.productId;
-        
+
         try {
             const response = await fetch(`/api/delete_coa/${productId}`, {
                 method: 'DELETE'
             });
-            
+
             if (response.ok) {
                 window.location.reload();
             } else {
@@ -166,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         const template = await response.json();
                         const attributes = template.attributes || {};
                         attributesContainer.innerHTML = '';
-                        
+
                         Object.entries(attributes).forEach(([name, value]) => {
                             addAttributeField(name, value);
                         });
@@ -190,10 +189,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Function to add attribute fields
     function addAttributeField(name = '', value = '') {
         if (!attributesContainer) return;
-        
+
         const attributeGroup = document.createElement('div');
         attributeGroup.className = 'attribute-group mb-2';
-        
+
         attributeGroup.innerHTML = `
             <div class="row">
                 <div class="col">
@@ -225,7 +224,40 @@ document.addEventListener('DOMContentLoaded', async function() {
                 attributeGroup.remove();
             });
         }
-        
+
         attributesContainer.appendChild(attributeGroup);
+    }
+
+    const syncButton = document.getElementById('syncToSquareButton'); 
+    const resultsDiv = document.getElementById('syncResults'); 
+    if (syncButton && resultsDiv) {
+        syncButton.addEventListener('click', async () => {
+            syncButton.disabled = true;
+            syncButton.innerHTML = '<i class="fas fa-sync fa-spin"></i> Syncing...';
+            try {
+                const response = await fetch('/api/sync_to_square');
+                const data = await response.json();
+                if (response.ok) {
+                    resultsDiv.innerHTML = `<div class="alert alert-success">Successfully synced to Square!</div>`;
+                } else {
+                    let errorHtml = `<div class="alert alert-danger">${data.error}</div>`;
+                    if (data.needs_setup) {
+                        errorHtml += `
+                            <div class="text-center mt-3">
+                                <a href="/vmc-admin/settings" class="btn btn-primary">
+                                    <i class="fas fa-cog"></i> Go to Settings
+                                </a>
+                            </div>`;
+                    }
+                    resultsDiv.innerHTML = errorHtml;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="alert alert-danger">An unexpected error occurred.</div>`;
+                console.error('Error syncing to Square:', error);
+            } finally {
+                syncButton.innerHTML = '<i class="fas fa-sync"></i> Sync to Square';
+                syncButton.disabled = false;
+            }
+        });
     }
 });
