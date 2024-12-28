@@ -269,17 +269,30 @@ document.addEventListener('DOMContentLoaded', function() {
         keyboard: false
     });
 
-    document.querySelectorAll('.sync-category').forEach(button => {
-        button.addEventListener('click', async function(event) {
-            event.stopPropagation();
-            event.preventDefault();
-            
-            const categoryId = this.dataset.categoryId;
-            const originalHtml = this.innerHTML;
-            const resultsDiv = document.getElementById('syncResults');
-            
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
-            this.disabled = true;
+    // Initialize modal once
+const squareSyncModal = new bootstrap.Modal(document.getElementById('squareSyncModal'), {
+    backdrop: 'static',
+    keyboard: false
+});
+
+// Remove any existing event listeners
+document.querySelectorAll('.sync-category').forEach(button => {
+    const newButton = button.cloneNode(true);
+    button.parentNode.replaceChild(newButton, button);
+});
+
+// Add new event listeners
+document.querySelectorAll('.sync-category').forEach(button => {
+    button.addEventListener('click', async function(event) {
+        event.stopPropagation();
+        event.preventDefault();
+        
+        const categoryId = this.dataset.categoryId;
+        const originalHtml = this.innerHTML;
+        const resultsDiv = document.getElementById('syncResults');
+        
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+        this.disabled = true;
             
             try {
                 const response = await fetch(`/api/categories/${categoryId}/sync`, {
