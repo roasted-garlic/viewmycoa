@@ -127,16 +127,16 @@
                             <h5 class="card-title text-info mb-3">
                                 <i class="fas fa-file-pdf"></i> PDF Template
                             </h5>
-                            {% if not has_craftmypdf %}
+                            {% if not settings.craftmypdf_api_key %}
                             <div class="card bg-warning text-dark mb-3">
                                 <div class="card-body">
                                     <i class="fas fa-exclamation-triangle"></i> CraftMyPDF API key is not configured. PDF generation will be disabled until configured in settings. Visit <a href="https://craftmypdf.com/" target="_blank" class="text-dark"><u>https://craftmypdf.com/</u></a> to get started.
                                 </div>
                             </div>
                             {% endif %}
-                            <select class="form-select" id="craftmypdf_template" name="craftmypdf_template_id" required {% if not has_craftmypdf %}disabled{% endif %}>
-                                <option value="">{% if not has_craftmypdf %}CraftMyPDF API key required{% else %}Select a PDF Template{% endif %}</option>
-                                {% if has_craftmypdf %}
+                            <select class="form-select" id="craftmypdf_template" name="craftmypdf_template_id" required {% if not settings.craftmypdf_api_key %}disabled{% endif %}>
+                                <option value="">{% if not settings.craftmypdf_api_key %}CraftMyPDF API key required{% else %}Select a PDF Template{% endif %}</option>
+                                {% if settings.craftmypdf_api_key %}
                                 {% for template in pdf_templates %}
                                 <option value="{{ template.template_id }}" {% if product.craftmypdf_template_id == template.template_id %}selected{% endif %}>{{ template.name }}</option>
                                 {% endfor %}
