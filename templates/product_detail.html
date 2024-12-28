@@ -39,19 +39,34 @@
                 <i class="fas fa-external-link-alt"></i> View Public Page
             </a>
             <div class="product-actions d-flex gap-2">
+                {% set has_square_credentials = settings.square_sandbox_access_token or settings.square_production_access_token %}
                 {% if product.square_catalog_id %}
                 <div class="btn-group w-md-auto gap-2" role="group">
-                    <button class="btn btn-info" id="syncSquare" data-product-id="{{ product.id }}">
+                    <button class="btn btn-info{% if not has_square_credentials %} disabled{% endif %}" 
+                            id="syncSquare" 
+                            data-product-id="{{ product.id }}"
+                            {% if not has_square_credentials %}disabled title="Square API credentials required"{% endif %}>
                         <i class="fas fa-sync"></i> Update in Square
                     </button>
-                    <button class="btn btn-danger" id="unsyncSquare" data-product-id="{{ product.id }}">
+                    <button class="btn btn-danger{% if not has_square_credentials %} disabled{% endif %}" 
+                            id="unsyncSquare" 
+                            data-product-id="{{ product.id }}"
+                            {% if not has_square_credentials %}disabled title="Square API credentials required"{% endif %}>
                         <i class="fas fa-unlink"></i> Remove from Square
                     </button>
                 </div>
                 {% else %}
-                <button class="btn btn-success w-md-auto" id="syncSquare" data-product-id="{{ product.id }}">
+                <button class="btn btn-success w-md-auto{% if not has_square_credentials %} disabled{% endif %}" 
+                        id="syncSquare" 
+                        data-product-id="{{ product.id }}"
+                        {% if not has_square_credentials %}disabled title="Square API credentials required"{% endif %}>
                     <i class="fas fa-sync"></i> Sync to Square
                 </button>
+                {% endif %}
+                {% if not has_square_credentials %}
+                <div class="text-muted small mt-2">
+                    <i class="fas fa-info-circle"></i> Square integration features are disabled until API credentials are configured
+                </div>
                 {% endif %}
                 <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-primary w-md-auto">
                     <i class="fas fa-edit"></i> Edit
