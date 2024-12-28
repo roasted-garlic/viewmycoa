@@ -281,16 +281,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     location.reload();
                 } else {
                     const data = await response.json();
-                    // Close any existing modals first
-                    const existingModals = document.querySelectorAll('.modal.show');
-                    existingModals.forEach(modalEl => {
-                        const bsModal = bootstrap.Modal.getInstance(modalEl);
-                        if (bsModal) bsModal.hide();
-                    });
-                    
-                    // Show the sync error modal
                     const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
                     const resultsDiv = document.getElementById('syncResults');
+                    
+                    // Remove any existing modal backdrops
+                    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+                        backdrop.remove();
+                    });
+                    
+                    // Hide any existing modals without animation
+                    const existingModals = document.querySelectorAll('.modal.show');
+                    existingModals.forEach(modalEl => {
+                        modalEl.classList.remove('show');
+                        modalEl.style.display = 'none';
+                    });
+                    
                     resultsDiv.innerHTML = `
                         <div class="text-center">
                             <i class="fas fa-exclamation-circle text-danger fa-3x mb-3"></i>
