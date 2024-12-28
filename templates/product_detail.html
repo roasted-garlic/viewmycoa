@@ -594,7 +594,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
                 
                 const resultsDiv = document.getElementById('syncResults');
-                if (data.success) {
+                if (data.error === 'no_credentials') {
+                    const credentialsModal = new bootstrap.Modal(document.getElementById('squareCredentialsModal'));
+                    credentialsModal.show();
+                    button.innerHTML = '<i class="fas fa-sync"></i> Sync to Square';
+                    button.disabled = false;
+                } else if (data.success) {
                     resultsDiv.innerHTML = '<div class="alert alert-success">Product synced successfully!</div>';
                     const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
                     modal.show();
