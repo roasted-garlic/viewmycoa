@@ -147,18 +147,9 @@
             <div class="square-settings">
                 <h4>Square Integration</h4>
                 {% set has_square_products = products|selectattr('square_catalog_id')|list|length > 0 %}
-                {% set has_square_credentials = settings.square_sandbox_access_token or settings.square_production_access_token %}
-                <button id="removeAllFromSquare" 
-                        class="btn btn-danger{% if not has_square_products or not has_square_credentials %} disabled{% endif %}" 
-                        {% if not has_square_products or not has_square_credentials %}disabled{% endif %} 
-                        title="{% if not has_square_products %}No products synced with Square{% elif not has_square_credentials %}Square API credentials not configured{% endif %}">
+                <button id="removeAllFromSquare" class="btn btn-danger{% if not has_square_products %} disabled{% endif %}" {% if not has_square_products %}disabled{% endif %} title="{% if not has_square_products %}No products synced with Square{% endif %}">
                     <i class="fas fa-unlink"></i> Remove All Products from Square
                 </button>
-                {% if not has_square_credentials %}
-                <div class="alert alert-warning mt-3">
-                    <i class="fas fa-exclamation-triangle"></i> Square integration features are disabled until API credentials are configured.
-                </div>
-                {% endif %}
                 <div id="removeResults" class="mt-3"></div>
             </div>
         </div>
