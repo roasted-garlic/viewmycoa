@@ -264,15 +264,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Handle category sync with Square
-    const squareSyncModal = new bootstrap.Modal(document.getElementById('squareSyncModal'), {
-        backdrop: 'static',
-        keyboard: false
-    });
-    
+    let squareSyncModal = null;
     document.querySelectorAll('.sync-category').forEach(button => {
         button.addEventListener('click', async function() {
             const categoryId = this.dataset.categoryId;
-            const originalHtml = this.innerHTML;
             
             try {
                 this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
@@ -286,7 +281,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     location.reload();
                 } else {
                     const data = await response.json();
+                    const modalElement = document.getElementById('squareSyncModal');
                     const resultsDiv = document.getElementById('syncResults');
+                    
+                    if (squareSyncModal) {
+                        squareSyncModal.dispose();
+                    }
                     
                     resultsDiv.innerHTML = `
                         <div class="text-center">
