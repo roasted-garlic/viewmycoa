@@ -256,6 +256,31 @@
                                 <i class="fas fa-spinner fa-spin fa-fw"></i> Generating...
                             </span>
                         </button>
+                        <!-- PDF Generation Error Modal -->
+                        <div class="modal fade" id="pdfGenerationErrorModal" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="text-center">
+                                        <div class="alert alert-warning" style="background-color: #856404; border: none; color: white;">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                            </div>
+                                        </div>
+                                        <div class="text-center my-4">
+                                            <i class="fas fa-cog fa-3x text-warning"></i>
+                                            <h4 class="mt-3 mb-3">CraftMyPDF API Credentials Required</h4>
+                                            <p class="text-muted mb-4">CraftMyPDF API credentials are not configured. You'll need to set these up in settings before using PDF generation features.</p>
+                                            <button class="btn btn-warning w-100 mb-2" onclick="window.location.href='/vmc-admin/settings'">
+                                                <i class="fas fa-cog"></i> Configure Settings
+                                            </button>
+                                            <button class="btn btn-secondary w-100" data-bs-dismiss="modal">
+                                                <i class="fas fa-times"></i> Close
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <button class="btn btn-secondary flex-grow-1" id="generateJSON" data-product-id="{{ product.id }}">
                             <i class="fas fa-code"></i> Generate JSON
                         </button>
