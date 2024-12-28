@@ -39,27 +39,17 @@
                 <i class="fas fa-external-link-alt"></i> View Public Page
             </a>
             <div class="product-actions d-flex gap-2">
-                {% set has_square_credentials = settings.square_sandbox_access_token or settings.square_production_access_token %}
                 {% if product.square_catalog_id %}
                 <div class="btn-group w-md-auto gap-2" role="group">
-                    <button class="btn btn-info{% if not has_square_credentials %} disabled{% endif %}" 
-                            id="syncSquare" 
-                            data-product-id="{{ product.id }}"
-                            {% if not has_square_credentials %}disabled data-bs-toggle="tooltip" title="Square API credentials required"{% endif %}>
+                    <button class="btn btn-info" id="syncSquare" data-product-id="{{ product.id }}">
                         <i class="fas fa-sync"></i> Update in Square
                     </button>
-                    <button class="btn btn-danger{% if not has_square_credentials %} disabled{% endif %}" 
-                            id="unsyncSquare" 
-                            data-product-id="{{ product.id }}"
-                            {% if not has_square_credentials %}disabled data-bs-toggle="tooltip" title="Square API credentials required"{% endif %}>
+                    <button class="btn btn-danger" id="unsyncSquare" data-product-id="{{ product.id }}">
                         <i class="fas fa-unlink"></i> Remove from Square
                     </button>
                 </div>
                 {% else %}
-                <button class="btn btn-success w-md-auto{% if not has_square_credentials %} disabled{% endif %}" 
-                        id="syncSquare" 
-                        data-product-id="{{ product.id }}"
-                        {% if not has_square_credentials %}disabled data-bs-toggle="tooltip" title="Square API credentials required"{% endif %}>
+                <button class="btn btn-success w-md-auto" id="syncSquare" data-product-id="{{ product.id }}">
                     <i class="fas fa-sync"></i> Sync to Square
                 </button>
                 {% endif %}

@@ -31,17 +31,14 @@
                                     data-category-description="{{ category.description or '' }}">
                                 <i class="fas fa-edit"></i> <span class="btn-text">Edit</span>
                             </button>
-                            {% set has_square_credentials = settings.square_sandbox_access_token or settings.square_production_access_token %}
                             {% if category.square_category_id %}
-                            <button class="btn btn-outline-warning btn-sm unsync-category{% if not has_square_credentials %} disabled{% endif %}" 
-                                    data-category-id="{{ category.id }}"
-                                    {% if not has_square_credentials %}disabled data-bs-toggle="tooltip" title="Square API credentials required"{% endif %}>
+                            <button class="btn btn-outline-warning btn-sm unsync-category" 
+                                    data-category-id="{{ category.id }}">
                                 <i class="fas fa-unlink"></i> <span class="btn-text">Unsync from Square</span>
                             </button>
                             {% else %}
-                            <button class="btn btn-outline-success btn-sm sync-category{% if not has_square_credentials %} disabled{% endif %}" 
-                                    data-category-id="{{ category.id }}"
-                                    {% if not has_square_credentials %}disabled data-bs-toggle="tooltip" title="Square API credentials required"{% endif %}>
+                            <button class="btn btn-outline-success btn-sm sync-category" 
+                                    data-category-id="{{ category.id }}">
                                 <i class="fas fa-sync"></i> <span class="btn-text">Sync to Square</span>
                             </button>
                             {% endif %}

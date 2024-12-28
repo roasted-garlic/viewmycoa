@@ -2,26 +2,9 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize tooltips
-    function initializeTooltips() {
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.forEach(tooltipTriggerEl => {
-            if (!bootstrap.Tooltip.getInstance(tooltipTriggerEl)) {
-                new bootstrap.Tooltip(tooltipTriggerEl, {
-                    placement: 'top',
-                    trigger: 'hover focus'
-                });
-            }
-        });
-    }
-    
-    // Initialize tooltips on page load
-    initializeTooltips();
-    
-    // Re-initialize tooltips when content changes
-    const observer = new MutationObserver(initializeTooltips);
-    observer.observe(document.body, { 
-        childList: true,
-        subtree: true 
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
     });
 
     // Initialize alerts with auto-dismiss
