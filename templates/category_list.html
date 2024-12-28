@@ -264,10 +264,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Handle category sync with Square
-    let squareSyncModal = null;
+    const squareSyncModal = new bootstrap.Modal(document.getElementById('squareSyncModal'), {
+        backdrop: 'static',
+        keyboard: false
+    });
+
     document.querySelectorAll('.sync-category').forEach(button => {
-        button.addEventListener('click', async function() {
+        button.addEventListener('click', async function(event) {
+            event.stopPropagation();
             const categoryId = this.dataset.categoryId;
+            const originalHtml = this.innerHTML;
             
             try {
                 this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
@@ -281,12 +287,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     location.reload();
                 } else {
                     const data = await response.json();
-                    const modalElement = document.getElementById('squareSyncModal');
                     const resultsDiv = document.getElementById('syncResults');
-                    
-                    if (squareSyncModal) {
-                        squareSyncModal.dispose();
-                    }
                     
                     resultsDiv.innerHTML = `
                         <div class="text-center">
@@ -301,17 +302,22 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </a>` : ''}
                         </div>`;
                     
-                    squareSyncModal = new bootstrap.Modal(modalElement);
                     squareSyncModal.show();
                 }
             } catch (error) {
                 console.error('Error:', error);
                 alert('Error syncing category with Square');
             } finally {
-                this.innerHTML = '<i class="fas fa-sync"></i> <span class="btn-text">Sync to Square</span>';
+                this.innerHTML = originalHtml;
                 this.disabled = false;
             }
         });
+    });
+
+    // Cleanup modal when hidden
+    document.getElementById('squareSyncModal').addEventListener('hidden.bs.modal', function() {
+        const resultsDiv = document.getElementById('syncResults');
+        resultsDiv.innerHTML = '';
     });
 
     // Handle category unsync from Square
