@@ -603,7 +603,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.location.reload();
                     }, 2000);
                 } else {
-                    resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+                    let errorHtml = `
+                        <div class="text-center">
+                            <div class="alert alert-danger mb-3">
+                                ${data.error || 'Error syncing product with Square'}
+                            </div>
+                            <a href="/vmc-admin/settings" class="btn btn-primary">
+                                <i class="fas fa-cog"></i> Go to Settings
+                            </a>
+                        </div>`;
+                    resultsDiv.innerHTML = errorHtml;
                     button.innerHTML = '<i class="fas fa-sync"></i> Sync to Square';
                     button.disabled = false;
                     const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
