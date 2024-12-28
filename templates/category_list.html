@@ -272,23 +272,24 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.sync-category').forEach(button => {
         button.addEventListener('click', async function(event) {
             event.stopPropagation();
+            event.preventDefault();
+            
             const categoryId = this.dataset.categoryId;
             const originalHtml = this.innerHTML;
+            const resultsDiv = document.getElementById('syncResults');
+            
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+            this.disabled = true;
             
             try {
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
-                this.disabled = true;
-                
                 const response = await fetch(`/api/categories/${categoryId}/sync`, {
                     method: 'POST'
                 });
+                const data = await response.json();
                 
                 if (response.ok) {
                     location.reload();
                 } else {
-                    const data = await response.json();
-                    const resultsDiv = document.getElementById('syncResults');
-                    
                     resultsDiv.innerHTML = `
                         <div class="text-center">
                             <i class="fas fa-exclamation-circle text-danger fa-3x mb-3"></i>
@@ -301,12 +302,19 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <i class="fas fa-cog"></i> Go to Settings
                                 </a>` : ''}
                         </div>`;
-                    
                     squareSyncModal.show();
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error syncing category with Square');
+                resultsDiv.innerHTML = `
+                    <div class="text-center">
+                        <i class="fas fa-exclamation-circle text-danger fa-3x mb-3"></i>
+                        <div class="alert alert-danger">
+                            <h5 class="mb-2">Square Sync Error</h5>
+                            <p class="mb-0">Error syncing category with Square</p>
+                        </div>
+                    </div>`;
+                squareSyncModal.show();
             } finally {
                 this.innerHTML = originalHtml;
                 this.disabled = false;
