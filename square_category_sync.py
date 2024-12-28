@@ -19,6 +19,10 @@ def sync_category_to_square(category):
     """Sync a single category to Square catalog"""
     settings = Settings.get_settings()
     credentials = settings.get_active_square_credentials()
+    
+    if not credentials:
+        return {"error": "Square credentials are not configured. Please set up your Square integration in Settings.", "needs_setup": True}
+        
     SQUARE_API_URL = f"{credentials['base_url']}/v2/catalog/object"
 
     idempotency_key = str(uuid.uuid4())

@@ -154,6 +154,18 @@
         </div>
     </div>
 </div>
+
+<!-- Sync Results Modal -->
+<div class="modal fade" id="syncModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div id="syncResults"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -251,29 +263,37 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.sync-category').forEach(button => {
         button.addEventListener('click', async function() {
             const categoryId = this.dataset.categoryId;
-            const button = this;
+            const resultsDiv = document.getElementById('syncResults');
+            const syncModal = new bootstrap.Modal(document.getElementById('syncModal'));
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+            button.disabled = true;
             
             try {
-                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
-                button.disabled = true;
-                
                 const response = await fetch(`/api/categories/${categoryId}/sync`, {
                     method: 'POST'
                 });
+                const data = await response.json();
                 
                 if (response.ok) {
                     location.reload();
                 } else {
-                    const data = await response.json();
-                    alert(data.error || 'Error syncing category with Square');
-                    button.innerHTML = '<i class="fas fa-sync"></i> <span class="btn-text">Sync to Square</span>';
-                    button.disabled = false;
+                    let errorHtml = `<div class="alert alert-danger">${data.error || 'Error syncing category with Square'}</div>`;
+                    if (data.needs_setup) {
+                        errorHtml += `
+                            <div class="text-center mt-3">
+                                <a href="/vmc-admin/settings" class="btn btn-primary">
+                                    <i class="fas fa-cog"></i> Go to Settings
+                                </a>
+                            </div>`;
+                    }
+                    resultsDiv.innerHTML = errorHtml;
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('Error syncing category with Square');
-                button.innerHTML = '<i class="fas fa-sync"></i> <span class="btn-text">Sync to Square</span>';
+                resultsDiv.innerHTML = `<div class="alert alert-danger">An unexpected error occurred.</div>`;
+            } finally {
+                button.innerHTML = '<i class="fas fa-sync"></i> Sync to Square';
                 button.disabled = false;
+                syncModal.show();
             }
         });
     });
