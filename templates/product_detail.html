@@ -594,6 +594,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
                 
                 const resultsDiv = document.getElementById('syncResults');
+                if (data.type === "credentials") {
+                    const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-warning">
+                            <h5><i class="fas fa-exclamation-triangle"></i> Square Integration Not Configured</h5>
+                            <p>${data.error}</p>
+                            <div class="mt-3">
+                                <a href="/vmc-admin/settings" class="btn btn-primary">
+                                    <i class="fas fa-cog"></i> Configure Square Settings
+                                </a>
+                            </div>
+                        </div>`;
+                    modal.show();
+                    button.innerHTML = '<i class="fas fa-sync"></i> Sync to Square';
+                    button.disabled = false;
+                    return;
+                }
                 if (data.success) {
                     resultsDiv.innerHTML = '<div class="alert alert-success">Product synced successfully!</div>';
                     const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));

@@ -260,6 +260,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 const response = await fetch(`/api/categories/${categoryId}/sync`, {
                     method: 'POST'
                 });
+                const data = await response.json();
+                
+                if (data.type === "credentials") {
+                    const resultsDiv = document.createElement('div');
+                    resultsDiv.innerHTML = `
+                        <div class="modal fade" id="credentialsErrorModal" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-warning">
+                                        <h5 class="modal-title">
+                                            <i class="fas fa-exclamation-triangle"></i> Square Integration Not Configured
+                                        </h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>${data.error}</p>
+                                        <div class="mt-3">
+                                            <a href="/vmc-admin/settings" class="btn btn-primary">
+                                                <i class="fas fa-cog"></i> Configure Square Settings
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                    document.body.appendChild(resultsDiv);
+                    const errorModal = new bootstrap.Modal(document.getElementById('credentialsErrorModal'));
+                    errorModal.show();
+                    button.innerHTML = '<i class="fas fa-sync"></i> <span class="btn-text">Sync to Square</span>';
+                    button.disabled = false;
+                    return;
+                }
                 
                 if (response.ok) {
                     location.reload();
