@@ -85,3 +85,11 @@ document.getElementById('confirmDelete')?.addEventListener('click', async functi
         confirmationMessage.style.display = 'block';
     }
 });
+
+document.querySelectorAll('.sync-to-square').forEach(button => {
+    button.addEventListener('click', async function() {
+        if (this.hasAttribute('data-bs-toggle')) {
+            return; // Let Bootstrap handle the modal
+        }
+    });
+});
