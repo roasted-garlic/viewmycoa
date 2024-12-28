@@ -405,24 +405,50 @@ body {
 
 /* Square API Credentials Modal Styles */
 .square-credentials-modal .modal-body {
-    padding: 1.5rem;
+    padding: 2rem;
+    text-align: center;
+}
+
+.square-credentials-modal .fas {
+    font-size: 2.5rem;
+    color: #ffc107;
+    margin-bottom: 1rem;
+}
+
+.square-credentials-modal h4 {
+    margin-bottom: 1rem;
+}
+
+.square-credentials-modal p {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+}
+
+.square-credentials-modal .d-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .square-credentials-modal .btn {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     width: 100%;
-    margin-bottom: 0.5rem;
 }
 
 @media (min-width: 576px) {
+    .square-credentials-modal .d-grid {
+        flex-direction: row;
+        justify-content: center;
+    }
+    
     .square-credentials-modal .btn {
         width: auto;
-        min-width: 120px;
-        margin-bottom: 0;
-    }
-    .square-credentials-modal .d-grid {
-        display: flex;
-        gap: 0.5rem;
-        justify-content: center;
+        min-width: 160px;
     }
 }
 /* Category Card Responsive Styles */
