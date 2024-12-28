@@ -189,15 +189,21 @@
                             <h5 class="card-title text-info mb-3">
                                 <i class="fas fa-square"></i> Square Integration
                             </h5>
-                            {% if settings.show_square_id_controls and product.square_catalog_id %}
+                            {% set has_square_credentials = settings.square_sandbox_access_token or settings.square_production_access_token %}
+                            {% if settings.show_square_id_controls and product.square_catalog_id and has_square_credentials %}
                             <button type="button" class="btn btn-warning w-100 mb-2" id="clearSquareId" data-product-id="{{ product.id }}">
                                 <i class="fas fa-unlink"></i> Clear Square ID
                             </button>
                             {% endif %}
-                            {% if settings.show_square_image_id_controls and product.square_image_id %}
+                            {% if settings.show_square_image_id_controls and product.square_image_id and has_square_credentials %}
                             <button type="button" class="btn btn-warning w-100" id="clearSquareImageId" data-product-id="{{ product.id }}">
                                 <i class="fas fa-image"></i> Clear Square Image ID
                             </button>
+                            {% endif %}
+                            {% if not has_square_credentials %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i> Square integration features are disabled until API credentials are configured.
+                            </div>
                             {% endif %}
                             <small class="form-text text-muted mt-2">This will only clear the IDs locally, not remove items from Square</small>
                         </div>
