@@ -42,6 +42,22 @@
                                 <i class="fas fa-sync"></i> <span class="btn-text">Sync to Square</span>
                             </button>
                             {% endif %}
+
+<!-- Square Sync Modal -->
+<div class="modal fade" id="squareSyncModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Square Sync Results</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="syncResults"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
                             <button class="btn btn-outline-danger btn-sm delete-category" 
                                     data-category-id="{{ category.id }}">
                                 <i class="fas fa-trash"></i> <span class="btn-text">Delete</span>
@@ -265,7 +281,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     location.reload();
                 } else {
                     const data = await response.json();
-                    alert(data.error || 'Error syncing category with Square');
+                    const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
+                    const resultsDiv = document.getElementById('syncResults');
+                    resultsDiv.innerHTML = `
+                        <div class="text-center">
+                            <i class="fas fa-exclamation-circle text-danger fa-3x mb-3"></i>
+                            <div class="alert alert-danger">
+                                <h5 class="mb-2">Square Sync Error</h5>
+                                <p class="mb-0">${data.error}</p>
+                            </div>
+                            ${data.error.includes('credentials') ? 
+                                `<a href="/vmc-admin/settings" class="btn btn-primary mt-3">
+                                    <i class="fas fa-cog"></i> Go to Settings
+                                </a>` : ''}
+                        </div>`;
+                    modal.show();
                     button.innerHTML = '<i class="fas fa-sync"></i> <span class="btn-text">Sync to Square</span>';
                     button.disabled = false;
                 }
