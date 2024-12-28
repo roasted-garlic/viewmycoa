@@ -9,8 +9,6 @@ SQUARE_VERSION = "2024-12-18"
 def get_square_headers():
     settings = Settings.get_settings()
     credentials = settings.get_active_square_credentials()
-    if not credentials:
-        raise ValueError("Square integration is not configured. Please add your Square credentials in Settings.")
     return {
         'Square-Version': SQUARE_VERSION,
         'Authorization': f'Bearer {credentials["access_token"]}',
