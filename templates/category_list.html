@@ -42,22 +42,6 @@
                                 <i class="fas fa-sync"></i> <span class="btn-text">Sync to Square</span>
                             </button>
                             {% endif %}
-
-<!-- Square Sync Modal -->
-<div class="modal fade" id="squareSyncModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Square Sync Results</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div id="syncResults"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
                             <button class="btn btn-outline-danger btn-sm delete-category" 
                                     data-category-id="{{ category.id }}">
                                 <i class="fas fa-trash"></i> <span class="btn-text">Delete</span>
@@ -264,88 +248,34 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Handle category sync with Square
-    const squareSyncModal = new bootstrap.Modal(document.getElementById('squareSyncModal'), {
-        backdrop: 'static',
-        keyboard: false
-    });
-
     document.querySelectorAll('.sync-category').forEach(button => {
-        button.addEventListener('click', async function(event) {
-            event.stopPropagation();
-            event.preventDefault();
-            
+        button.addEventListener('click', async function() {
             const categoryId = this.dataset.categoryId;
-            const originalHtml = this.innerHTML;
-            const resultsDiv = document.getElementById('syncResults');
+            const button = this;
             
-            // First check if Square credentials exist
             try {
-                const credentialsCheck = await fetch('/api/square/check-credentials');
-                const credentialsData = await credentialsCheck.json();
-                
-                if (!credentialsData.has_credentials) {
-                    resultsDiv.innerHTML = `
-                        <div class="text-center">
-                            <i class="fas fa-exclamation-circle text-danger fa-3x mb-3"></i>
-                            <div class="alert alert-danger">
-                                <h5 class="mb-2">Square Sync Error</h5>
-                                <p class="mb-0">Square credentials not configured. Please go to Settings to set up your Square integration.</p>
-                            </div>
-                            <a href="/vmc-admin/settings" class="btn btn-primary mt-3">
-                                <i class="fas fa-cog"></i> Go to Settings
-                            </a>
-                        </div>`;
-                    squareSyncModal.show();
-                    return;
-                }
-                
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
-                this.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+                button.disabled = true;
                 
                 const response = await fetch(`/api/categories/${categoryId}/sync`, {
                     method: 'POST'
                 });
-                const data = await response.json();
                 
                 if (response.ok) {
                     location.reload();
                 } else {
-                    resultsDiv.innerHTML = `
-                        <div class="text-center">
-                            <i class="fas fa-exclamation-circle text-danger fa-3x mb-3"></i>
-                            <div class="alert alert-danger">
-                                <h5 class="mb-2">Square Sync Error</h5>
-                                <p class="mb-0">${data.error}</p>
-                            </div>
-                            ${data.error.includes('credentials') ? 
-                                `<a href="/vmc-admin/settings" class="btn btn-primary mt-3">
-                                    <i class="fas fa-cog"></i> Go to Settings
-                                </a>` : ''}
-                        </div>`;
-                    squareSyncModal.show();
+                    const data = await response.json();
+                    alert(data.error || 'Error syncing category with Square');
+                    button.innerHTML = '<i class="fas fa-sync"></i> <span class="btn-text">Sync to Square</span>';
+                    button.disabled = false;
                 }
             } catch (error) {
                 console.error('Error:', error);
-                resultsDiv.innerHTML = `
-                    <div class="text-center">
-                        <i class="fas fa-exclamation-circle text-danger fa-3x mb-3"></i>
-                        <div class="alert alert-danger">
-                            <h5 class="mb-2">Square Sync Error</h5>
-                            <p class="mb-0">Error syncing category with Square</p>
-                        </div>
-                    </div>`;
-                squareSyncModal.show();
-            } finally {
-                this.innerHTML = originalHtml;
-                this.disabled = false;
+                alert('Error syncing category with Square');
+                button.innerHTML = '<i class="fas fa-sync"></i> <span class="btn-text">Sync to Square</span>';
+                button.disabled = false;
             }
         });
-    });
-
-    // Cleanup modal when hidden
-    document.getElementById('squareSyncModal').addEventListener('hidden.bs.modal', function() {
-        const resultsDiv = document.getElementById('syncResults');
-        resultsDiv.innerHTML = '';
     });
 
     // Handle category unsync from Square

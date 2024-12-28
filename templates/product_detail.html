@@ -603,18 +603,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.location.reload();
                     }, 2000);
                 } else {
-                    resultsDiv.innerHTML = `
-                    <div class="text-center">
-                        <i class="fas fa-exclamation-circle text-danger fa-3x mb-3"></i>
-                        <div class="alert alert-danger">
-                            <h5 class="mb-2">Square Sync Error</h5>
-                            <p class="mb-0">${data.error}</p>
-                        </div>
-                        ${data.error.includes('credentials') ? 
-                            `<a href="/vmc-admin/settings" class="btn btn-primary mt-3">
-                                <i class="fas fa-cog"></i> Go to Settings
-                            </a>` : ''}
-                    </div>`;
+                    resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
                     button.innerHTML = '<i class="fas fa-sync"></i> Sync to Square';
                     button.disabled = false;
                     const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
@@ -667,18 +656,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }, 2000);
                 } else {
                     const data = await response.json();
-                    resultsDiv.innerHTML = `
-                    <div class="text-center">
-                        <i class="fas fa-exclamation-circle text-danger fa-3x mb-3"></i>
-                        <div class="alert alert-danger">
-                            <h5 class="mb-2">Square Sync Error</h5>
-                            <p class="mb-0">${data.error}</p>
-                        </div>
-                        ${data.error.includes('credentials') ? 
-                            `<a href="/vmc-admin/settings" class="btn btn-primary mt-3">
-                                <i class="fas fa-cog"></i> Go to Settings
-                            </a>` : ''}
-                    </div>`;
+                    resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
                     confirmationMessage.style.display = 'block';
                 }
             } catch (error) {
@@ -878,18 +856,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.location.reload();
                     }, 2000);
                 } else {
-                    resultsDiv.innerHTML = `
-                    <div class="text-center">
-                        <i class="fas fa-exclamation-circle text-danger fa-3x mb-3"></i>
-                        <div class="alert alert-danger">
-                            <h5 class="mb-2">Square Sync Error</h5>
-                            <p class="mb-0">${data.error}</p>
-                        </div>
-                        ${data.error.includes('credentials') ? 
-                            `<a href="/vmc-admin/settings" class="btn btn-primary mt-3">
-                                <i class="fas fa-cog"></i> Go to Settings
-                            </a>` : ''}
-                    </div>`;
+                    resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
                     confirmationMessage.style.display = 'block';
                     unsyncButton.innerHTML = '<i class="fas fa-unlink"></i> Remove from Square';
                     unsyncButton.disabled = false;
