@@ -264,14 +264,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Handle category sync with Square
+    let squareSyncModal = null;
     document.querySelectorAll('.sync-category').forEach(button => {
         button.addEventListener('click', async function() {
             const categoryId = this.dataset.categoryId;
-            const button = this;
             
             try {
-                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
-                button.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+                this.disabled = true;
                 
                 const response = await fetch(`/api/categories/${categoryId}/sync`, {
                     method: 'POST'
@@ -281,20 +281,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     location.reload();
                 } else {
                     const data = await response.json();
-                    const squareSyncModal = document.getElementById('squareSyncModal');
+                    const modalElement = document.getElementById('squareSyncModal');
                     const resultsDiv = document.getElementById('syncResults');
                     
-                    // Properly dispose of any existing modal instance
-                    const existingModal = bootstrap.Modal.getInstance(squareSyncModal);
-                    if (existingModal) {
-                        existingModal.dispose();
+                    if (squareSyncModal) {
+                        squareSyncModal.dispose();
                     }
-                    
-                    // Create new modal instance
-                    const modal = new bootstrap.Modal(squareSyncModal, {
-                        backdrop: 'static',
-                        keyboard: false
-                    });
                     
                     resultsDiv.innerHTML = `
                         <div class="text-center">
@@ -308,19 +300,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <i class="fas fa-cog"></i> Go to Settings
                                 </a>` : ''}
                         </div>`;
-                    modal.show();
-                    squareSyncModal.addEventListener('hidden.bs.modal', function () {
-                        modal.dispose();
-                        document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
-                    }, { once: true });
-                    button.innerHTML = '<i class="fas fa-sync"></i> <span class="btn-text">Sync to Square</span>';
-                    button.disabled = false;
+                    
+                    squareSyncModal = new bootstrap.Modal(modalElement);
+                    squareSyncModal.show();
                 }
             } catch (error) {
                 console.error('Error:', error);
                 alert('Error syncing category with Square');
-                button.innerHTML = '<i class="fas fa-sync"></i> <span class="btn-text">Sync to Square</span>';
-                button.disabled = false;
+            } finally {
+                this.innerHTML = '<i class="fas fa-sync"></i> <span class="btn-text">Sync to Square</span>';
+                this.disabled = false;
             }
         });
     });
