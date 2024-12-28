@@ -402,6 +402,29 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
 }
+
+/* Square API Credentials Modal Styles */
+.square-credentials-modal .modal-body {
+    padding: 1.5rem;
+}
+
+.square-credentials-modal .btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+@media (min-width: 576px) {
+    .square-credentials-modal .btn {
+        width: auto;
+        min-width: 120px;
+        margin-bottom: 0;
+    }
+    .square-credentials-modal .d-grid {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+}
 /* Category Card Responsive Styles */
 .category-card {
     padding: 1.25rem;
