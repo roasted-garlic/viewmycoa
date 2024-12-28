@@ -14,8 +14,8 @@ app = Flask(__name__)
 migrate = Migrate(app, db)
 
 # Configuration
-app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.secret_key = "a_secure_secret_key_for_flask"  # This is safe as it's just for session management
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"  # Use local SQLite database
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
