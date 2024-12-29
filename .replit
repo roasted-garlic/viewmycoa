@@ -103,10 +103,8 @@ task = "shell.exec"
 args = "rm -rf migrations && FLASK_APP=app.py flask db init && flask db migrate -m 'initial_migration' && flask db upgrade"
 
 [deployment]
-run = ["sh", "-c", "FLASK_APP=app.py flask db upgrade && python main.py"]
-deploymentTarget = "cloudrun"
+run = ["sh", "-c", "python main.py"]
 
 [[ports]]
 localPort = 5000
 externalPort = 80
-name = "web"
