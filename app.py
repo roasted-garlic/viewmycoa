@@ -1166,12 +1166,14 @@ def save_image(file, product_id, image_type):
     # Create filename based on product_id and type
     filename = f"{image_type}_{product_id}{ext}"
     filepath = os.path.join(product_dir, filename)
+    full_filepath = os.path.join('static', filepath)
 
     # Process and save image
     img = Image.open(file)
     img.thumbnail((800, 800))  # Resize if needed
-    img.save(os.path.join('static', filepath))
+    img.save(full_filepath)
 
+    # Return path relative to static directory for proper URL generation
     return filepath
 
 @app.route('/api/square/clear-id/<int:product_id>', methods=['POST']) 
