@@ -13,10 +13,32 @@
 </div>
 
 <div class="row mb-4">
-    <div class="col">
+    <div class="col-md-8">
         <input type="text" id="searchInput" class="form-control" placeholder="Search products...">
     </div>
+    <div class="col-md-4">
+        <select class="form-select" id="categoryFilter" onchange="filterByCategory(this.value)">
+            <option value="">All Categories</option>
+            {% for category in categories %}
+            <option value="{{ category.id }}" {% if selected_category == category.id %}selected{% endif %}>
+                {{ category.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
 </div>
+
+<script>
+function filterByCategory(categoryId) {
+    const url = new URL(window.location.href);
+    if (categoryId) {
+        url.searchParams.set('category', categoryId);
+    } else {
+        url.searchParams.delete('category');
+    }
+    window.location.href = url.toString();
+}
+</script>
 
 <div class="row" id="productList">
     {% for product in products %}
