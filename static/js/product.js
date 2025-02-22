@@ -9,6 +9,35 @@ document.addEventListener('DOMContentLoaded', async function() {
     const labelImage = document.getElementById('labelImage');
     const coaPdf = document.getElementById('coaPdf');
 
+    // Create preview containers if they don't exist
+    function ensurePreviewContainer(input, previewId) {
+        const cardBody = input.closest('.card-body');
+        let previewContainer = cardBody.querySelector(`#${previewId}`);
+        if (!previewContainer) {
+            previewContainer = document.createElement('div');
+            previewContainer.id = previewId;
+            input.insertAdjacentElement('beforebegin', previewContainer);
+        }
+        return previewContainer;
+    }
+
+    // Initialize preview containers
+    if (productImage) {
+        const container = ensurePreviewContainer(productImage, 'productImagePreview');
+        const existingImg = productImage.closest('.card-body').querySelector('img.img-thumbnail');
+        if (existingImg) {
+            container.appendChild(existingImg);
+        }
+    }
+
+    if (labelImage) {
+        const container = ensurePreviewContainer(labelImage, 'labelImagePreview');
+        const existingImg = labelImage.closest('.card-body').querySelector('img.img-thumbnail');
+        if (existingImg) {
+            container.appendChild(existingImg);
+        }
+    }
+
     // Function to handle image preview
     function handleImagePreview(input, previewSelector) {
         const file = input.files[0];
