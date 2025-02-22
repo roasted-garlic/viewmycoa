@@ -86,8 +86,15 @@ def page_not_found(e):
 
 @app.route('/vmc-admin/dashboard')
 def admin_dashboard():
-    products = models.Product.query.all()
-    return render_template('product_list.html', products=products)
+    category_id = request.args.get('category', type=int)
+    query = models.Product.query.order_by(models.Product.created_at.desc())
+    
+    if category_id:
+        query = query.join(models.Product.categories).filter(models.Category.id == category_id)
+    
+    products = query.all()
+    categories = models.Category.query.order_by(models.Category.name).all()
+    return render_template('product_list.html', products=products, categories=categories, selected_category=category_id)
 
 @app.route('/search')
 def search_results():
