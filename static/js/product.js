@@ -32,10 +32,10 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (templateId) {
                 const response = await fetch(`/api/template/${templateId}`);
                 const template = await response.json();
-                
+
                 // Clear existing attributes
                 attributesContainer.innerHTML = '';
-                
+
                 // Add template attributes
                 Object.entries(template.attributes).forEach(([name, value]) => {
                     addAttributeField(name, value);
@@ -46,7 +46,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Function to generate batch number
     async function generateBatchNumber() {
-        const response = await fetch('/api/generate_batch');
+        const response = await fetch('/api/generate_batch', {
+            method: 'POST'
+        });
         const data = await response.json();
         if (batchInput) {
             batchInput.value = data.batch_number;
@@ -70,11 +72,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 </button>
             </div>
         `;
-        
+
         attributeDiv.querySelector('.remove-attribute').addEventListener('click', function() {
             attributeDiv.remove();
         });
-        
+
         attributesContainer.appendChild(attributeDiv);
     }
 
