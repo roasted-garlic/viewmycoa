@@ -61,6 +61,23 @@
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
+/* Navigation Arrows */
+.btn-outline-primary {
+    font-size: 1.5rem;
+    padding: 0.5rem 1rem;
+    min-width: 60px;
+    background-color: rgba(13, 110, 253, 0.1);
+    border-width: 2px;
+}
+
+.btn-outline-primary:hover {
+    background-color: rgba(13, 110, 253, 0.2);
+}
+
+.btn-outline-primary i {
+    font-size: 1.5rem;
+}
+
 .btn {
     display: inline-flex;
     align-items: center;
