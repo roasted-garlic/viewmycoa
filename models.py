@@ -104,17 +104,6 @@ class Product(db.Model):
         except json.JSONDecodeError:
             return {}
 
-    @staticmethod
-    def get_adjacent_products(current_id):
-        """Get the next and previous product IDs"""
-        products = Product.query.order_by(Product.created_at.desc()).all()
-        current_index = next((i for i, p in enumerate(products) if p.id == current_id), -1)
-
-        prev_id = products[current_index - 1].id if current_index > 0 else None
-        next_id = products[current_index + 1].id if current_index < len(products) - 1 else None
-
-        return prev_id, next_id
-
 class BatchHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id', ondelete='CASCADE'), nullable=False)
@@ -122,7 +111,7 @@ class BatchHistory(db.Model):
     attributes = db.Column(db.Text)  # Stored as JSON
     coa_pdf = db.Column(db.String(500))  # URL/path to COA PDF
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-
+    
     def set_attributes(self, attrs):
         if attrs is None:
             self.attributes = json.dumps({})

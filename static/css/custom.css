@@ -61,25 +61,6 @@
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
-/* Navigation Arrows */
-.btn-outline-primary {
-    font-size: 1rem;
-    padding: 0.5rem;
-    min-width: 40px;
-    background-color: white;
-    border-color: #0d6efd;
-    color: #0d6efd;
-}
-
-.btn-outline-primary:hover {
-    background-color: #0d6efd;
-    color: white;
-}
-
-.btn-outline-primary i {
-    font-size: 1rem;
-}
-
 .btn {
     display: inline-flex;
     align-items: center;
