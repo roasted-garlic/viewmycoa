@@ -4,7 +4,7 @@ modules = ["python-3.11", "postgresql-16"]
 channel = "stable-24_05"
 
 [workflows]
-runButton = "Project"
+runButton = "Flask Server"
 
 [[workflows.workflow]]
 name = "Project"
@@ -112,6 +112,10 @@ args = "BACKUP_DIR=\"backups/$(date +%Y%m%d_%H%M%S)\" && mkdir -p \"$BACKUP_DIR\
 
 [deployment]
 run = ["sh", "-c", "python main.py"]
+
+[[ports]]
+localPort = 3000
+externalPort = 3000
 
 [[ports]]
 localPort = 5000
