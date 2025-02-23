@@ -9,6 +9,80 @@ document.addEventListener('DOMContentLoaded', async function() {
     const labelImage = document.getElementById('labelImage');
     const coaPdf = document.getElementById('coaPdf');
 
+    // Generate initial batch number if empty
+    if (batchInput && batchInput.value === '') {
+        generateBatchNumber();
+    }
+
+    // Batch number generation
+    if (generateBatchBtn) {
+        generateBatchBtn.addEventListener('click', generateBatchNumber);
+    }
+
+    if (enableBatchEdit) {
+        enableBatchEdit.addEventListener('change', function() {
+            batchInput.readOnly = !this.checked;
+        });
+    }
+
+    // Template handling
+    if (templateSelect) {
+        templateSelect.addEventListener('change', async function() {
+            const templateId = this.value;
+            if (templateId) {
+                const response = await fetch(`/api/template/${templateId}`);
+                const template = await response.json();
+                
+                // Clear existing attributes
+                attributesContainer.innerHTML = '';
+                
+                // Add template attributes
+                Object.entries(template.attributes).forEach(([name, value]) => {
+                    addAttributeField(name, value);
+                });
+            }
+        });
+    }
+
+    // Function to generate batch number
+    async function generateBatchNumber() {
+        const response = await fetch('/api/generate_batch');
+        const data = await response.json();
+        if (batchInput) {
+            batchInput.value = data.batch_number;
+        }
+    }
+
+    // Function to add attribute field
+    function addAttributeField(name = '', value = '') {
+        const attributeDiv = document.createElement('div');
+        attributeDiv.className = 'row mb-2';
+        attributeDiv.innerHTML = `
+            <div class="col-5">
+                <input type="text" class="form-control" name="attr_name[]" value="${name}" placeholder="Name">
+            </div>
+            <div class="col-5">
+                <input type="text" class="form-control" name="attr_value[]" value="${value}" placeholder="Value">
+            </div>
+            <div class="col-2">
+                <button type="button" class="btn btn-danger remove-attribute">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        
+        attributeDiv.querySelector('.remove-attribute').addEventListener('click', function() {
+            attributeDiv.remove();
+        });
+        
+        attributesContainer.appendChild(attributeDiv);
+    }
+
+    // Add attribute button handler
+    if (addAttributeBtn) {
+        addAttributeBtn.addEventListener('click', () => addAttributeField());
+    }
+
     // Create preview containers if they don't exist
     function ensurePreviewContainer(input, previewId) {
         const cardBody = input.closest('.card-body');
