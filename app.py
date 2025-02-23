@@ -88,10 +88,10 @@ def page_not_found(e):
 def admin_dashboard():
     category_id = request.args.get('category', type=int)
     query = models.Product.query.order_by(models.Product.created_at.desc())
-    
+
     if category_id:
         query = query.join(models.Product.categories).filter(models.Category.id == category_id)
-    
+
     products = query.all()
     categories = models.Category.query.order_by(models.Category.name).all()
     return render_template('product_list.html', products=products, categories=categories, selected_category=category_id)
@@ -368,19 +368,17 @@ def create_product():
 @app.route('/vmc-admin/products/<int:product_id>')
 def product_detail(product_id):
     product = models.Product.query.get_or_404(product_id)
-    # Get all PDFs for this product, including historical ones
     pdfs = models.GeneratedPDF.query.filter(
         models.GeneratedPDF.product_id == product_id
     ).order_by(models.GeneratedPDF.created_at.desc()).all()
 
-    # Debug logging
-    app.logger.debug(f"Found {len(pdfs)} PDFs for product {product_id}")
-    for pdf in pdfs:
-        app.logger.debug(f"PDF ID: {pdf.id}, Filename: {pdf.filename}, Batch History ID: {pdf.batch_history_id}")
+    prev_id, next_id = models.Product.get_adjacent_products(product_id)
 
     return render_template('product_detail.html', 
                          product=product, 
-                         pdfs=pdfs, 
+                         pdfs=pdfs,
+                         prev_id=prev_id,
+                         next_id=next_id,
                          BatchHistory=models.BatchHistory)
 
 
