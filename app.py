@@ -370,8 +370,8 @@ def product_detail(product_id):
     product = models.Product.query.get_or_404(product_id)
     
     # Get previous and next products
-    previous_product = models.Product.query.filter(models.Product.id < product_id).order_by(models.Product.id.desc()).first()
-    next_product = models.Product.query.filter(models.Product.id > product_id).order_by(models.Product.id.asc()).first()
+    previous_product = models.Product.query.filter(models.Product.id > product_id).order_by(models.Product.id.asc()).first()
+    next_product = models.Product.query.filter(models.Product.id < product_id).order_by(models.Product.id.desc()).first()
     
     # Get all PDFs for this product, including historical ones
     pdfs = models.GeneratedPDF.query.filter(
