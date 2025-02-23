@@ -102,6 +102,14 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "rm -rf migrations && FLASK_APP=app.py flask db init && flask db migrate -m 'initial_migration' && flask db upgrade"
 
+[[workflows.workflow]]
+name = "Database Backup"
+author = 27469103
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "BACKUP_DIR=\"backups/$(date +%Y%m%d_%H%M%S)\" && mkdir -p \"$BACKUP_DIR\" && pg_dump $DATABASE_URL > \"$BACKUP_DIR/db_backup.sql\" && cp -r static/uploads \"$BACKUP_DIR/\""
+
 [deployment]
 run = ["sh", "-c", "python main.py"]
 

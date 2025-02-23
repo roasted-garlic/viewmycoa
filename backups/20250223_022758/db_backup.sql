@@ -371,29 +371,6 @@ COPY public.generated_pdf (id, product_id, filename, created_at, pdf_url, batch_
 72	12	9NQG7ZEO/history_label_9NQG7ZEO_20241219_004327.pdf	2024-12-19 00:42:49.259076	http://33bc90e3-4b23-41c5-b18d-3ed153949c16-00-3i50tf8upz4wc.janeway.replit.dev/static/pdfs/9NQG7ZEO/history_label_9NQG7ZEO_20241219_004327.pdf	\N
 73	12	EGG64U8G/history_label_EGG64U8G_20241219_010415.pdf	2024-12-19 00:44:31.844047	http://33bc90e3-4b23-41c5-b18d-3ed153949c16-00-3i50tf8upz4wc.janeway.replit.dev/static/pdfs/EGG64U8G/history_label_EGG64U8G_20241219_010415.pdf	\N
 77	12	label_3KTRWJ1A_20241219_224128.pdf	2024-12-19 22:41:35.381574	http://33bc90e3-4b23-41c5-b18d-3ed153949c16-00-3i50tf8upz4wc.janeway.replit.dev/static/pdfs/3KTRWJ1A/label_3KTRWJ1A_20241219_224128.pdf	\N
-136	12	label_EK0CEVP1_20241229_010917.pdf	2024-12-29 01:09:19.339341	http://viewmycoa.replit.app/static/pdfs/EK0CEVP1/label_EK0CEVP1_20241229_010917.pdf	\N
-137	11	label_KH9QQE5C_20241229_011004.pdf	2024-12-29 01:10:06.280906	http://viewmycoa.replit.app/static/pdfs/KH9QQE5C/label_KH9QQE5C_20241229_011004.pdf	\N
-138	10	label_3KTRWJ1A_20241229_011023.pdf	2024-12-29 01:10:25.48279	http://viewmycoa.replit.app/static/pdfs/3KTRWJ1A/label_3KTRWJ1A_20241229_011023.pdf	\N
-157	63	label_W1NRXRAZ_20250117_181019.pdf	2025-01-17 18:10:21.470783	http://viewmycoa.replit.app/static/pdfs/W1NRXRAZ/label_W1NRXRAZ_20250117_181019.pdf	\N
-158	58	label_J3N7F8MO_20250117_181208.pdf	2025-01-17 18:12:10.345724	http://viewmycoa.replit.app/static/pdfs/J3N7F8MO/label_J3N7F8MO_20250117_181208.pdf	\N
-160	56	label_Z1DOKMQI_20250117_181337.pdf	2025-01-17 18:13:39.245861	http://viewmycoa.replit.app/static/pdfs/Z1DOKMQI/label_Z1DOKMQI_20250117_181337.pdf	\N
-162	57	label_G1UQTSV0_20250117_181446.pdf	2025-01-17 18:14:47.835261	http://viewmycoa.replit.app/static/pdfs/G1UQTSV0/label_G1UQTSV0_20250117_181446.pdf	\N
-164	62	label_P8SZ2FLG_20250117_181934.pdf	2025-01-17 18:19:39.798812	http://viewmycoa.replit.app/static/pdfs/P8SZ2FLG/label_P8SZ2FLG_20250117_181934.pdf	\N
-165	64	label_2VHZZY4V_20250117_182439.pdf	2025-01-17 18:24:41.676569	http://viewmycoa.replit.app/static/pdfs/2VHZZY4V/label_2VHZZY4V_20250117_182439.pdf	\N
-167	57	label_G1UQTSV0_20250127_042025.pdf	2025-01-27 04:20:27.088743	http://viewmycoa.replit.app/static/pdfs/G1UQTSV0/label_G1UQTSV0_20250127_042025.pdf	\N
-168	66	label_0DW369ZT_20250216_213201.pdf	2025-02-16 21:32:03.239997	http://viewmycoa.replit.app/static/pdfs/0DW369ZT/label_0DW369ZT_20250216_213201.pdf	\N
-169	67	label_BG88RX5D_20250216_213333.pdf	2025-02-16 21:33:34.802119	http://viewmycoa.replit.app/static/pdfs/BG88RX5D/label_BG88RX5D_20250216_213333.pdf	\N
-170	68	label_WICGKW71_20250216_213427.pdf	2025-02-16 21:34:28.657625	http://viewmycoa.replit.app/static/pdfs/WICGKW71/label_WICGKW71_20250216_213427.pdf	\N
-171	69	label_3FHF9PO1_20250222_220131.pdf	2025-02-22 22:01:32.585878	http://viewmycoa.com/static/pdfs/3FHF9PO1/label_3FHF9PO1_20250222_220131.pdf	\N
-172	65	label_LDH4DP31_20250222_220249.pdf	2025-02-22 22:02:50.729291	http://viewmycoa.com/static/pdfs/LDH4DP31/label_LDH4DP31_20250222_220249.pdf	\N
-173	61	label_6BWBAXNA_20250222_220338.pdf	2025-02-22 22:03:39.412426	http://viewmycoa.com/static/pdfs/6BWBAXNA/label_6BWBAXNA_20250222_220338.pdf	\N
-174	60	label_B14MEE98_20250222_220423.pdf	2025-02-22 22:04:24.605637	http://viewmycoa.com/static/pdfs/B14MEE98/label_B14MEE98_20250222_220423.pdf	\N
-175	59	label_NCU08Y04_20250222_220517.pdf	2025-02-22 22:05:18.368499	http://viewmycoa.com/static/pdfs/NCU08Y04/label_NCU08Y04_20250222_220517.pdf	\N
-176	71	label_FLHL91NF_20250222_220739.pdf	2025-02-22 22:07:40.925257	http://viewmycoa.com/static/pdfs/FLHL91NF/label_FLHL91NF_20250222_220739.pdf	\N
-177	70	label_KGDRTRZX_20250222_220811.pdf	2025-02-22 22:08:12.601049	http://viewmycoa.com/static/pdfs/KGDRTRZX/label_KGDRTRZX_20250222_220811.pdf	\N
-179	73	label_HO6TMMOO_20250222_221334.pdf	2025-02-22 22:13:36.159512	http://viewmycoa.com/static/pdfs/HO6TMMOO/label_HO6TMMOO_20250222_221334.pdf	\N
-180	72	label_DT831O64_20250222_221350.pdf	2025-02-22 22:13:51.704108	http://viewmycoa.com/static/pdfs/DT831O64/label_DT831O64_20250222_221350.pdf	\N
-181	74	label_P7H8G6FG_20250222_221442.pdf	2025-02-22 22:14:43.952692	http://viewmycoa.com/static/pdfs/P7H8G6FG/label_P7H8G6FG_20250222_221442.pdf	\N
 \.
 
 
