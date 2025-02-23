@@ -51,6 +51,37 @@
 
 
 
+/* Product Navigation Arrows */
+.product-navigation .nav-arrow {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(33, 37, 41, 0.8);
+    color: #fff;
+    padding: 20px 15px;
+    border-radius: 5px;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.nav-arrow:hover {
+    background: rgba(33, 37, 41, 1);
+    color: #0dcaf0;
+}
+
+.nav-arrow-left {
+    left: 20px;
+}
+
+.nav-arrow-right {
+    right: 20px;
+}
+
+.nav-arrow i {
+    font-size: 24px;
+}
+
 /* Button and container styles */
 .btn-synced {
     background-color: #198754 !important;
