@@ -337,9 +337,9 @@
                                     <p class="mb-1 text-muted">Created: {{ history.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
                                 </div>
                                 <div class="d-flex flex-column gap-2">
-                                    {% if history.label_image %}
+                                    {% if product.label_image %}
                                     <div class="mb-3">
-                                        <img src="{{ url_for('static', filename=history.label_image) }}" class="img-fluid" alt="Product Label">
+                                        <img src="{{ url_for('static', filename=product.label_image) }}" class="img-fluid" alt="Product Label">
                                     </div>
                                     {% endif %}
                                     <div class="d-flex flex-column flex-sm-row gap-2">
