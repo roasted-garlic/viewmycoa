@@ -368,6 +368,11 @@ def create_product():
 @app.route('/vmc-admin/products/<int:product_id>')
 def product_detail(product_id):
     product = models.Product.query.get_or_404(product_id)
+    
+    # Get previous and next products
+    previous_product = models.Product.query.filter(models.Product.id < product_id).order_by(models.Product.id.desc()).first()
+    next_product = models.Product.query.filter(models.Product.id > product_id).order_by(models.Product.id.asc()).first()
+    
     # Get all PDFs for this product, including historical ones
     pdfs = models.GeneratedPDF.query.filter(
         models.GeneratedPDF.product_id == product_id
@@ -381,6 +386,8 @@ def product_detail(product_id):
     return render_template('product_detail.html', 
                          product=product, 
                          pdfs=pdfs, 
+                         previous_product=previous_product,
+                         next_product=next_product,
                          BatchHistory=models.BatchHistory)
 
 
