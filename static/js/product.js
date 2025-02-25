@@ -209,6 +209,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         attributesContainer.appendChild(attributeGroup);
     }
 
+    // Initialize remove buttons for existing attributes
+    document.querySelectorAll('.remove-attribute').forEach(button => {
+        button.addEventListener('click', function() {
+            this.closest('.attribute-group').remove();
+        });
+    });
+
+
     // Handle COA deletion
     document.getElementById('confirmCoaDelete')?.addEventListener('click', async function() {
         const deleteBtn = document.querySelector('.delete-coa');
@@ -218,11 +226,15 @@ document.addEventListener('DOMContentLoaded', async function() {
             const response = await fetch(`/api/delete_coa/${productId}`, {
                 method: 'DELETE'
             });
+
             if (response.ok) {
                 window.location.reload();
+            } else {
+                alert('Failed to delete COA');
             }
         } catch (error) {
             console.error('Error:', error);
+            alert('Error deleting COA');
         }
     });
 });
