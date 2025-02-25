@@ -25,45 +25,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // Template handling
-    if (templateSelect) {
-        templateSelect.addEventListener('change', async function() {
-            const templateId = this.value;
-            if (!templateId) {
-                attributesContainer.innerHTML = '';
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/template/${templateId}`);
-                const template = await response.json();
-                
-                attributesContainer.innerHTML = '';
-                
-                for (const [name, value] of Object.entries(template.attributes)) {
-                    const attributeGroup = document.createElement('div');
-                    attributeGroup.className = 'attribute-group mb-3';
-                    attributeGroup.innerHTML = `
-                        <div class="input-group">
-                            <input type="text" class="form-control" name="attr_name[]" value="${name}" readonly>
-                            <input type="text" class="form-control" name="attr_value[]" value="" placeholder="Enter value">
-                            <button type="button" class="btn btn-danger remove-attribute">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    `;
-                    
-                    attributeGroup.querySelector('.remove-attribute').addEventListener('click', function() {
-                        this.closest('.attribute-group').remove();
-                    });
-                    
-                    attributesContainer.appendChild(attributeGroup);
-                }
-            } catch (error) {
-                console.error('Error fetching template:', error);
-            }
-        });
-    }
+    // Template handling is implemented later in the code
 
     // Function to generate batch number
     async function generateBatchNumber() {
@@ -203,29 +165,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const data = await response.json();
                 attributesContainer.innerHTML = '';
                 Object.entries(data.attributes).forEach(([name, value]) => {
-                    const attributeGroup = document.createElement('div');
-                    attributeGroup.className = 'attribute-group mb-2';
-                    attributeGroup.innerHTML = `
-                        <div class="row">
-                            <div class="col">
-                                <input type="text" class="form-control" name="attr_name[]" value="${name}" required>
-                            </div>
-                            <div class="col">
-                                <div class="input-group">
-                                    <input type="text" class="form-control" name="attr_value[]" value="${value}" required>
-                                    <button type="button" class="btn btn-danger remove-attribute">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    attributeGroup.querySelector('.remove-attribute').addEventListener('click', function() {
-                        this.closest('.attribute-group').remove();
-                    });
-                    
-                    attributesContainer.appendChild(attributeGroup);
+                    addAttributeField(name, value);
                 });
             } catch (error) {
                 console.error('Error fetching template:', error);
@@ -246,16 +186,16 @@ document.addEventListener('DOMContentLoaded', async function() {
         attributeGroup.className = 'attribute-group mb-2';
         attributeGroup.innerHTML = `
             <div class="row">
-                <div class="col">
+                <div class="col-6">
                     <input type="text" class="form-control" name="attr_name[]" value="${name}" required>
                 </div>
-                <div class="col">
-                    <input type="text" class="form-control" name="attr_value[]" value="${value}" required>
-                </div>
-                <div class="col-auto">
-                    <button type="button" class="btn btn-danger remove-attribute">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                <div class="col-6">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="attr_value[]" value="${value}" required>
+                        <button type="button" class="btn btn-danger remove-attribute">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
             </div>`;
 
