@@ -707,14 +707,6 @@ def delete_template(template_id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/template/<int:template_id>')
-def get_template(template_id):
-    template = models.ProductTemplate.query.get_or_404(template_id)
-    return jsonify({
-        'id': template.id,
-        'name': template.name,
-        'attributes': template.get_attributes()
-    })
 
 @app.route('/vmc-admin/products/<int:product_id>/edit', methods=['GET', 'POST'])
 def edit_product(product_id):
