@@ -25,24 +25,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // Template handling
-    if (templateSelect) {
-        templateSelect.addEventListener('change', async function() {
-            const templateId = this.value;
-            if (templateId) {
-                const response = await fetch(`/api/template/${templateId}`);
-                const template = await response.json();
-
-                // Clear existing attributes
-                attributesContainer.innerHTML = '';
-
-                // Add template attributes
-                Object.entries(template.attributes).forEach(([name, value]) => {
-                    addAttributeField(name, value);
-                });
-            }
-        });
-    }
+    // Template handling is implemented later in the code
 
     // Function to generate batch number
     async function generateBatchNumber() {
@@ -55,13 +38,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
-    // Function to add attribute field
-    
+    // Function to add attribute field is defined later in the code
 
-    // Add attribute button handler
-    if (addAttributeBtn) {
-        addAttributeBtn.addEventListener('click', () => addAttributeField());
-    }
+    // Add attribute button handler is now handled later in the code
+    // Removed duplicate event listener that was causing the issue of adding attributes twice
 
     // Create preview containers if they don't exist
     function ensurePreviewContainer(input, previewId) {
@@ -170,28 +150,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // Handle batch number functionality
-    if (generateBatchBtn) {
-        generateBatchBtn.addEventListener('click', async function() {
-            try {
-                const response = await fetch('/api/generate_batch');
-                const data = await response.json();
-                if (batchInput) {
-                    batchInput.value = data.batch_number;
-                }
-            } catch (error) {
-                console.error('Error generating batch number:', error);
-            }
-        });
-    }
-
-    if (enableBatchEdit) {
-        enableBatchEdit.addEventListener('change', function() {
-            if (batchInput) {
-                batchInput.readOnly = !this.checked;
-            }
-        });
-    }
+    // Batch number functionality is handled at the beginning of the code
 
     // Handle template selection
     if (templateSelect) {
