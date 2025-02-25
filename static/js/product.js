@@ -56,29 +56,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Function to add attribute field
-    function addAttributeField(name = '', value = '') {
-        const attributeDiv = document.createElement('div');
-        attributeDiv.className = 'row mb-2';
-        attributeDiv.innerHTML = `
-            <div class="col-5">
-                <input type="text" class="form-control" name="attr_name[]" value="${name}" placeholder="Name">
-            </div>
-            <div class="col-5">
-                <input type="text" class="form-control" name="attr_value[]" value="${value}" placeholder="Value">
-            </div>
-            <div class="col-2">
-                <button type="button" class="btn btn-danger remove-attribute">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `;
-
-        attributeDiv.querySelector('.remove-attribute').addEventListener('click', function() {
-            attributeDiv.remove();
-        });
-
-        attributesContainer.appendChild(attributeDiv);
-    }
+    
 
     // Add attribute button handler
     if (addAttributeBtn) {
