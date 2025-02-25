@@ -613,7 +613,18 @@ def create_template():
             flash(f'Error creating template: {str(e)}', 'danger')
             return render_template('template_create.html')
 
-    return render_template('template_create.html')
+    # Handle pre-filled data for duplicating
+    prefill_name = request.args.get('name', '')
+    prefill_attributes = {}
+    if request.args.get('attributes'):
+        try:
+            prefill_attributes = json.loads(request.args.get('attributes'))
+        except json.JSONDecodeError:
+            pass
+
+    return render_template('template_create.html', 
+                         prefill_name=prefill_name,
+                         prefill_attributes=prefill_attributes)
 
 @app.route('/api/square/unsync-all', methods=['POST'])
 def unsync_all_products():

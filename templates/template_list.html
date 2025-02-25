@@ -76,19 +76,22 @@ document.querySelectorAll('.duplicate-template').forEach(button => {
     button.addEventListener('click', async function() {
         const templateId = this.dataset.templateId;
         try {
-            const response = await fetch(`/api/duplicate_template/${templateId}`, {
-                method: 'POST'
-            });
+            const response = await fetch(`/api/template/${templateId}`);
             const data = await response.json();
             
-            if (data.success) {
-                window.location.href = `/template/${data.new_template_id}/edit`;
+            if (data.id) {
+                // Redirect to create form with template data in URL
+                const params = new URLSearchParams({
+                    name: `${data.name} - Copy`,
+                    attributes: JSON.stringify(data.attributes)
+                });
+                window.location.href = `/vmc-admin/template/new?${params}`;
             } else {
-                showNotification('Error duplicating template', 'danger');
+                showNotification('Error loading template', 'danger');
             }
         } catch (error) {
             console.error('Error:', error);
-            showNotification('Error duplicating template', 'danger');
+            showNotification('Error loading template', 'danger');
         }
     });
 });

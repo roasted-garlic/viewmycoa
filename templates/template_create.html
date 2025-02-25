@@ -13,8 +13,26 @@
             <div class="mb-3">
                 <label class="form-label">Template Attributes</label>
                 <div id="attributesContainer">
-                    <!-- Attributes will be added here dynamically -->
-                </div>
+                {% if prefill_attributes %}
+                    {% for name, value in prefill_attributes.items() %}
+                    <div class="attribute-group mb-2">
+                        <div class="row">
+                            <div class="col">
+                                <input type="text" class="form-control attr-name" name="attr_name[]" value="{{ name }}" required>
+                            </div>
+                            <div class="col">
+                                <input type="text" class="form-control" name="attr_value[]" value="{{ value }}" placeholder="Default Value (Optional)">
+                            </div>
+                            <div class="col-auto">
+                                <button type="button" class="btn btn-danger remove-attribute">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
                 <button type="button" class="btn btn-secondary mt-2" id="addAttribute">
                     <i class="fas fa-plus"></i> Add Attribute
                 </button>
