@@ -240,7 +240,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Handle attribute addition
-    if (addAttributeBtn) {
+    if (addAttributeBtn && !addAttributeBtn.hasEventListener) {
+        addAttributeBtn.hasEventListener = true;
         addAttributeBtn.addEventListener('click', function() {
             addAttributeField();
         });
