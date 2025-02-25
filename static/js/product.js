@@ -76,10 +76,48 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
-    // Function to add attribute field is defined later in the code
+    // Function to add an attribute field
+    function addAttributeField(name = '', value = '') {
+        const container = document.getElementById('attributesContainer');
+        const attributeGroup = document.createElement('div');
+        attributeGroup.className = 'attribute-group mb-2';
+        attributeGroup.innerHTML = `
+            <div class="row">
+                <div class="col">
+                    <input type="text" class="form-control" name="attr_name[]" value="${name}" required>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" name="attr_value[]" value="${value}" required>
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="btn btn-danger remove-attribute">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>`;
+        container.appendChild(attributeGroup);
+    }
 
-    // Add attribute button handler is now handled later in the code
-    // Removed duplicate event listener that was causing the issue of adding attributes twice
+    // Template selection handler
+    const templateSelect = document.getElementById('template');
+    if (templateSelect) {
+        templateSelect.addEventListener('change', async function() {
+            const templateId = this.value;
+            if (!templateId) return;
+
+            const response = await fetch(`/api/template/${templateId}`);
+            const template = await response.json();
+            
+            // Clear existing attributes
+            const container = document.getElementById('attributesContainer');
+            container.innerHTML = '';
+            
+            // Add attributes from template
+            for (const [name, value] of Object.entries(template.attributes)) {
+                addAttributeField(name, '');
+            }
+        });
+    }
 
     // Create preview containers if they don't exist
     function ensurePreviewContainer(input, previewId) {
