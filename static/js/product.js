@@ -76,10 +76,65 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
-    // Function to add attribute field is defined later in the code
+    // Function to add an attribute field
+    function addAttributeField(name = '', value = '') {
+        const attributeGroup = document.createElement('div');
+        attributeGroup.className = 'attribute-group mb-2';
+        attributeGroup.innerHTML = `
+            <div class="row">
+                <div class="col">
+                    <input type="text" class="form-control bg-dark text-white border-secondary" name="attr_name[]" value="${name}" placeholder="Attribute Name" required>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control bg-dark text-white border-secondary" name="attr_value[]" value="${value}" placeholder="Value" required>
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="btn btn-danger remove-attribute">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>`;
+        
+        const container = document.getElementById('attributesContainer');
+        container.appendChild(attributeGroup);
+        
+        // Add remove button handler
+        attributeGroup.querySelector('.remove-attribute').addEventListener('click', function() {
+            attributeGroup.remove();
+        });
+    }
 
-    // Add attribute button handler is now handled later in the code
-    // Removed duplicate event listener that was causing the issue of adding attributes twice
+    // Template selection handler
+    const templateSelect = document.getElementById('template');
+    if (templateSelect) {
+        templateSelect.addEventListener('change', async function() {
+            const templateId = this.value;
+            if (!templateId) return;
+
+            try {
+                const response = await fetch(`/api/template/${templateId}`);
+                if (!response.ok) throw new Error('Template fetch failed');
+                const template = await response.json();
+                
+                // Clear existing attributes
+                const container = document.getElementById('attributesContainer');
+                container.innerHTML = '';
+                
+                // Add template attributes
+                Object.entries(template.attributes).forEach(([name, value]) => {
+                    addAttributeField(name, '');
+                });
+            } catch (error) {
+                console.error('Error loading template:', error);
+            }
+        });
+    }
+
+    // Add attribute button handler
+    const addAttributeBtn = document.getElementById('addAttribute');
+    if (addAttributeBtn) {
+        addAttributeBtn.addEventListener('click', () => addAttributeField());
+    }
 
     // Create preview containers if they don't exist
     function ensurePreviewContainer(input, previewId) {
