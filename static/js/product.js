@@ -219,20 +219,22 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (templateSelect) {
         templateSelect.addEventListener('change', async function() {
             const templateId = this.value;
-            if (templateId) {
-                try {
-                    const response = await fetch(`/api/template/${templateId}`);
-                    const data = await response.json();
-                    if (data.attributes) {
-                        const attributes = JSON.parse(data.attributes);
-                        attributesContainer.innerHTML = '';
-                        Object.entries(attributes).forEach(([name, value]) => {
-                            addAttributeField(name, value);
-                        });
-                    }
-                } catch (error) {
-                    console.error('Error fetching template:', error);
+            if (!templateId) {
+                attributesContainer.innerHTML = '';
+                return;
+            }
+            try {
+                const response = await fetch(`/api/template/${templateId}`);
+                const data = await response.json();
+                if (data.attributes) {
+                    const attributes = JSON.parse(data.attributes);
+                    attributesContainer.innerHTML = '';
+                    Object.entries(attributes).forEach(([name, value]) => {
+                        addAttributeField(name, value);
+                    });
                 }
+            } catch (error) {
+                console.error('Error fetching template:', error);
             }
         });
     }
