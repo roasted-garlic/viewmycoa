@@ -7,6 +7,31 @@ channel = "stable-24_05"
 runButton = "Flask Server"
 
 [[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Flask Server"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Flask Migrate"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Database Migration"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Flask Migrate Init"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Reset Migrations"
+
+[[workflows.workflow]]
 name = "Flask Server"
 author = "agent"
 
@@ -19,11 +44,75 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python main.py"
-waitForPort = 3000
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Flask Migrate"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "FLASK_APP=app.py flask db upgrade"
+
+[[workflows.workflow]]
+name = "Database Migration"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "alembic revision --autogenerate -m 'Add square_image_id to product' && alembic upgrade head"
+
+[[workflows.workflow]]
+name = "Flask Migrate Init"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "FLASK_APP=app.py flask db init"
+
+[[workflows.workflow]]
+name = "Reset Migrations"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "rm -rf migrations && FLASK_APP=app.py flask db init && flask db migrate -m 'initial_migration' && flask db upgrade"
+
+[[workflows.workflow]]
+name = "Database Backup"
+author = 27469103
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "BACKUP_DIR=\"backups/$(date +%Y%m%d_%H%M%S)\" && mkdir -p \"$BACKUP_DIR\" && pg_dump $DATABASE_URL > \"$BACKUP_DIR/db_backup.sql\" && cp -r static/uploads \"$BACKUP_DIR/\""
 
 [deployment]
 run = ["sh", "-c", "python main.py"]
 
 [[ports]]
 localPort = 3000
-externalPort = 3000
+externalPort = 80

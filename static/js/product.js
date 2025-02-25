@@ -25,7 +25,24 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // Template handling is implemented later in the code
+    // Template handling
+    if (templateSelect) {
+        templateSelect.addEventListener('change', async function() {
+            const templateId = this.value;
+            if (templateId) {
+                const response = await fetch(`/api/template/${templateId}`);
+                const template = await response.json();
+
+                // Clear existing attributes
+                attributesContainer.innerHTML = '';
+
+                // Add template attributes
+                Object.entries(template.attributes).forEach(([name, value]) => {
+                    addAttributeField(name, value);
+                });
+            }
+        });
+    }
 
     // Function to generate batch number
     async function generateBatchNumber() {
@@ -38,10 +55,35 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
-    // Function to add attribute field is defined later in the code
+    // Function to add attribute field
+    function addAttributeField(name = '', value = '') {
+        const attributeDiv = document.createElement('div');
+        attributeDiv.className = 'row mb-2';
+        attributeDiv.innerHTML = `
+            <div class="col-5">
+                <input type="text" class="form-control" name="attr_name[]" value="${name}" placeholder="Name">
+            </div>
+            <div class="col-5">
+                <input type="text" class="form-control" name="attr_value[]" value="${value}" placeholder="Value">
+            </div>
+            <div class="col-2">
+                <button type="button" class="btn btn-danger remove-attribute">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
 
-    // Add attribute button handler is now handled later in the code
-    // Removed duplicate event listener that was causing the issue of adding attributes twice
+        attributeDiv.querySelector('.remove-attribute').addEventListener('click', function() {
+            attributeDiv.remove();
+        });
+
+        attributesContainer.appendChild(attributeDiv);
+    }
+
+    // Add attribute button handler
+    if (addAttributeBtn) {
+        addAttributeBtn.addEventListener('click', () => addAttributeField());
+    }
 
     // Create preview containers if they don't exist
     function ensurePreviewContainer(input, previewId) {
@@ -150,32 +192,53 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // Batch number functionality is handled at the beginning of the code
+    // Handle batch number functionality
+    if (generateBatchBtn) {
+        generateBatchBtn.addEventListener('click', async function() {
+            try {
+                const response = await fetch('/api/generate_batch');
+                const data = await response.json();
+                if (batchInput) {
+                    batchInput.value = data.batch_number;
+                }
+            } catch (error) {
+                console.error('Error generating batch number:', error);
+            }
+        });
+    }
+
+    if (enableBatchEdit) {
+        enableBatchEdit.addEventListener('change', function() {
+            if (batchInput) {
+                batchInput.readOnly = !this.checked;
+            }
+        });
+    }
 
     // Handle template selection
     if (templateSelect) {
         templateSelect.addEventListener('change', async function() {
             const templateId = this.value;
-            if (!templateId) {
-                attributesContainer.innerHTML = '';
-                return;
-            }
-            try {
-                const response = await fetch(`/api/template/${templateId}`);
-                const data = await response.json();
-                attributesContainer.innerHTML = '';
-                Object.entries(data.attributes).forEach(([name, value]) => {
-                    addAttributeField(name, value);
-                });
-            } catch (error) {
-                console.error('Error fetching template:', error);
+            if (templateId) {
+                try {
+                    const response = await fetch(`/api/template/${templateId}`);
+                    const data = await response.json();
+                    if (data.attributes) {
+                        const attributes = JSON.parse(data.attributes);
+                        attributesContainer.innerHTML = '';
+                        Object.entries(attributes).forEach(([name, value]) => {
+                            addAttributeField(name, value);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error fetching template:', error);
+                }
             }
         });
     }
 
     // Handle attribute addition
-    if (addAttributeBtn && !addAttributeBtn.hasEventListener) {
-        addAttributeBtn.hasEventListener = true;
+    if (addAttributeBtn) {
         addAttributeBtn.addEventListener('click', function() {
             addAttributeField();
         });
@@ -186,16 +249,16 @@ document.addEventListener('DOMContentLoaded', async function() {
         attributeGroup.className = 'attribute-group mb-2';
         attributeGroup.innerHTML = `
             <div class="row">
-                <div class="col-6">
+                <div class="col">
                     <input type="text" class="form-control" name="attr_name[]" value="${name}" required>
                 </div>
-                <div class="col-6">
-                    <div class="input-group">
-                        <input type="text" class="form-control" name="attr_value[]" value="${value}" required>
-                        <button type="button" class="btn btn-danger remove-attribute">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
+                <div class="col">
+                    <input type="text" class="form-control" name="attr_value[]" value="${value}" required>
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="btn btn-danger remove-attribute">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
             </div>`;
 
@@ -206,14 +269,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         attributesContainer.appendChild(attributeGroup);
     }
 
-    // Initialize remove buttons for existing attributes
-    document.querySelectorAll('.remove-attribute').forEach(button => {
-        button.addEventListener('click', function() {
-            this.closest('.attribute-group').remove();
-        });
-    });
-
-
     // Handle COA deletion
     document.getElementById('confirmCoaDelete')?.addEventListener('click', async function() {
         const deleteBtn = document.querySelector('.delete-coa');
@@ -223,15 +278,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             const response = await fetch(`/api/delete_coa/${productId}`, {
                 method: 'DELETE'
             });
-
             if (response.ok) {
                 window.location.reload();
-            } else {
-                alert('Failed to delete COA');
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error deleting COA');
         }
     });
 });
