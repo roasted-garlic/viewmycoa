@@ -201,13 +201,32 @@ document.addEventListener('DOMContentLoaded', async function() {
             try {
                 const response = await fetch(`/api/template/${templateId}`);
                 const data = await response.json();
-                if (data.attributes) {
-                    const attributes = JSON.parse(data.attributes);
-                    attributesContainer.innerHTML = '';
-                    Object.entries(attributes).forEach(([name, value]) => {
-                        addAttributeField(name, value);
+                attributesContainer.innerHTML = '';
+                Object.entries(data.attributes).forEach(([name, value]) => {
+                    const attributeGroup = document.createElement('div');
+                    attributeGroup.className = 'attribute-group mb-2';
+                    attributeGroup.innerHTML = `
+                        <div class="row">
+                            <div class="col">
+                                <input type="text" class="form-control" name="attr_name[]" value="${name}" required>
+                            </div>
+                            <div class="col">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="attr_value[]" value="${value}" required>
+                                    <button type="button" class="btn btn-danger remove-attribute">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    attributeGroup.querySelector('.remove-attribute').addEventListener('click', function() {
+                        this.closest('.attribute-group').remove();
                     });
-                }
+                    
+                    attributesContainer.appendChild(attributeGroup);
+                });
             } catch (error) {
                 console.error('Error fetching template:', error);
             }
