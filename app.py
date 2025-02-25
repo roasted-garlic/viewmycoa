@@ -664,7 +664,7 @@ def edit_template(template_id):
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating template: {str(e)}', 'danger')
-            return render_template('template_edit.html', template=template, is_duplicate=True)
+            return render_template('template_edit.html', template=template)
 
     return render_template('template_edit.html', template=template)
 
