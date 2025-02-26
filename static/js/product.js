@@ -260,6 +260,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         attributeGroup.querySelector('.remove-attribute').addEventListener('click', function() {
             if (confirm('Are you sure you want to remove this attribute?')) {
                 attributeGroup.remove();
+                // Trigger form change event
+                const form = document.getElementById('productForm');
+                if (form) {
+                    const event = new Event('change');
+                    form.dispatchEvent(event);
+                }
             }
         });
 
