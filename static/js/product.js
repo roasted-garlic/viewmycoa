@@ -260,14 +260,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         attributeGroup.querySelector('.remove-attribute').addEventListener('click', function() {
             attributeGroup.remove();
             // Update hidden input with current attributes
-            updateAttributesData();
-            // Submit the form if we're in edit mode
-            if (document.getElementById('productForm').getAttribute('method') === 'POST') {
-                document.getElementById('productForm').submit();
-            }
-        });
-
-        function updateAttributesData() {
             const attributesData = {};
             document.querySelectorAll('.attribute-group').forEach(group => {
                 const nameInput = group.querySelector('input[name="attr_name[]"]');
@@ -287,7 +279,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 document.getElementById('productForm').appendChild(hiddenInput);
             }
             hiddenInput.value = JSON.stringify(attributesData);
-        }
+        });
 
         attributesContainer.appendChild(attributeGroup);
     }
