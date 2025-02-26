@@ -80,11 +80,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         attributesContainer.appendChild(attributeDiv);
     }
 
-    // Add attribute button handler
-    if (addAttributeBtn) {
-        addAttributeBtn.addEventListener('click', () => addAttributeField());
-    }
-
     // Create preview containers if they don't exist
     function ensurePreviewContainer(input, previewId) {
         const cardBody = input.closest('.card-body');
