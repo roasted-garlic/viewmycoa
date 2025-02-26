@@ -722,6 +722,16 @@ def edit_product(product_id):
             product.title = request.form['title']
             product.cost = float(request.form['cost']) if request.form.get('cost') else None
             product.price = float(request.form['price']) if request.form.get('price') else None
+            
+            # Handle attributes
+            if 'attributes_data' in request.form:
+                product.attributes = request.form['attributes_data']
+            else:
+                # Fall back to processing individual inputs
+                attr_names = request.form.getlist('attr_name[]')
+                attr_values = request.form.getlist('attr_value[]')
+                attrs = {name: value for name, value in zip(attr_names, attr_values) if name}
+                product.set_attributes(attrs)
             new_batch_number = request.form['batch_number']
             if new_batch_number != product.batch_number:
                 # Create batch history record
