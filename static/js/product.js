@@ -258,7 +258,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             </div>`;
 
         attributeGroup.querySelector('.remove-attribute').addEventListener('click', function() {
-            attributeGroup.remove();
+            if (confirm('Are you sure you want to remove this attribute?')) {
+                attributeGroup.remove();
+            }
         });
 
         attributesContainer.appendChild(attributeGroup);
