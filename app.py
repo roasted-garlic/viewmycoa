@@ -304,7 +304,7 @@ def create_product():
         # Process dynamic attributes
         attr_names = request.form.getlist('attr_name[]')
         attr_values = request.form.getlist('attr_value[]')
-        attributes = dict(zip(attr_names, attr_values))
+        attributes = {name: value for name, value in zip(attr_names, attr_values) if name}
 
         # Generate UPC-A barcode number and SKU
         from utils import generate_upc_barcode, generate_batch_number, generate_sku

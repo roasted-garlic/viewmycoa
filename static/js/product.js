@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', function() {
     const batchInput = document.getElementById('batchNumber');
     const enableBatchEdit = document.getElementById('enableBatchEdit');
     const generateBatchBtn = document.getElementById('generateBatch');
@@ -8,7 +8,29 @@ document.addEventListener('DOMContentLoaded', async function() {
     const productImage = document.getElementById('productImage');
     const labelImage = document.getElementById('labelImage');
     const coaPdf = document.getElementById('coaPdf');
-
+    const productForm = document.getElementById('productForm');
+    
+    // Initialize delete buttons for existing attributes
+    initializeAttributeButtons();
+    
+    // Function to add event listeners to all attribute delete buttons
+    function initializeAttributeButtons() {
+        // Remove any existing event listeners to prevent duplicates
+        document.querySelectorAll('.remove-attribute').forEach(button => {
+            // Clone and replace the button to remove all event listeners
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+            
+            // Add fresh event listener
+            newButton.addEventListener('click', function() {
+                const attributeGroup = this.closest('.attribute-group');
+                if (attributeGroup) {
+                    attributeGroup.remove();
+                }
+            });
+        });
+    }
+    
     // Generate initial batch number if empty
     if (batchInput && batchInput.value === '') {
         generateBatchNumber();
@@ -30,59 +52,70 @@ document.addEventListener('DOMContentLoaded', async function() {
         templateSelect.addEventListener('change', async function() {
             const templateId = this.value;
             if (templateId) {
-                const response = await fetch(`/api/template/${templateId}`);
-                const template = await response.json();
-
-                // Clear existing attributes
-                attributesContainer.innerHTML = '';
-
-                // Add template attributes
-                Object.entries(template.attributes).forEach(([name, value]) => {
-                    addAttributeField(name, value);
-                });
+                try {
+                    const response = await fetch(`/api/template/${templateId}`);
+                    const data = await response.json();
+                    if (data.attributes) {
+                        const attributes = JSON.parse(data.attributes);
+                        attributesContainer.innerHTML = '';
+                        Object.entries(attributes).forEach(([name, value]) => {
+                            addAttributeField(name, value);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error fetching template:', error);
+                }
             }
         });
     }
 
     // Function to generate batch number
     async function generateBatchNumber() {
-        const response = await fetch('/api/generate_batch', {
-            method: 'POST'
-        });
-        const data = await response.json();
-        if (batchInput) {
-            batchInput.value = data.batch_number;
+        try {
+            const response = await fetch('/api/generate_batch', {
+                method: 'POST'
+            });
+            const data = await response.json();
+            if (batchInput) {
+                batchInput.value = data.batch_number;
+            }
+        } catch (error) {
+            console.error('Error generating batch number:', error);
         }
     }
 
     // Function to add attribute field
     function addAttributeField(name = '', value = '') {
         const attributeDiv = document.createElement('div');
-        attributeDiv.className = 'row mb-2';
+        attributeDiv.className = 'attribute-group mb-2';
         attributeDiv.innerHTML = `
-            <div class="col-5">
-                <input type="text" class="form-control" name="attr_name[]" value="${name}" placeholder="Name">
-            </div>
-            <div class="col-5">
-                <input type="text" class="form-control" name="attr_value[]" value="${value}" placeholder="Value">
-            </div>
-            <div class="col-2">
-                <button type="button" class="btn btn-danger remove-attribute">
-                    <i class="fas fa-trash"></i>
-                </button>
+            <div class="row">
+                <div class="col">
+                    <input type="text" class="form-control" name="attr_name[]" value="${name}" placeholder="Name" required>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control" name="attr_value[]" value="${value}" placeholder="Value" required>
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="btn btn-danger remove-attribute">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             </div>
         `;
 
-        attributeDiv.querySelector('.remove-attribute').addEventListener('click', function() {
-            attributeDiv.remove();
-        });
-
         attributesContainer.appendChild(attributeDiv);
+        
+        // Initialize the new button
+        initializeAttributeButtons();
     }
 
     // Create preview containers if they don't exist
     function ensurePreviewContainer(input, previewId) {
+        if (!input) return null;
         const cardBody = input.closest('.card-body');
+        if (!cardBody) return null;
+        
         let previewContainer = cardBody.querySelector(`#${previewId}`);
         if (!previewContainer) {
             previewContainer = document.createElement('div');
@@ -95,27 +128,33 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize preview containers
     if (productImage) {
         const container = ensurePreviewContainer(productImage, 'productImagePreview');
-        const existingImg = productImage.closest('.card-body').querySelector('img.img-thumbnail');
-        if (existingImg) {
-            container.appendChild(existingImg);
+        if (container) {
+            const existingImg = productImage.closest('.card-body').querySelector('img.img-thumbnail');
+            if (existingImg) {
+                container.appendChild(existingImg);
+            }
         }
     }
 
     if (labelImage) {
         const container = ensurePreviewContainer(labelImage, 'labelImagePreview');
-        const existingImg = labelImage.closest('.card-body').querySelector('img.img-thumbnail');
-        if (existingImg) {
-            container.appendChild(existingImg);
+        if (container) {
+            const existingImg = labelImage.closest('.card-body').querySelector('img.img-thumbnail');
+            if (existingImg) {
+                container.appendChild(existingImg);
+            }
         }
     }
 
     // Function to handle image preview
     function handleImagePreview(input, previewSelector) {
         const file = input.files[0];
-        const previewContainer = input.closest('.card-body').querySelector(previewSelector);
-        const previewImg = previewContainer?.querySelector('img');
+        const previewContainer = input.closest('.card-body')?.querySelector(previewSelector);
+        if (!previewContainer) return;
+        
+        const previewImg = previewContainer.querySelector('img');
 
-        if (file && previewContainer) {
+        if (file) {
             if (!previewImg) {
                 const img = document.createElement('img');
                 img.className = 'img-thumbnail mb-3';
@@ -126,9 +165,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = previewContainer.querySelector('img');
-                img.src = e.target.result;
-                img.classList.remove('d-none');
-                previewContainer.classList.remove('d-none');
+                if (img) {
+                    img.src = e.target.result;
+                    img.classList.remove('d-none');
+                    previewContainer.classList.remove('d-none');
+                }
             }
             reader.readAsDataURL(file);
         }
@@ -155,8 +196,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (file) {
                 const fileType = file.type;
                 const previewContainer = this.closest('.card-body');
+                if (!previewContainer) return;
+                
                 const existingPreview = previewContainer.querySelector('.preview-container');
-
                 if (existingPreview) {
                     existingPreview.remove();
                 }
@@ -187,51 +229,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // Handle batch number functionality
-    if (generateBatchBtn) {
-        generateBatchBtn.addEventListener('click', async function() {
-            try {
-                const response = await fetch('/api/generate_batch');
-                const data = await response.json();
-                if (batchInput) {
-                    batchInput.value = data.batch_number;
-                }
-            } catch (error) {
-                console.error('Error generating batch number:', error);
-            }
-        });
-    }
-
-    if (enableBatchEdit) {
-        enableBatchEdit.addEventListener('change', function() {
-            if (batchInput) {
-                batchInput.readOnly = !this.checked;
-            }
-        });
-    }
-
-    // Handle template selection
-    if (templateSelect) {
-        templateSelect.addEventListener('change', async function() {
-            const templateId = this.value;
-            if (templateId) {
-                try {
-                    const response = await fetch(`/api/template/${templateId}`);
-                    const data = await response.json();
-                    if (data.attributes) {
-                        const attributes = JSON.parse(data.attributes);
-                        attributesContainer.innerHTML = '';
-                        Object.entries(attributes).forEach(([name, value]) => {
-                            addAttributeField(name, value);
-                        });
-                    }
-                } catch (error) {
-                    console.error('Error fetching template:', error);
-                }
-            }
-        });
-    }
-
     // Handle attribute addition
     if (addAttributeBtn) {
         addAttributeBtn.addEventListener('click', function() {
@@ -239,65 +236,34 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    function addAttributeField(name = '', value = '') {
-        const attributeGroup = document.createElement('div');
-        attributeGroup.className = 'attribute-group mb-2';
-        attributeGroup.innerHTML = `
-            <div class="row">
-                <div class="col">
-                    <input type="text" class="form-control" name="attr_name[]" value="${name}" required>
-                </div>
-                <div class="col">
-                    <input type="text" class="form-control" name="attr_value[]" value="${value}" required>
-                </div>
-                <div class="col-auto">
-                    <button type="button" class="btn btn-danger remove-attribute">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>`;
-
-        attributeGroup.querySelector('.remove-attribute').addEventListener('click', function() {
-            attributeGroup.remove();
-            // Update hidden input with current attributes
-            const attributesData = {};
-            document.querySelectorAll('.attribute-group').forEach(group => {
-                const nameInput = group.querySelector('input[name="attr_name[]"]');
-                const valueInput = group.querySelector('input[name="attr_value[]"]');
-                if (nameInput && valueInput) {
-                    attributesData[nameInput.value] = valueInput.value;
-                }
-            });
+    // Handle COA deletion
+    const confirmCoaDelete = document.getElementById('confirmCoaDelete');
+    if (confirmCoaDelete) {
+        confirmCoaDelete.addEventListener('click', async function() {
+            const deleteBtn = document.querySelector('.delete-coa');
+            if (!deleteBtn) return;
             
-            // Add hidden input for attributes if it doesn't exist
-            let hiddenInput = document.getElementById('attributes_data');
-            if (!hiddenInput) {
-                hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.id = 'attributes_data';
-                hiddenInput.name = 'attributes_data';
-                document.getElementById('productForm').appendChild(hiddenInput);
-            }
-            hiddenInput.value = JSON.stringify(attributesData);
-        });
+            const productId = deleteBtn.dataset.productId;
+            if (!productId) return;
 
-        attributesContainer.appendChild(attributeGroup);
+            try {
+                const response = await fetch(`/api/delete_coa/${productId}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
     }
 
-    // Handle COA deletion
-    document.getElementById('confirmCoaDelete')?.addEventListener('click', async function() {
-        const deleteBtn = document.querySelector('.delete-coa');
-        const productId = deleteBtn.dataset.productId;
-
-        try {
-            const response = await fetch(`/api/delete_coa/${productId}`, {
-                method: 'DELETE'
-            });
-            if (response.ok) {
-                window.location.reload();
-            }
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    });
+    // Ensure form properly collects all attributes when submitting
+    if (productForm) {
+        productForm.addEventListener('submit', function() {
+            // No need to add a hidden field - the server can process the attr_name[] and attr_value[] 
+            // arrays directly, which is already how the form is set up
+        });
+    }
 });
