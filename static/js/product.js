@@ -259,26 +259,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         attributeGroup.querySelector('.remove-attribute').addEventListener('click', function() {
             attributeGroup.remove();
-            // Update hidden input with current attributes
-            const attributesData = {};
-            document.querySelectorAll('.attribute-group').forEach(group => {
-                const nameInput = group.querySelector('input[name="attr_name[]"]');
-                const valueInput = group.querySelector('input[name="attr_value[]"]');
-                if (nameInput && valueInput) {
-                    attributesData[nameInput.value] = valueInput.value;
-                }
-            });
-            
-            // Add hidden input for attributes if it doesn't exist
-            let hiddenInput = document.getElementById('attributes_data');
-            if (!hiddenInput) {
-                hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.id = 'attributes_data';
-                hiddenInput.name = 'attributes_data';
-                document.getElementById('productForm').appendChild(hiddenInput);
-            }
-            hiddenInput.value = JSON.stringify(attributesData);
+            // Automatically submit the form to save changes
+            document.getElementById('productForm').submit();
         });
 
         attributesContainer.appendChild(attributeGroup);
