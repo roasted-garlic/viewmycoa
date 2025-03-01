@@ -1,2 +1,7 @@
+modules = ["postgresql-16"]
 [deployment]
 run = ["sh", "-c", "REPLIT_DEPLOYMENT=1 FLASK_APP=app.py flask db upgrade && python main.py"]
+
+[[ports]]
+localPort = 3000
+externalPort = 80
