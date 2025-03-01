@@ -1,6 +1,8 @@
 
 import os
 import logging
+import signal
+import subprocess
 from app import app
 
 # Configure logging
@@ -11,19 +13,29 @@ logger = logging.getLogger(__name__)
 with app.app_context():
     from routes import admin_routes, auth_routes
 
+def find_free_port(start_port=5000, max_port=5100):
+    """Find a free port starting from start_port"""
+    import socket
+    
+    port = start_port
+    while port < max_port:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind(('0.0.0.0', port))
+                logger.info(f"Found free port: {port}")
+                return port
+            except OSError:
+                logger.info(f"Port {port} is in use, trying next port")
+                port += 1
+    
+    # If no ports are available, return a different port range
+    logger.warning("No free ports found in specified range, using port 8080")
+    return 8080
+
 if __name__ == "__main__":
-    # Configure host and port
+    # Configure host and find a free port
     host = "0.0.0.0"
-    port = int(os.environ.get("PORT", 5000))
+    port = find_free_port()
     
-    # Kill any existing process on this port
-    import subprocess
-    try:
-        subprocess.run(f"lsof -i :{port} -t | xargs kill -9", shell=True)
-        logger.info(f"Killed existing process on port {port}")
-    except Exception as e:
-        logger.warning(f"No process to kill on port {port}: {str(e)}")
-    
-    # Run the Flask application
     logger.info(f"Starting application on {host}:{port}")
     app.run(host=host, port=port, debug=True)
