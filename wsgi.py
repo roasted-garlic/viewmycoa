@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 with app.app_context():
     from routes import admin_routes, auth_routes
 
-def find_free_port(start_port=5000, max_port=5100):
+def find_free_port(start_port=8080, max_port=9000):
     """Find a free port starting from start_port"""
     import socket
     
@@ -29,8 +29,8 @@ def find_free_port(start_port=5000, max_port=5100):
                 port += 1
     
     # If no ports are available, return a different port range
-    logger.warning("No free ports found in specified range, using port 8080")
-    return 8080
+    logger.warning("No free ports found in specified range, using port 8000")
+    return 8000
 
 if __name__ == "__main__":
     # Configure host and find a free port
