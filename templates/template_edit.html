@@ -8,6 +8,8 @@
                 <i class="fas fa-arrow-left"></i> Back to Templates
             </a>
         </div>
+        
+        {% if current_user.is_admin %}
         <h1>Edit Product Template</h1>
         <form method="POST" id="templateForm">
             <div class="mb-3">
@@ -43,6 +45,33 @@
 
             <button type="submit" class="btn btn-primary">Update Template</button>
         </form>
+        {% else %}
+        <h1>View Product Template</h1>
+        <div class="mb-3">
+            <label class="form-label">Template Name</label>
+            <input type="text" class="form-control" value="{{ template.name }}" readonly>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Template Attributes</label>
+            <div>
+                {% for name, value in template.get_attributes().items() %}
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col">
+                                <strong>{{ name }}</strong>
+                            </div>
+                            <div class="col text-muted">
+                                Default: {{ value if value else "None" }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
