@@ -300,7 +300,9 @@
                         {% for pdf in pdfs %}
                             {% if not pdf.batch_history_id and pdf.filename.startswith('label_' + product.batch_number) %}
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>{{ pdf.filename }}</span>
+                                <a href="#" class="pdf-preview-link" data-pdf-url="{{ url_for('serve_pdf', filename=product.batch_number + '/' + pdf.filename) }}" data-pdf-filename="{{ pdf.filename }}">
+                                    {{ pdf.filename }}
+                                </a>
                                 <div class="d-flex gap-2">
                                     <a href="{{ url_for('serve_pdf', filename=product.batch_number + '/' + pdf.filename) }}?download=1" class="btn btn-primary btn-sm" title="Download PDF">
                                         <i class="fas fa-download"></i>
@@ -345,9 +347,11 @@
                                         {% endif %}
                                         {% for pdf in pdfs %}
                                         {% if history.batch_number in pdf.filename %}
-                                        <a href="{{ url_for('serve_pdf', filename=history.batch_number + '/' + pdf.filename.split('/')[-1]) }}" class="btn btn-primary btn-sm w-100" target="_blank">
+                                        <button class="btn btn-primary btn-sm w-100 pdf-preview-link" 
+                                                data-pdf-url="{{ url_for('serve_pdf', filename=history.batch_number + '/' + pdf.filename.split('/')[-1]) }}" 
+                                                data-pdf-filename="{{ pdf.filename.split('/')[-1] }}">
                                             <i class="fas fa-file-pdf"></i> View Label
-                                        </a>
+                                        </button>
                                         {% endif %}
                                         {% endfor %}
                                     </div>
@@ -379,6 +383,29 @@
                     <p class="text-muted">No label image available</p>
                     {% endif %}
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PDF Preview Modal -->
+<div class="modal fade" id="pdfPreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pdfPreviewTitle">PDF Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="ratio ratio-16x9">
+                    <iframe id="pdfPreviewFrame" src="" frameborder="0" allowfullscreen></iframe>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="pdfDownloadLink" href="#" class="btn btn-primary">
+                    <i class="fas fa-download"></i> Download
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -541,6 +568,26 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // PDF Preview functionality
+    const pdfPreviewModal = new bootstrap.Modal(document.getElementById('pdfPreviewModal'));
+    const pdfPreviewFrame = document.getElementById('pdfPreviewFrame');
+    const pdfPreviewTitle = document.getElementById('pdfPreviewTitle');
+    const pdfDownloadLink = document.getElementById('pdfDownloadLink');
+    
+    document.querySelectorAll('.pdf-preview-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const pdfUrl = this.dataset.pdfUrl;
+            const pdfFilename = this.dataset.pdfFilename;
+            
+            pdfPreviewFrame.src = pdfUrl;
+            pdfPreviewTitle.textContent = `PDF Preview: ${pdfFilename}`;
+            pdfDownloadLink.href = `${pdfUrl}?download=1`;
+            
+            pdfPreviewModal.show();
+        });
+    });
+    
     // Show Square sync reminder only after product update
     const urlParams = new URLSearchParams(window.location.search);
     const referrer = document.referrer;
