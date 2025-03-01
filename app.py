@@ -672,6 +672,7 @@ def unsync_all_products():
 
 
 @app.route('/template/<int:template_id>/edit', methods=['GET', 'POST'])
+@login_required
 def edit_template(template_id):
     template = models.ProductTemplate.query.get_or_404(template_id)
 
@@ -729,6 +730,7 @@ def delete_template(template_id):
 
 
 @app.route('/vmc-admin/products/<int:product_id>/edit', methods=['GET', 'POST'])
+@login_required
 def edit_product(product_id):
     product = models.Product.query.get_or_404(product_id)
     templates = models.ProductTemplate.query.all()
@@ -928,6 +930,7 @@ def inject_settings():
     return {'settings': models.Settings.get_settings()}
 
 @app.route('/vmc-admin/settings', methods=['GET', 'POST'])
+@login_required
 def settings():
     settings = models.Settings.get_settings()
     products = models.Product.query.all()
