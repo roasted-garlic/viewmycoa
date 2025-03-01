@@ -19,7 +19,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "flask db upgrade && python wsgi.py"
+args = "FLASK_APP=app.py flask db upgrade && python wsgi.py"
 waitForPort = 5000
 
 [[workflows.workflow]]
