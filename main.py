@@ -21,6 +21,9 @@ def init_app():
         # SQLite will be used as a fallback in app.py when no database variables are set
         # So we don't need to error here, just ensure that directories exist
         os.makedirs('instance', exist_ok=True)
+        
+        # Check if we're in deployment mode - define this before it's used later
+        is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
 
         # Initialize database
         with app.app_context():
