@@ -1,5 +1,4 @@
 
-#!/usr/bin/env python3
 import os
 import subprocess
 import time
@@ -29,6 +28,9 @@ def find_and_kill_process_on_port(port):
             # Kill the process
             subprocess.run(f"kill -9 {pid}", shell=True)
             logger.info(f"Killed process {pid}")
+            
+            # Wait for the port to be released
+            time.sleep(2)
             return True
         else:
             logger.info(f"No process found using port {port}")
@@ -37,28 +39,49 @@ def find_and_kill_process_on_port(port):
         logger.error(f"Error finding/killing process: {str(e)}")
         return False
 
-def restart_application():
-    """Restart the Flask application"""
+def start_application():
     try:
-        # Kill any process using port 5000
+        # Make sure port 5000 is free
         find_and_kill_process_on_port(5000)
         
-        # Wait a moment for the port to be released
-        time.sleep(1)
+        # Set environment variable
+        os.environ["FLASK_APP"] = "app.py"
+        
+        # Upgrade the database
+        result = subprocess.run(["flask", "db", "upgrade"], check=True)
         
         # Start the application
-        logger.info("Starting application...")
-        os.environ["FLASK_APP"] = "app.py"
-        subprocess.run(["flask", "db", "upgrade"], check=True)
+        process = subprocess.Popen(["python", "main.py"])
+        logger.info(f"Application started with PID: {process.pid}")
         
-        # Run the main script properly
-        logger.info("Running main.py...")
-        subprocess.run(["python", "main.py"], check=True)
+        # Give some time for the app to start
+        time.sleep(3)
         
-        return True
+        # Check if the application is running
+        if process.poll() is None:
+            logger.info("Application is running successfully")
+            return True
+        else:
+            logger.error(f"Application failed to start. Exit code: {process.returncode}")
+            return False
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Command execution failed: {e}")
+        return False
     except Exception as e:
-        logger.error(f"Failed to restart application: {str(e)}")
+        logger.error(f"Failed to start application: {str(e)}")
         return False
 
 if __name__ == "__main__":
-    restart_application()
+    # First kill any existing processes
+    find_and_kill_process_on_port(5000)
+    
+    # Then start the application
+    if start_application():
+        print("\n" + "="*50)
+        print("✅ Application started successfully!")
+        print("Open your browser and navigate to the Replit URL")
+        print("="*50 + "\n")
+    else:
+        print("\n" + "="*50)
+        print("❌ Failed to start application")
+        print("="*50 + "\n")

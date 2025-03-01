@@ -12,8 +12,21 @@
                 </div>
                 <div class="card-body">
                     {% if error %}
-                    <div class="alert alert-danger">{{ error }}</div>
+                    <div class="alert alert-danger text-center" style="background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; padding: 12px; margin-bottom: 20px; border-radius: 5px;">{{ error }}</div>
                     {% endif %}
+                    
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} text-center" style="background-color: {% if category == 'danger' %}#f8d7da{% elif category == 'info' %}#d1ecf1{% elif category == 'success' %}#d4edda{% else %}#cce5ff{% endif %}; 
+                                     border-color: {% if category == 'danger' %}#f5c6cb{% elif category == 'info' %}#bee5eb{% elif category == 'success' %}#c3e6cb{% else %}#b8daff{% endif %}; 
+                                     color: {% if category == 'danger' %}#721c24{% elif category == 'info' %}#0c5460{% elif category == 'success' %}#155724{% else %}#004085{% endif %}; 
+                                     padding: 12px; margin-bottom: 20px; border-radius: 5px;">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
                     <form method="POST">
                         <div class="mb-3">
                             <label for="username" class="form-label">Username</label>

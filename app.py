@@ -86,6 +86,10 @@ def index():
 @app.route('/vmc-admin/', defaults={'path': ''})
 @app.route('/vmc-admin/<path:path>')
 @login_required
+def admin_routes(path=''):
+    # This route catches all /vmc-admin/* paths that aren't explicitly defined
+    # and ensures they require login
+    return redirect(url_for('admin_dashboard'))
 def admin_index(path):
     if not path:
         return redirect(url_for('admin_dashboard'))
