@@ -18,13 +18,13 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('admin_dashboard'))
 
-    # Get flashed messages but don't remove them yet
-    messages = get_flashed_messages(with_categories=True, category_filter=['info'])
-    
-    # Only add message if it doesn't exist and there's a next parameter
-    has_login_message = any('Please log in' in message for category, message in messages)
-    if request.args.get('next') and not has_login_message:
-        flash('Please log in to access this page.', 'info')
+    # Only add login message if we have a 'next' parameter and user is not authenticated
+    if request.args.get('next') and not current_user.is_authenticated:
+        # Check if we already have this message
+        messages = get_flashed_messages(with_categories=True, category_filter=['info'])
+        has_login_message = any('Please log in' in message for category, message in messages)
+        if not has_login_message:
+            flash('Please log in to access this page.', 'info')
 
     error = None    
     if request.method == 'POST':
@@ -44,6 +44,13 @@ def login():
             else:
                 app.logger.info(f"Login successful for {username}")
                 login_user(user)
+                
+                # Clear any "Please log in" messages after successful login
+                messages = get_flashed_messages(with_categories=True)
+                for category, message in messages:
+                    if 'Please log in' not in message:
+                        flash(message, category)
+                
                 next_page = request.args.get('next')
                 if next_page:
                     return redirect(next_page)
