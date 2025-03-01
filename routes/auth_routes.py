@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, get_flashed_messages
 from flask_login import login_user, logout_user, login_required, current_user
 from app import app, db
 from models import User
@@ -17,6 +17,10 @@ def admin_required(f):
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('admin_dashboard'))
+
+    # If there's a next parameter and no login message in flash, add one
+    if request.args.get('next') and not any('Please log in' in message for message, category in get_flashed_messages(with_categories=True)):
+        flash('Please log in to access this page.', 'info')
 
     error = None    
     if request.method == 'POST':
