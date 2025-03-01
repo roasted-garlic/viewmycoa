@@ -45,15 +45,17 @@ def login():
                 app.logger.info(f"Login successful for {username}")
                 login_user(user)
                 
-                # Clear all flashed messages
-                get_flashed_messages()
+                # Clear all existing flashed messages
+                _ = get_flashed_messages()
                 
                 # Add success message
                 flash('You have successfully logged in.', 'success')
                 
                 next_page = request.args.get('next')
                 if next_page:
-                    return redirect(next_page)
+                    # Don't use regular redirect which preserves flash messages
+                    response = app.make_response(redirect(next_page))
+                    return response
                 return redirect(url_for('admin_dashboard'))
         except Exception as e:
             app.logger.error(f"Login error: {str(e)}", exc_info=True)
