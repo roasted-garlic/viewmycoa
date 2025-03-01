@@ -10,6 +10,7 @@ from flask_migrate import Migrate
 from flask_login import LoginManager, login_required, current_user, login_user, logout_user
 from utils import generate_batch_number, is_valid_image
 from models import db, product_categories, User
+from decorators import admin_required
 
 app = Flask(__name__)
 migrate = Migrate(app, db)
@@ -206,6 +207,7 @@ def categories():
 
 @app.route('/api/categories', methods=['POST'])
 @login_required
+@admin_required
 def create_category():
     try:
         data = request.get_json()
@@ -224,6 +226,7 @@ def create_category():
 
 @app.route('/api/categories/<int:category_id>', methods=['PUT'])
 @login_required
+@admin_required
 def update_category(category_id):
     try:
         category = models.Category.query.get_or_404(category_id)
@@ -238,6 +241,7 @@ def update_category(category_id):
 
 @app.route('/api/categories/<int:category_id>', methods=['DELETE'])
 @login_required
+@admin_required
 def delete_category(category_id):
     try:
         category = models.Category.query.get_or_404(category_id)
@@ -250,6 +254,7 @@ def delete_category(category_id):
 
 @app.route('/api/categories/<int:category_id>/sync', methods=['POST'])
 @login_required
+@admin_required
 def sync_category(category_id):
     try:
         from square_category_sync import sync_category_to_square
@@ -265,6 +270,7 @@ def sync_category(category_id):
 
 @app.route('/api/categories/<int:category_id>/unsync', methods=['POST'])
 @login_required
+@admin_required
 def unsync_category(category_id):
     try:
         category = models.Category.query.get_or_404(category_id)
@@ -359,6 +365,7 @@ def fetch_craftmypdf_templates():
 
 @app.route('/vmc-admin/products/new', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def create_product():
     templates = models.ProductTemplate.query.all()
     categories = models.Category.query.order_by(models.Category.name).all()
@@ -668,6 +675,7 @@ def template_list():
 
 @app.route('/vmc-admin/template/new', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def create_template():
     if request.method == 'POST':
         try:
@@ -735,6 +743,7 @@ def unsync_all_products():
 
 @app.route('/template/<int:template_id>/edit', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def edit_template(template_id):
     template = models.ProductTemplate.query.get_or_404(template_id)
 
@@ -765,6 +774,7 @@ def edit_template(template_id):
 
 @app.route('/api/duplicate_template/<int:template_id>', methods=['POST'])
 @login_required
+@admin_required
 def duplicate_template(template_id):
     try:
         original = models.ProductTemplate.query.get_or_404(template_id)
@@ -782,6 +792,7 @@ def duplicate_template(template_id):
 
 @app.route('/api/delete_template/<int:template_id>', methods=['DELETE'])
 @login_required
+@admin_required
 def delete_template(template_id):
     try:
         template = models.ProductTemplate.query.get_or_404(template_id)
@@ -795,6 +806,7 @@ def delete_template(template_id):
 
 @app.route('/vmc-admin/products/<int:product_id>/edit', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def edit_product(product_id):
     product = models.Product.query.get_or_404(product_id)
     templates = models.ProductTemplate.query.all()
@@ -995,6 +1007,7 @@ def inject_settings():
 
 @app.route('/vmc-admin/settings', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def settings():
     settings = models.Settings.get_settings()
     products = models.Product.query.all()
@@ -1078,6 +1091,7 @@ def delete_coa(product_id):
 
 @app.route('/api/duplicate_product/<int:product_id>', methods=['POST'])
 @login_required
+@admin_required
 def duplicate_product(product_id):
     try:
         from utils import generate_batch_number, generate_sku, generate_upc_barcode
@@ -1151,6 +1165,7 @@ def duplicate_product(product_id):
 
 @app.route('/api/delete_product/<int:product_id>', methods=['DELETE'])
 @login_required
+@admin_required
 def delete_product(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
@@ -1250,6 +1265,7 @@ def generate_json(product_id):
 
 @app.route('/api/square/sync/<int:product_id>', methods=['POST'])
 @login_required
+@admin_required
 def sync_single_product(product_id):
     """Sync a single product to Square"""
     try:
@@ -1299,6 +1315,7 @@ def save_image(file, product_id, image_type):
 
 @app.route('/api/square/clear-id/<int:product_id>', methods=['POST']) 
 @login_required
+@admin_required
 def clear_square_id(product_id):
     """Clear Square catalog ID from product"""
     try:
@@ -1312,6 +1329,7 @@ def clear_square_id(product_id):
 
 @app.route('/api/square/unsync/<int:product_id>', methods=['POST'])
 @login_required
+@admin_required
 def unsync_product(product_id):
     """Remove product from Square"""
     try:
@@ -1335,6 +1353,7 @@ def unsync_product(product_id):
         }), 500
 @app.route('/api/square/clear-image-id/<int:product_id>', methods=['POST'])
 @login_required
+@admin_required
 def clear_square_image_id(product_id):
     """Clear Square image ID from product"""
     try:

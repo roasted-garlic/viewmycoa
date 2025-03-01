@@ -1,8 +1,37 @@
-modules = ["postgresql-16"]
-[env]
-REPLIT_DISABLE_PACKAGE_LAYER = "1"
+modules = ["python-3.11", "postgresql-16"]
+
+[nix]
+channel = "stable-24_05"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Flask Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "FLASK_APP=app.py flask db upgrade && python main.py"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Flask Server"
+
 [deployment]
-run = ["sh", "-c", "REPLIT_DEPLOYMENT=1 FLASK_APP=app.py pip install -r requirements.txt && flask db upgrade && python main.py"]
+run = ["sh", "-c", "REPLIT_DEPLOYMENT=1 FLASK_APP=app.py flask db upgrade && python main.py"]
 
 [[ports]]
 localPort = 3000

@@ -1,22 +1,8 @@
-from flask import render_template, request, redirect, url_for, flash, get_flashed_messages
+from flask import render_template, request, redirect, url_for, flash, get_flashed_messages, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from app import app, db
 from models import User
-from functools import wraps
-
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or not current_user.is_admin:
-            # Clear any existing flashed messages
-            _ = get_flashed_messages()
-            # Then add our admin required message
-            flash('You need admin privileges to access this area.', 'danger')
-            # Make a response that doesn't preserve flash messages from login view
-            response = app.make_response(redirect(url_for('login')))
-            return response
-        return f(*args, **kwargs)
-    return decorated_function
+from decorators import admin_required
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

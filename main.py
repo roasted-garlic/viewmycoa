@@ -86,21 +86,6 @@ def main():
         # Check if we're in production mode
         is_production = os.getenv("REPLIT_DEPLOYMENT", "0") == "1"
         
-        # Log key environment variables for debugging (excluding sensitive values)
-        if is_production:
-            env_vars = {
-                'REPLIT_DEPLOYMENT': os.getenv('REPLIT_DEPLOYMENT'),
-                'PORT': os.getenv('PORT'),
-                'FLASK_APP': os.getenv('FLASK_APP'),
-                'DATABASE_URL': '[CONFIGURED]' if os.getenv('DATABASE_URL') else '[NOT SET]',
-                'PGDATABASE': '[CONFIGURED]' if os.getenv('PGDATABASE') else '[NOT SET]',
-                'PGHOST': '[CONFIGURED]' if os.getenv('PGHOST') else '[NOT SET]',
-                'PGPORT': '[CONFIGURED]' if os.getenv('PGPORT') else '[NOT SET]',
-                'PGUSER': '[CONFIGURED]' if os.getenv('PGUSER') else '[NOT SET]',
-                'FLASK_SECRET_KEY': '[CONFIGURED]' if os.getenv('FLASK_SECRET_KEY') else '[NOT SET]'
-            }
-            logger.info(f"Deployment environment: {env_vars}")
-        
         logger.info(f"Starting application on {host}:{port} (Production: {is_production})")
         
         # Run the Flask application
