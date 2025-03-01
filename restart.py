@@ -44,8 +44,11 @@ def find_and_kill_process_on_port(port):
 def restart_application():
     """Restart the Flask application"""
     try:
-        # Kill any process using port 5000
-        find_and_kill_process_on_port(5000)
+        # Get port from environment variable or default to 5000
+        port = int(os.getenv("PORT", 5000))
+        
+        # Kill any process using the port
+        find_and_kill_process_on_port(port)
         
         # Wait a moment for the port to be released
         time.sleep(2)
@@ -69,7 +72,7 @@ def restart_application():
         
         # Let the user know the application is restarting
         print("\n" + "="*50)
-        print("✅ Application restarting!")
+        print(f"✅ Application restarting on port {port}!")
         print("The server should be available in a few seconds.")
         print("="*50 + "\n")
         

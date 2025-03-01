@@ -59,16 +59,19 @@ def main():
 
         # Configure host and port
         host = "0.0.0.0"  # Listen on all available interfaces
-        port = 5000  # Use a single consistent port
+        port = int(os.getenv("PORT", 5000))  # Use environment port or default to 5000
         
-        logger.info(f"Starting application on {host}:{port}")
+        # Check if we're in production mode
+        is_production = os.getenv("REPLIT_DEPLOYMENT", "0") == "1"
+        
+        logger.info(f"Starting application on {host}:{port} (Production: {is_production})")
         
         # Run the Flask application
         app.run(
             host=host,
             port=port,
-            debug=True,
-            use_reloader=True
+            debug=not is_production,  # Disable debug mode in production
+            use_reloader=not is_production  # Disable reloader in production
         )
 
     except Exception as e:
