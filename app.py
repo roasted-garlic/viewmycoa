@@ -18,6 +18,7 @@ migrate = Migrate(app, db)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'  # Specify the login route
+login_manager.login_message = None  # Disable default flash message
 
 @login_manager.user_loader
 def load_user(user_id):
