@@ -64,6 +64,13 @@ def init_app():
 
     except Exception as e:
         logger.error(f"Error during application initialization: {str(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        
+        # Log environment variables (excluding sensitive data)
+        env_vars = {k: '***' if 'SECRET' in k or 'PASSWORD' in k or 'KEY' in k else v 
+                   for k, v in os.environ.items()}
+        logger.error(f"Environment variables: {env_vars}")
         raise
 
 def main():
