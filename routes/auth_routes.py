@@ -7,6 +7,16 @@ from functools import wraps
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        # Allow authenticated users to access overview route even if not admin
+        if request.endpoint == 'admin_overview':
+            if not current_user.is_authenticated:
+                _ = get_flashed_messages()
+                flash('You need to be logged in to access this area.', 'danger')
+                response = app.make_response(redirect(url_for('login')))
+                return response
+            return f(*args, **kwargs)
+        
+        # For all other admin routes, require admin privileges
         if not current_user.is_authenticated or not current_user.is_admin:
             # Clear any existing flashed messages
             _ = get_flashed_messages()

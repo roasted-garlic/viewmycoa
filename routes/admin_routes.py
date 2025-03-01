@@ -12,10 +12,15 @@ def admin_overview():
     product_count = Product.query.count()
     category_count = Category.query.count()
     template_count = ProductTemplate.query.count()
+    
+    # Pass is_admin flag to template so it can render appropriate content
+    is_admin = current_user.is_admin if current_user.is_authenticated else False
+    
     return render_template('admin_dashboard.html', 
                          product_count=product_count,
                          category_count=category_count,
-                         template_count=template_count)
+                         template_count=template_count,
+                         is_admin=is_admin)
 
 @app.route('/vmc-admin/products-list')
 @login_required

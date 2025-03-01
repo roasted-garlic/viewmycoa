@@ -1,51 +1,238 @@
+
 {% extends "base.html" %}
 
+{% block title %}Admin Dashboard{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h1 class="mb-4">Admin Dashboard</h1>
+<div class="container mt-4">
+    <h1 class="mb-4">{% if is_admin %}Admin{% else %}User{% endif %} Dashboard</h1>
     
+    {% if is_admin %}
+    <!-- Admin users see full dashboard -->
     <div class="row">
-        <!-- Products Card -->
         <div class="col-md-4 mb-4">
-            <div class="card bg-dark border-primary h-100">
-                <div class="card-body">
+            <div class="card bg-secondary text-white">
+                <div class="card-body text-center">
                     <h5 class="card-title">Products</h5>
-                    <p class="display-4">{{ product_count }}</p>
-                    <p class="card-text">Total products in system</p>
-                    <a href="{{ url_for('products') }}" class="btn btn-primary">
-                        <i class="fas fa-box"></i> Manage Products
-                    </a>
+                    <h2 class="display-4">{{ product_count }}</h2>
+                    <a href="{{ url_for('products') }}" class="btn btn-light mt-3">Manage Products</a>
                 </div>
             </div>
         </div>
         
-        <!-- Categories Card -->
         <div class="col-md-4 mb-4">
-            <div class="card bg-dark border-success h-100">
-                <div class="card-body">
+            <div class="card bg-secondary text-white">
+                <div class="card-body text-center">
                     <h5 class="card-title">Categories</h5>
-                    <p class="display-4">{{ category_count }}</p>
-                    <p class="card-text">Total categories</p>
-                    <a href="{{ url_for('categories') }}" class="btn btn-success">
-                        <i class="fas fa-tags"></i> Manage Categories
-                    </a>
+                    <h2 class="display-4">{{ category_count }}</h2>
+                    <a href="{{ url_for('categories') }}" class="btn btn-light mt-3">Manage Categories</a>
                 </div>
             </div>
         </div>
         
-        <!-- Templates Card -->
         <div class="col-md-4 mb-4">
-            <div class="card bg-dark border-info h-100">
-                <div class="card-body">
+            <div class="card bg-secondary text-white">
+                <div class="card-body text-center">
                     <h5 class="card-title">Templates</h5>
-                    <p class="display-4">{{ template_count }}</p>
-                    <p class="card-text">Product templates</p>
-                    <a href="{{ url_for('template_list') }}" class="btn btn-info">
-                        <i class="fas fa-clipboard-list"></i> Manage Templates
-                    </a>
+                    <h2 class="display-4">{{ template_count }}</h2>
+                    <a href="{{ url_for('template_list') }}" class="btn btn-light mt-3">Manage Templates</a>
                 </div>
             </div>
         </div>
     </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{{ url_for('create_product') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-plus-circle me-2"></i> Add New Product
+                        </a>
+                        <a href="{{ url_for('create_template') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-file-alt me-2"></i> Create New Template
+                        </a>
+                        <a href="{{ url_for('settings') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-cog me-2"></i> System Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">System Tools</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="/vmc-admin/users" class="list-group-item list-group-item-action">
+                            <i class="fas fa-users me-2"></i> Manage Users
+                        </a>
+                        <a href="javascript:void(0)" onclick="runBackup()" class="list-group-item list-group-item-action">
+                            <i class="fas fa-database me-2"></i> Create Backup
+                        </a>
+                        <a href="javascript:void(0)" onclick="restartApp()" class="list-group-item list-group-item-action">
+                            <i class="fas fa-sync me-2"></i> Restart Application
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Non-admin users see limited dashboard -->
+    <div class="alert alert-info">
+        <h4 class="alert-heading">Welcome!</h4>
+        <p>You are logged in as a regular user. You have access to the overview dashboard, but administrative functions are restricted.</p>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">System Statistics</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Total Products
+                            <span class="badge bg-primary rounded-pill">{{ product_count }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Categories
+                            <span class="badge bg-primary rounded-pill">{{ category_count }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Templates
+                            <span class="badge bg-primary rounded-pill">{{ template_count }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">User Information</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Username:</strong> {{ current_user.username }}</p>
+                    <p><strong>Email:</strong> {{ current_user.email }}</p>
+                    <p><strong>Account Type:</strong> Standard User</p>
+                    <p><strong>Created:</strong> {{ current_user.created_at.strftime('%Y-%m-%d') }}</p>
+                    <hr>
+                    <p class="text-muted">To request additional permissions, please contact your administrator.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
+
+<!-- Modals for backup and restart -->
+<div class="modal fade" id="backupModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title">Backup in Progress</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="spinner-border text-secondary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Creating system backup, please wait...</p>
+                <div id="backupResult"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="restartModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title">Restart in Progress</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="spinner-border text-secondary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Restarting application, please wait...</p>
+                <div id="restartResult"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function runBackup() {
+    var backupModal = new bootstrap.Modal(document.getElementById('backupModal'));
+    backupModal.show();
+    
+    fetch('/api/create_backup', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            document.getElementById('backupResult').innerHTML = 
+                `<div class="alert alert-success mt-3">
+                    <strong>Success!</strong> Backup created at: ${data.backup_path}
+                </div>`;
+        } else {
+            document.getElementById('backupResult').innerHTML = 
+                `<div class="alert alert-danger mt-3">
+                    <strong>Error!</strong> ${data.error}
+                </div>`;
+        }
+    })
+    .catch(error => {
+        document.getElementById('backupResult').innerHTML = 
+            `<div class="alert alert-danger mt-3">
+                <strong>Error!</strong> ${error}
+            </div>`;
+    });
+}
+
+function restartApp() {
+    var restartModal = new bootstrap.Modal(document.getElementById('restartModal'));
+    restartModal.show();
+    
+    fetch('/api/restart_app', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            document.getElementById('restartResult').innerHTML = 
+                `<div class="alert alert-success mt-3">
+                    <strong>Success!</strong> Application is restarting.
+                    <p>This page will refresh in 10 seconds.</p>
+                </div>`;
+            setTimeout(() => {
+                window.location.reload();
+            }, 10000);
+        } else {
+            document.getElementById('restartResult').innerHTML = 
+                `<div class="alert alert-danger mt-3">
+                    <strong>Error!</strong> ${data.error}
+                </div>`;
+        }
+    })
+    .catch(error => {
+        document.getElementById('restartResult').innerHTML = 
+            `<div class="alert alert-danger mt-3">
+                <strong>Error!</strong> ${error}
+            </div>`;
+    });
+}
+</script>
 {% endblock %}

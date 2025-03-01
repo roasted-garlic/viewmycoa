@@ -38,7 +38,7 @@ if not database_url:
     pg_host = os.environ.get("PGHOST", "localhost")
     pg_port = os.environ.get("PGPORT", "5432")
     pg_database = os.environ.get("PGDATABASE")
-    
+
     if pg_user and pg_password and pg_database:
         database_url = f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
         app.logger.info(f"Constructed database URL from environment variables")
@@ -780,7 +780,7 @@ def edit_product(product_id):
             product.title = request.form['title']
             product.cost = float(request.form['cost']) if request.form.get('cost') else None
             product.price = float(request.form['price']) if request.form.get('price') else None
-            
+
             # Handle attributes
             if 'attributes_data' in request.form:
                 product.attributes = request.form['attributes_data']
@@ -1317,6 +1317,67 @@ def clear_square_image_id(product_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+from functools import wraps
+def admin_required(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if not current_user.is_admin:
+            return jsonify({'error': 'You need admin privileges to access this area.'}), 403
+        return func(*args, **kwargs)
+    return decorated_view
+
+@app.route('/api/delete_user/<int:user_id>', methods=['DELETE'])
+@login_required
+@admin_required
+def delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+
+    # Prevent deleting yourself
+    if user.id == current_user.id:
+        return jsonify({'error': 'You cannot delete your own account'}), 400
+
+    db.session.delete(user)
+    db.session.commit()
+
+    return jsonify({'success': True})
+
+@app.route('/api/create_backup', methods=['POST'])
+@login_required
+@admin_required
+def api_create_backup():
+    try:
+        import backup
+        backup_timestamp = backup.create_backup()
+        return jsonify({
+            'success': True,
+            'backup_path': f'backups/{backup_timestamp}'
+        })
+    except Exception as e:
+        app.logger.error(f"Error creating backup: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/restart_app', methods=['POST'])
+@login_required
+@admin_required
+def api_restart_app():
+    try:
+        import restart
+        # Run restart in background thread to allow response to be sent
+        import threading
+        thread = threading.Thread(target=restart.restart_application)
+        thread.daemon = True
+        thread.start()
+        return jsonify({'success': True})
+    except Exception as e:
+        app.logger.error(f"Error restarting application: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=3000)
