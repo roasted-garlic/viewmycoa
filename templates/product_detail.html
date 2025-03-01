@@ -398,7 +398,14 @@
             </div>
             <div class="modal-body">
                 <div class="ratio ratio-16x9">
-                    <embed id="pdfPreviewFrame" src="" type="application/pdf" width="100%" height="100%">
+                    <object id="pdfPreviewFrame" data="" type="application/pdf" width="100%" height="100%">
+                        <div class="text-center p-4">
+                            <p class="mb-3">Your browser doesn't support embedded PDF viewing.</p>
+                            <a id="pdfInlineDownloadLink" href="" target="_blank" class="btn btn-primary">
+                                <i class="fas fa-external-link-alt"></i> Open PDF in New Tab
+                            </a>
+                        </div>
+                    </object>
                 </div>
             </div>
             <div class="modal-footer">
@@ -581,9 +588,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const pdfFilename = this.dataset.pdfFilename;
             
             // Add PDF viewer parameters
-            pdfPreviewFrame.src = `${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1&view=FitH`;
+            pdfPreviewFrame.data = `${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1&view=FitH`;
             pdfPreviewTitle.textContent = `PDF Preview: ${pdfFilename}`;
             pdfDownloadLink.href = `${pdfUrl}?download=1`;
+            
+            // Set the inline download link for browsers that don't support embedded PDFs
+            const pdfInlineDownloadLink = document.getElementById('pdfInlineDownloadLink');
+            if (pdfInlineDownloadLink) {
+                pdfInlineDownloadLink.href = pdfUrl;
+            }
             
             pdfPreviewModal.show();
         });
