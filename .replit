@@ -36,7 +36,3 @@ run = ["sh", "-c", "FLASK_APP=app.py flask db upgrade && python main.py"]
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 5001
-externalPort = 3000
