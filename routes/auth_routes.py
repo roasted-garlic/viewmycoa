@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash, get_flashed_messages
+from flask import render_template, request, redirect, url_for, flash, get_flashed_messages, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from app import app, db
 from models import User
@@ -152,17 +152,4 @@ def edit_user(user_id):
 
     return render_template('user_edit.html', user=user)
 
-@app.route('/api/users/<int:user_id>', methods=['DELETE'])
-@login_required
-@admin_required
-def delete_user(user_id):
-    user = User.query.get_or_404(user_id)
-
-    # Prevent deleting yourself
-    if user.id == current_user.id:
-        return jsonify({'error': 'You cannot delete your own account'}), 400
-
-    db.session.delete(user)
-    db.session.commit()
-
-    return jsonify({'success': True})
+# Route removed - already defined in app.py
