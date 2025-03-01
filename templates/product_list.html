@@ -6,9 +6,11 @@
         <h1>Product List</h1>
     </div>
     <div class="col text-end">
+        {% if current_user.is_admin %}
         <a href="{{ url_for('create_product') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Create Product
         </a>
+        {% endif %}
     </div>
 </div>
 
@@ -57,9 +59,11 @@ function filterByCategory(categoryId) {
                 <p class="card-text">Batch: {{ product.batch_number }}</p>
                 <div class="d-flex justify-content-between">
                     <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-primary">View Details</a>
+                    {% if current_user.is_admin %}
                     <button class="btn btn-secondary duplicate-product" data-product-id="{{ product.id }}">
                         <i class="fas fa-copy"></i> Duplicate
                     </button>
+                    {% endif %}
                 </div>
             </div>
         </div>

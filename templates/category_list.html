@@ -7,9 +7,11 @@
             <h1>Categories</h1>
         </div>
         <div class="col text-end">
+            {% if current_user.is_admin %}
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#categoryModal">
                 <i class="fas fa-plus"></i> Add Category
             </button>
+            {% endif %}
         </div>
     </div>
 
@@ -25,6 +27,7 @@
                             <small>Products: {{ category.products|length }}</small>
                         </div>
                         <div class="category-actions">
+                            {% if current_user.is_admin %}
                             <button class="btn btn-outline-primary btn-sm edit-category" 
                                     data-category-id="{{ category.id }}"
                                     data-category-name="{{ category.name }}"
@@ -46,6 +49,7 @@
                                     data-category-id="{{ category.id }}">
                                 <i class="fas fa-trash"></i> <span class="btn-text">Delete</span>
                             </button>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
