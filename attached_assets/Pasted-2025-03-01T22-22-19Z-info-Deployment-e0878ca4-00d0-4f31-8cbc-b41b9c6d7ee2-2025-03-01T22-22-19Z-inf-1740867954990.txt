@@ -1,0 +1,39 @@
+2025-03-01T22:22:19Z info: Deployment: e0878ca4-00d0-4f31-8cbc-b41b9c6d7ee2
+2025-03-01T22:22:19Z info: Build: 61c79a42-61c2-4b98-811e-2a09458f521b
+2025-03-01T22:22:19Z info: Connecting to builder
+2025-03-01T22:22:23Z info: Builder connected
+2025-03-01T22:22:23Z info: Skipping Build as no Build command set
+2025-03-01T22:22:32Z info: Pushing pid1 binary layer...
+2025-03-01T22:22:34Z info: Created pid1 binary layer
+2025-03-01T22:22:36Z info: Pushing hosting layer...
+2025-03-01T22:22:36Z info: Pushing Repl layer...
+2025-03-01T22:22:36Z info: Nix layers for this Repl are uncached.
+2025-03-01T22:22:36Z info: Pushing nix-0 layer...
+2025-03-01T22:22:36Z info: Created hosting layer
+2025-03-01T22:22:54Z info: Created Repl layer
+2025-03-01T22:22:54Z info: Pushing Repl (cache) layer...
+2025-03-01T22:22:55Z info: Created Repl (cache) layer
+2025-03-01T22:24:18Z info: Created nix-0 layer
+2025-03-01T22:24:18Z info: uploading image for cached layer
+2025-03-01T22:24:19Z info: pushed cache image manifest
+2025-03-01T22:24:19Z info: pushed cache soci index manifest
+2025-03-01T22:24:19Z info: uploading cached layer
+2025-03-01T22:24:20Z info: successfully uploaded cached layer
+2025-03-01T22:24:20Z info: Pushed image manifest
+2025-03-01T22:24:21Z info: Pushed soci index manifest
+2025-03-01T22:24:21Z info: Pushed referrer manifest
+2025-03-01T22:24:26Z info: Creating virtual machine
+2025-03-01T22:24:54Z info: Virtual machine created
+2025-03-01T22:24:54Z info: Waiting for deployment to be ready
+command finished with error [sh -c REPLIT_DEPLOYMENT=1 FLASK_APP=app.py flask db upgrade && python main.py]: exit status 127
+starting up user application
+command finished with error [sh -c REPLIT_DEPLOYMENT=1 FLASK_APP=app.py flask db upgrade && python main.py]: exit status 127
+command finished with error [sh -c REPLIT_DEPLOYMENT=1 FLASK_APP=app.py flask db upgrade && python main.py]: exit status 127
+command finished with error [sh -c REPLIT_DEPLOYMENT=1 FLASK_APP=app.py flask db upgrade && python main.py]: exit status 127
+command finished with error [sh -c REPLIT_DEPLOYMENT=1 FLASK_APP=app.py flask db upgrade && python main.py]: exit status 127
+sh: flask: command not found
+command finished with error [sh -c REPLIT_DEPLOYMENT=1 FLASK_APP=app.py flask db upgrade && python main.py]: exit status 127
+sh: flask: command not found
+crash loop detected
+command finished with error [sh -c REPLIT_DEPLOYMENT=1 FLASK_APP=app.py flask db upgrade && python main.py]: exit status 127
+2025-03-01T22:25:39Z error: The deployment is crash looping. This can happen if the run command fails or exits immediately after starting. Check the logs for more information.
