@@ -98,6 +98,7 @@ def page_not_found(e):
     return render_template('404.html'), 404
 
 @app.route('/vmc-admin/dashboard')
+@login_required
 def admin_dashboard():
     category_id = request.args.get('category', type=int)
     query = models.Product.query.order_by(models.Product.created_at.desc())
@@ -146,6 +147,7 @@ def public_product_detail(batch_number):
 
 
 @app.route('/vmc-admin/categories')
+@login_required
 def categories():
     categories = models.Category.query.order_by(models.Category.name).all()
     return render_template('category_list.html', categories=categories)
@@ -229,6 +231,7 @@ def unsync_category(category_id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/vmc-admin/products')
+@login_required
 def products():
     category_id = request.args.get('category', type=int)
     query = models.Product.query.order_by(models.Product.created_at.desc())
@@ -298,6 +301,7 @@ def fetch_craftmypdf_templates():
 
 
 @app.route('/vmc-admin/products/new', methods=['GET', 'POST'])
+@login_required
 def create_product():
     templates = models.ProductTemplate.query.all()
     categories = models.Category.query.order_by(models.Category.name).all()
@@ -379,6 +383,7 @@ def create_product():
 
 
 @app.route('/vmc-admin/products/<int:product_id>')
+@login_required
 def product_detail(product_id):
     product = models.Product.query.get_or_404(product_id)
 
@@ -594,12 +599,14 @@ def get_template(template_id):
 
 
 @app.route('/vmc-admin/templates')
+@login_required
 def template_list():
     templates = models.ProductTemplate.query.all()
     return render_template('template_list.html', templates=templates)
 
 
 @app.route('/vmc-admin/template/new', methods=['GET', 'POST'])
+@login_required
 def create_template():
     if request.method == 'POST':
         try:
