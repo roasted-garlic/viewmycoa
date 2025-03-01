@@ -1266,32 +1266,6 @@ def clear_square_image_id(product_id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    # Check if 'next' parameter is passed in URL
-    next_url = request.args.get('next')
-
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-
-        # Query the database for the user
-        user = User.query.filter_by(username=username).first()
-
-        # Check if user exists and password matches
-        if user and check_password_hash(user.password, password):
-            login_user(user)
-
-            # Redirect to the 'next' URL if it exists and is safe, otherwise dashboard
-            if next_url and url_is_safe(next_url):
-                return redirect(next_url)
-            return redirect(url_for('admin_dashboard'))
-        else:
-            # Pass the error directly to the template instead of using flash
-            return render_template('login.html', error='Invalid username or password')
-
-    return render_template('login.html')
-
 def url_is_safe(url):
     #Basic URL safety check -  improve as needed
     return url.startswith('/vmc-admin')
