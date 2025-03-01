@@ -87,13 +87,9 @@ def index():
 @app.route('/vmc-admin/', defaults={'path': ''})
 @app.route('/vmc-admin/<path:path>')
 @login_required
-def admin_routes(path=''):
+def catch_all_admin_routes(path=''):
     # This route catches all /vmc-admin/* paths that aren't explicitly defined
     # and ensures they require login
-    return redirect(url_for('admin_dashboard'))
-def admin_index(path):
-    if not path:
-        return redirect(url_for('admin_dashboard'))
     return redirect(url_for('admin_dashboard'))
 
 @app.errorhandler(404)
@@ -1296,9 +1292,7 @@ def login():
 
     return render_template('login.html')
 
-# Import routes after app is created to avoid circular imports
-from routes import admin_routes
-# Don't import auth_routes here since we already have login defined in this file
-
 if __name__ == "__main__":
+    # Import routes here to avoid circular imports
+    from routes import admin_routes, auth_routes
     app.run(host='0.0.0.0', port=5000)

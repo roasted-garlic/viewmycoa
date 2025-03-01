@@ -21,7 +21,6 @@ def init_app():
         # Initialize database
         with app.app_context():
             import models  # Import models before creating tables
-            # Import other routes (but not auth_routes which has login conflicts)
             db.create_all()
             
             # Create default admin user if none exists
