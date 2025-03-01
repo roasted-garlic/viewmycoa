@@ -657,6 +657,7 @@ def create_template():
                          prefill_attributes=prefill_attributes)
 
 @app.route('/api/square/unsync-all', methods=['POST'])
+@login_required
 def unsync_all_products():
     """Remove all products from Square"""
     try:
@@ -712,6 +713,7 @@ def edit_template(template_id):
 
 
 @app.route('/api/duplicate_template/<int:template_id>', methods=['POST'])
+@login_required
 def duplicate_template(template_id):
     try:
         original = models.ProductTemplate.query.get_or_404(template_id)
@@ -728,6 +730,7 @@ def duplicate_template(template_id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/delete_template/<int:template_id>', methods=['DELETE'])
+@login_required
 def delete_template(template_id):
     try:
         template = models.ProductTemplate.query.get_or_404(template_id)
@@ -972,6 +975,7 @@ def settings():
     return render_template('settings.html', settings=settings, products=products)
 
 @app.route('/api/delete_batch_history/<int:history_id>', methods=['DELETE'])
+@login_required
 def delete_batch_history(history_id):
     try:
         history = models.BatchHistory.query.get_or_404(history_id)
@@ -1004,6 +1008,7 @@ def delete_batch_history(history_id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/delete_coa/<int:product_id>', methods=['DELETE'])
+@login_required
 def delete_coa(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
@@ -1021,6 +1026,7 @@ def delete_coa(product_id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/duplicate_product/<int:product_id>', methods=['POST'])
+@login_required
 def duplicate_product(product_id):
     try:
         from utils import generate_batch_number, generate_sku, generate_upc_barcode
@@ -1093,6 +1099,7 @@ def duplicate_product(product_id):
 
 
 @app.route('/api/delete_product/<int:product_id>', methods=['DELETE'])
+@login_required
 def delete_product(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
@@ -1146,6 +1153,7 @@ def delete_product(product_id):
 
 
 @app.route('/api/generate_json/<int:product_id>')
+@login_required
 def generate_json(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
@@ -1190,6 +1198,7 @@ def generate_json(product_id):
 
 
 @app.route('/api/square/sync/<int:product_id>', methods=['POST'])
+@login_required
 def sync_single_product(product_id):
     """Sync a single product to Square"""
     try:
