@@ -45,11 +45,11 @@ def login():
                 app.logger.info(f"Login successful for {username}")
                 login_user(user)
                 
-                # Clear any "Please log in" messages after successful login
-                messages = get_flashed_messages(with_categories=True)
-                for category, message in messages:
-                    if 'Please log in' not in message:
-                        flash(message, category)
+                # Clear all flashed messages
+                get_flashed_messages()
+                
+                # Add success message
+                flash('You have successfully logged in.', 'success')
                 
                 next_page = request.args.get('next')
                 if next_page:
