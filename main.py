@@ -74,7 +74,7 @@ def main():
 
         # Configure host and port
         host = "0.0.0.0"  # Listen on all available interfaces
-        port = int(os.getenv("PORT", 5000))  # Use environment port or default to 5000
+        port = int(os.getenv("PORT", 3000))  # Use environment port or default to 3000
         
         # Check if we're in production mode
         is_production = os.getenv("REPLIT_DEPLOYMENT", "0") == "1"

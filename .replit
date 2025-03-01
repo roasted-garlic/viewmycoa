@@ -31,8 +31,8 @@ task = "workflow.run"
 args = "Flask Server"
 
 [deployment]
-run = ["sh", "-c", "FLASK_APP=app.py flask db upgrade && python main.py"]
+run = ["sh", "-c", "REPLIT_DEPLOYMENT=1 FLASK_APP=app.py flask db upgrade && python main.py"]
 
 [[ports]]
-localPort = 5000
+localPort = 3000
 externalPort = 80
