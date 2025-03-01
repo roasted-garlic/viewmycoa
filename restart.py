@@ -44,11 +44,10 @@ def find_and_kill_process_on_port(port):
 def restart_application():
     """Restart the Flask application"""
     try:
-        # Kill any process using port 5000, 5001, 5002, or 5003
-        for port in [5000, 5001, 5002, 5003, 8080]:
-            find_and_kill_process_on_port(port)
+        # Kill any process using port 5000
+        find_and_kill_process_on_port(5000)
         
-        # Wait a moment for the ports to be released
+        # Wait a moment for the port to be released
         time.sleep(2)
         
         # Start the application
