@@ -10,6 +10,7 @@ from flask_migrate import Migrate
 from flask_login import LoginManager, login_required, current_user, login_user, logout_user
 from utils import generate_batch_number, is_valid_image
 from models import db, product_categories, User
+from werkzeug.security import check_password_hash
 
 app = Flask(__name__)
 migrate = Migrate(app, db)
@@ -737,7 +738,7 @@ def edit_product(product_id):
             product.title = request.form['title']
             product.cost = float(request.form['cost']) if request.form.get('cost') else None
             product.price = float(request.form['price']) if request.form.get('price') else None
-            
+
             # Handle attributes
             if 'attributes_data' in request.form:
                 product.attributes = request.form['attributes_data']
@@ -788,7 +789,7 @@ def edit_product(product_id):
                                     app.logger.error(f"Error moving PDF file: {str(e)}")
                                     raise
                         except Exception as e:
-                            app.logger.error(f"Error handling PDF file: {str(e)}")
+                            app.logger.error(f"Errorhandling PDF file: {str(e)}")
                             db.session.rollback()
                             flash(f"Error preserving PDF files: {str(e)}", 'danger')
                             return render_template('product_edit.html',
@@ -1264,6 +1265,37 @@ def clear_square_image_id(product_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    # Check if 'next' parameter is passed in URL
+    next_url = request.args.get('next')
+
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        # Query the database for the user
+        user = User.query.filter_by(username=username).first()
+
+        # Check if user exists and password matches
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+
+            # Redirect to the 'next' URL if it exists and is safe, otherwise dashboard
+            if next_url and url_is_safe(next_url):
+                return redirect(next_url)
+            return redirect(url_for('admin_dashboard'))
+        else:
+            # Pass the error directly to the template instead of using flash
+            return render_template('login.html', error='Invalid username or password')
+
+    return render_template('login.html')
+
+def url_is_safe(url):
+    #Basic URL safety check -  improve as needed
+    return url.startswith('/vmc-admin')
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=3000)
