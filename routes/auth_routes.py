@@ -23,13 +23,8 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('admin_dashboard'))
 
-    # Only add login message if we have a 'next' parameter and user is not authenticated
-    if request.args.get('next') and not current_user.is_authenticated:
-        # Check if we already have this message
-        messages = get_flashed_messages(with_categories=True, category_filter=['info'])
-        has_login_message = any('Please log in' in message for category, message in messages)
-        if not has_login_message:
-            flash('Please log in to access this page.', 'info')
+    # We don't need to manually add the login message anymore
+    # It will be handled by Flask-Login or explicitly set after successful login
 
     error = None    
     if request.method == 'POST':

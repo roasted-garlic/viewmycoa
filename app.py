@@ -18,7 +18,7 @@ migrate = Migrate(app, db)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'  # Specify the login route
-login_manager.login_message = 'Please log in to access this page.'
+login_manager.login_message = None  # Disable the default login message
 login_manager.login_message_category = 'info'  # Use Bootstrap styling
 login_manager.login_message_flashing = False  # Prevent automatic flashing
 
