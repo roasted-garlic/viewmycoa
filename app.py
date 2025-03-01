@@ -1296,5 +1296,9 @@ def login():
 
     return render_template('login.html')
 
+# Import routes after app is created to avoid circular imports
+from routes import admin_routes
+# Don't import auth_routes here since we already have login defined in this file
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
