@@ -1294,5 +1294,7 @@ def login():
 
 if __name__ == "__main__":
     # Import routes here to avoid circular imports
-    from routes import admin_routes, auth_routes
+    with app.app_context():
+        import routes.admin_routes
+        import routes.auth_routes
     app.run(host='0.0.0.0', port=5000)
