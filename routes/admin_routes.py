@@ -18,7 +18,6 @@ def admin_overview():
 
 @app.route('/vmc-admin/products-list')
 @login_required
-@admin_required
 def products_list():
     """List all products"""
     products = Product.query.all()

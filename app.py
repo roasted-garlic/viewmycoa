@@ -268,7 +268,7 @@ def unsync_category(category_id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/vmc-admin/products')
-@login_required
+@login_required  # Only login is required, not admin privileges
 def products():
     category_id = request.args.get('category', type=int)
     query = models.Product.query.order_by(models.Product.created_at.desc())
@@ -420,7 +420,7 @@ def create_product():
 
 
 @app.route('/vmc-admin/products/<int:product_id>')
-@login_required
+@login_required  # Only login is required, not admin privileges
 def product_detail(product_id):
     product = models.Product.query.get_or_404(product_id)
 
@@ -453,7 +453,7 @@ def generate_batch():
 
 
 @app.route('/api/generate_pdf/<int:product_id>', methods=['POST'])
-@login_required
+@login_required  # Only login is required, not admin privileges
 def generate_pdf(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
@@ -1184,7 +1184,7 @@ def delete_product(product_id):
 
 
 @app.route('/api/generate_json/<int:product_id>')
-@login_required
+@login_required  # Only login is required, not admin privileges
 def generate_json(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
