@@ -1,18 +1,18 @@
-from flask import render_template
-from app import app
-from models import Product, Category, ProductTemplate, Settings
+
+from flask import render_template, request, jsonify
 from flask_login import login_required
 from routes.auth_routes import admin_required
+from app import app, db
+from models import Product, Category, BatchHistory, Settings
 
-@app.route('/vmc-admin-dashboard')
+# Admin routes can be added here if needed
+# The main routes are already defined in app.py
+# This file is imported in wsgi.py to ensure all routes are registered
+
+# Example of a custom admin route that doesn't conflict with app.py
+@app.route('/vmc-admin-custom')
 @login_required
 @admin_required
-def admin_dashboard_route():
-    """Admin dashboard showing overview of products and categories"""
-    product_count = Product.query.count()
-    category_count = Category.query.count()
-    template_count = ProductTemplate.query.count()
-    return render_template('admin_dashboard.html', 
-                         product_count=product_count,
-                         category_count=category_count,
-                         template_count=template_count)
+def admin_custom():
+    """Custom admin page example"""
+    return render_template('admin_dashboard.html')
