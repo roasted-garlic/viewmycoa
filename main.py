@@ -47,7 +47,7 @@ def main():
 
         # Configure host and port
         host = "0.0.0.0"  # Listen on all available interfaces
-        port = 5000       # Use port 5000 for Replit deployment
+        port = 3000       # Use port 3000 for Replit deployment
 
         logger.info(f"Starting application on {host}:{port}")
         

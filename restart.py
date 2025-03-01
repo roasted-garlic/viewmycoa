@@ -41,8 +41,8 @@ def find_and_kill_process_on_port(port):
 
 def start_application():
     try:
-        # Make sure port 5000 is free
-        find_and_kill_process_on_port(5000)
+        # Make sure port 3000 is free
+        find_and_kill_process_on_port(3000)
         
         # Set environment variable
         os.environ["FLASK_APP"] = "app.py"
@@ -73,7 +73,7 @@ def start_application():
 
 if __name__ == "__main__":
     # First kill any existing processes
-    find_and_kill_process_on_port(5000)
+    find_and_kill_process_on_port(3000)
     
     # Then start the application
     if start_application():
