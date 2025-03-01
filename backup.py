@@ -65,4 +65,11 @@ def create_backup():
     return timestamp
 
 if __name__ == "__main__":
-    create_backup()
+    try:
+        backup_timestamp = create_backup()
+        print("\n" + "="*50)
+        print(f"✅ Backup completed successfully!")
+        print(f"📁 Backup location: backups/{backup_timestamp}")
+        print("="*50 + "\n")
+    except Exception as e:
+        print(f"❌ Backup failed: {str(e)}")
