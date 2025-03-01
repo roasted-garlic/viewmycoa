@@ -1247,6 +1247,7 @@ def save_image(file, product_id, image_type):
     return filepath
 
 @app.route('/api/square/clear-id/<int:product_id>', methods=['POST']) 
+@login_required
 def clear_square_id(product_id):
     """Clear Square catalog ID from product"""
     try:
@@ -1259,6 +1260,7 @@ def clear_square_id(product_id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/square/unsync/<int:product_id>', methods=['POST'])
+@login_required
 def unsync_product(product_id):
     """Remove product from Square"""
     try:
@@ -1281,6 +1283,7 @@ def unsync_product(product_id):
             'error': str(e)
         }), 500
 @app.route('/api/square/clear-image-id/<int:product_id>', methods=['POST'])
+@login_required
 def clear_square_image_id(product_id):
     """Clear Square image ID from product"""
     try:
