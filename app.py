@@ -31,20 +31,22 @@ def load_user(user_id):
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a development-only secret key"
 
 # Database configuration with fallbacks
-# IMPORTANT: For production deployment, set either DATABASE_URL or individual Postgres variables
-# Required environment variables for deployment:
-# - DATABASE_URL (complete PostgreSQL connection string) OR
-# - PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT (individual PostgreSQL connection details)
+# The application will use the following database connection in order of priority:
+# 1. DATABASE_URL environment variable 
+# 2. Constructed from individual PGUSER, PGPASSWORD, etc. variables
+# 3. Fallback to SQLite in any environment (including deployment) if no Postgres variables are set
 
-# For Replit deployment, we need to ensure these variables are set
+# Check if we're in deployment mode
 is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
 
+# First, try to get a complete database URL
 database_url = os.environ.get("DATABASE_URL")
+
 if not database_url:
-    # Construct from individual Postgres environment variables if available
+    # Try to construct from individual Postgres environment variables
     pg_user = os.environ.get("PGUSER")
     pg_password = os.environ.get("PGPASSWORD")
-    pg_host = os.environ.get("PGHOST", "localhost")
+    pg_host = os.environ.get("PGHOST", "localhost") 
     pg_port = os.environ.get("PGPORT", "5432")
     pg_database = os.environ.get("PGDATABASE")
     
@@ -52,13 +54,14 @@ if not database_url:
         database_url = f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
         app.logger.info("Constructed database URL from individual PostgreSQL environment variables")
     else:
-        # Final fallback for development only
+        # Use SQLite as last resort, even in deployment to ensure app runs
+        database_url = "sqlite:///instance/database.db"
+        
         if is_deployment:
-            app.logger.error("DEPLOYMENT ERROR: Missing required database connection environment variables.")
-            app.logger.error("Please set DATABASE_URL or PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT.")
+            app.logger.warning("DEPLOYMENT NOTICE: Using SQLite database for deployment since no PostgreSQL variables were set.")
+            app.logger.warning("For production use, set DATABASE_URL or individual PostgreSQL variables.")
         else:
-            database_url = "sqlite:///instance/database.db"
-            app.logger.warning("No database configuration found, using SQLite fallback (DEV MODE ONLY)")
+            app.logger.info("Using SQLite database for development")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
