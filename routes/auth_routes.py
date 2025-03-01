@@ -18,29 +18,18 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# Create a decorator to clear login messages for authenticated users
-def clear_login_messages(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if current_user.is_authenticated:
-            # Get all messages and filter out the "Please log in" message
-            messages = get_flashed_messages(with_categories=True)
-            for category, message in messages:
-                if 'Please log in' not in message:
-                    # Re-flash all other messages
-                    flash(message, category)
-        return f(*args, **kwargs)
-    return decorated_function
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        # Clear any login messages that might be persisting
-        _ = get_flashed_messages()
-        flash('You have successfully logged in.', 'success')
         return redirect(url_for('admin_dashboard'))
 
-    # We don't need to manually add login messages as login_manager will handle this
+    # Only add login message if we have a 'next' parameter and user is not authenticated
+    if request.args.get('next') and not current_user.is_authenticated:
+        # Check if we already have this message
+        messages = get_flashed_messages(with_categories=True, category_filter=['info'])
+        has_login_message = any('Please log in' in message for category, message in messages)
+        if not has_login_message:
+            flash('Please log in to access this page.', 'info')
 
     error = None    
     if request.method == 'POST':
