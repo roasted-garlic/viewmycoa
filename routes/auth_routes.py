@@ -4,16 +4,17 @@ from app import app, db
 from models import User
 from functools import wraps
 
-@login_required
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not current_user.is_admin:
-            # Special case for PDF deletion which is allowed for all users
-            if request.endpoint == 'delete_pdf':
-                return f(*args, **kwargs)
+        if not current_user.is_authenticated or not current_user.is_admin:
+            # Clear any existing flashed messages
+            _ = get_flashed_messages()
+            # Then add our admin required message
             flash('You need admin privileges to access this area.', 'danger')
-            return redirect(url_for('admin_overview')) # Assuming admin_overview exists, otherwise adjust
+            # Make a response that doesn't preserve flash messages from login view
+            response = app.make_response(redirect(url_for('login')))
+            return response
         return f(*args, **kwargs)
     return decorated_function
 
@@ -21,6 +22,9 @@ def admin_required(f):
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('admin_dashboard'))
+
+    # We don't need to manually add the login message anymore
+    # It will be handled by Flask-Login or explicitly set after successful login
 
     error = None    
     if request.method == 'POST':
@@ -40,15 +44,16 @@ def login():
             else:
                 app.logger.info(f"Login successful for {username}")
                 login_user(user)
-
+                
                 # Clear all existing flashed messages
                 _ = get_flashed_messages()
-
+                
                 # Add success message
                 flash('You have successfully logged in.', 'success')
-
+                
                 next_page = request.args.get('next')
                 if next_page:
+                    # Don't use regular redirect which preserves flash messages
                     response = app.make_response(redirect(next_page))
                     return response
                 return redirect(url_for('admin_dashboard'))
