@@ -34,5 +34,5 @@ args = "python backup.py"
 run = ["sh", "-c", "FLASK_APP=app.py flask db upgrade && python main.py"]
 
 [[ports]]
-localPort = 3000
+localPort = 5000
 externalPort = 80
