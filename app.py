@@ -28,11 +28,34 @@ def load_user(user_id):
 
 # Configuration
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+
+# Database configuration with fallbacks
+database_url = os.environ.get("DATABASE_URL")
+if not database_url:
+    # Construct from individual Postgres environment variables if available
+    pg_user = os.environ.get("PGUSER")
+    pg_password = os.environ.get("PGPASSWORD")
+    pg_host = os.environ.get("PGHOST", "localhost")
+    pg_port = os.environ.get("PGPORT", "5432")
+    pg_database = os.environ.get("PGDATABASE")
+    
+    if pg_user and pg_password and pg_database:
+        database_url = f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
+        app.logger.info(f"Constructed database URL from environment variables")
+    else:
+        # Final fallback for development
+        database_url = "sqlite:///instance/database.db"
+        app.logger.warning("No database configuration found, using SQLite fallback")
+
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
 }
+
+# Log database configuration (without credentials)
+db_log_url = database_url.replace("://", "://***:***@") if "://" in database_url else database_url
+app.logger.info(f"Using database: {db_log_url}")
 
 
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')

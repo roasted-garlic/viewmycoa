@@ -22,6 +22,18 @@ def init_app():
         with app.app_context():
             import models  # Import models before creating tables
             import routes.auth_routes  # Import auth routes
+            
+            # Verify database connection
+            try:
+                # Try a simple database operation to verify connection
+                from sqlalchemy import text
+                from app import db
+                db.session.execute(text('SELECT 1'))
+                logger.info("Database connection verified successfully")
+            except Exception as db_error:
+                logger.error(f"Database connection error: {str(db_error)}")
+                logger.info("Attempting to create database tables anyway...")
+            
             db.create_all()
             
             # Create default admin user if none exists
