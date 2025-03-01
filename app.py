@@ -20,7 +20,7 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'  # Specify the login route
 login_manager.login_message = 'Please log in to access this page.'
 login_manager.login_message_category = 'info'  # Use Bootstrap styling
-login_manager.login_message_flashing = False  # Prevent automatic flashing
+login_manager.login_message_flashing = True  # Enable automatic flashing - will be cleared by our routes
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -100,6 +100,7 @@ def page_not_found(e):
 
 @app.route('/vmc-admin/dashboard')
 @login_required
+@clear_login_messages
 def admin_dashboard():
     category_id = request.args.get('category', type=int)
     query = models.Product.query.order_by(models.Product.created_at.desc())
@@ -233,6 +234,7 @@ def unsync_category(category_id):
 
 @app.route('/vmc-admin/products')
 @login_required
+@clear_login_messages
 def products():
     category_id = request.args.get('category', type=int)
     query = models.Product.query.order_by(models.Product.created_at.desc())
@@ -303,6 +305,7 @@ def fetch_craftmypdf_templates():
 
 @app.route('/vmc-admin/products/new', methods=['GET', 'POST'])
 @login_required
+@clear_login_messages
 def create_product():
     templates = models.ProductTemplate.query.all()
     categories = models.Category.query.order_by(models.Category.name).all()
@@ -385,6 +388,7 @@ def create_product():
 
 @app.route('/vmc-admin/products/<int:product_id>')
 @login_required
+@clear_login_messages
 def product_detail(product_id):
     product = models.Product.query.get_or_404(product_id)
 
@@ -601,6 +605,7 @@ def get_template(template_id):
 
 @app.route('/vmc-admin/templates')
 @login_required
+@clear_login_messages
 def template_list():
     templates = models.ProductTemplate.query.all()
     return render_template('template_list.html', templates=templates)
@@ -608,6 +613,7 @@ def template_list():
 
 @app.route('/vmc-admin/template/new', methods=['GET', 'POST'])
 @login_required
+@clear_login_messages
 def create_template():
     if request.method == 'POST':
         try:
@@ -732,6 +738,7 @@ def delete_template(template_id):
 
 @app.route('/vmc-admin/products/<int:product_id>/edit', methods=['GET', 'POST'])
 @login_required
+@clear_login_messages
 def edit_product(product_id):
     product = models.Product.query.get_or_404(product_id)
     templates = models.ProductTemplate.query.all()
