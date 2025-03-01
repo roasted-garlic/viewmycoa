@@ -154,6 +154,7 @@ def categories():
     return render_template('category_list.html', categories=categories)
 
 @app.route('/api/categories', methods=['POST'])
+@login_required
 def create_category():
     try:
         data = request.get_json()
@@ -171,6 +172,7 @@ def create_category():
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/categories/<int:category_id>', methods=['PUT'])
+@login_required
 def update_category(category_id):
     try:
         category = models.Category.query.get_or_404(category_id)
@@ -184,6 +186,7 @@ def update_category(category_id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/categories/<int:category_id>', methods=['DELETE'])
+@login_required
 def delete_category(category_id):
     try:
         category = models.Category.query.get_or_404(category_id)
@@ -195,6 +198,7 @@ def delete_category(category_id):
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/categories/<int:category_id>/sync', methods=['POST'])
+@login_required
 def sync_category(category_id):
     try:
         from square_category_sync import sync_category_to_square
@@ -209,6 +213,7 @@ def sync_category(category_id):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/categories/<int:category_id>/unsync', methods=['POST'])
+@login_required
 def unsync_category(category_id):
     try:
         category = models.Category.query.get_or_404(category_id)
@@ -411,11 +416,13 @@ def product_detail(product_id):
 
 
 @app.route('/api/generate_batch', methods=['POST'])
+@login_required
 def generate_batch():
     return jsonify({'batch_number': generate_batch_number()})
 
 
 @app.route('/api/generate_pdf/<int:product_id>', methods=['POST'])
+@login_required
 def generate_pdf(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
@@ -564,6 +571,7 @@ def generate_pdf(product_id):
 
 
 @app.route('/api/delete_pdf/<int:pdf_id>', methods=['DELETE'])
+@login_required
 def delete_pdf(pdf_id):
     pdf = models.GeneratedPDF.query.get_or_404(pdf_id)
     try:
@@ -590,6 +598,7 @@ def delete_pdf(pdf_id):
 
 
 @app.route('/api/template/<int:template_id>')
+@login_required
 def get_template(template_id):
     template = models.ProductTemplate.query.get_or_404(template_id)
     return jsonify({
