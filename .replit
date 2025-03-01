@@ -4,7 +4,7 @@ modules = ["python-3.11", "postgresql-16"]
 channel = "stable-24_05"
 
 [workflows]
-runButton = "Flask Server"
+runButton = "Web Server"
 
 [[workflows.workflow]]
 name = "Flask Server"
@@ -30,9 +30,21 @@ author = 27469103
 task = "shell.exec"
 args = "python backup.py"
 
+[[workflows.workflow]]
+name = "Web Server"
+author = 27469103
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python wsgi.py"
+
 [deployment]
 run = ["sh", "-c", "python wsgi.py"]
 
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 8080
+externalPort = 8080
