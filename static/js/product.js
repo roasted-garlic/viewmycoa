@@ -53,14 +53,33 @@ document.addEventListener('DOMContentLoaded', function() {
             const templateId = this.value;
             if (templateId) {
                 try {
+                    console.log(`Fetching template with ID: ${templateId}`);
                     const response = await fetch(`/api/template/${templateId}`);
                     const data = await response.json();
+                    console.log('Template data received:', data);
+                    
                     if (data.attributes) {
-                        const attributes = JSON.parse(data.attributes);
+                        // The data.attributes should already be a JavaScript object
+                        // No need to parse it again unless it's a string
+                        let attributes = data.attributes;
+                        if (typeof attributes === 'string') {
+                            try {
+                                attributes = JSON.parse(attributes);
+                            } catch (e) {
+                                console.error('Failed to parse attributes string:', e);
+                                return;
+                            }
+                        }
+                        
+                        // Clear existing attributes
                         attributesContainer.innerHTML = '';
+                        
+                        // Add each attribute from the template
                         Object.entries(attributes).forEach(([name, value]) => {
                             addAttributeField(name, value);
                         });
+                    } else {
+                        console.warn('No attributes found in template data');
                     }
                 } catch (error) {
                     console.error('Error fetching template:', error);
