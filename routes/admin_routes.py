@@ -5,14 +5,7 @@ from flask_login import login_required
 from routes.auth_routes import admin_required
 
 # Admin dashboard route is defined in app.py
-
-@app.route('/vmc-admin/products')
-@login_required
-@admin_required
-def products():
-    """List all products"""
-    products = Product.query.all()
-    return render_template('product_list.html', products=products)
+# Products route is defined in app.py
 
 @app.route('/vmc-admin/categories')
 @login_required

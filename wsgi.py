@@ -5,8 +5,7 @@ from app import app
 
 # Import routes after app is created to avoid circular imports
 with app.app_context():
-    import routes.admin_routes
-    import routes.auth_routes
+    from routes import admin_routes, auth_routes
 
 if __name__ == "__main__":
     # Configure host and port
