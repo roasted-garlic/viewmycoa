@@ -6,7 +6,6 @@ from routes.auth_routes import admin_required
 
 @app.route('/vmc-admin/overview')
 @login_required
-@admin_required
 def admin_overview():
     """Admin dashboard showing overview of products and categories"""
     product_count = Product.query.count()

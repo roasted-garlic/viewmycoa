@@ -113,8 +113,16 @@ def index():
 @app.route('/vmc-admin/<path:path>')
 @login_required
 def admin_index(path):
-    if not path:
+    # Always allow access to the overview page for any logged-in user
+    if not path or path == 'overview':
         return redirect(url_for('admin_overview'))
+    
+    # For all other admin paths, check if user is an admin
+    if not current_user.is_admin:
+        flash('You need admin privileges to access this area.', 'danger')
+        return redirect(url_for('admin_overview'))
+    
+    # For admin users or overview, proceed normally
     return redirect(url_for('admin_dashboard'))
 
 @app.errorhandler(404)
