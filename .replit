@@ -5,7 +5,7 @@ modules = ["python-3.11", "postgresql-16"]
 channel = "stable-24_05"
 
 [workflows]
-runButton = "Project"
+runButton = "Database Backup"
 
 [[workflows.workflow]]
 name = "Flask Server"
@@ -39,6 +39,14 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "FLASK_APP=app.py flask db upgrade && python main.py"
 waitForPort = 3000
+
+[[workflows.workflow]]
+name = "Database Backup"
+author = 27469103
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python backup.py"
 
 [deployment]
 run = ["sh", "-c", "FLASK_APP=app.py flask db upgrade && python main.py"]
