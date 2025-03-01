@@ -398,7 +398,7 @@
             </div>
             <div class="modal-body">
                 <div class="ratio ratio-16x9">
-                    <iframe id="pdfPreviewFrame" src="" frameborder="0" allowfullscreen></iframe>
+                    <embed id="pdfPreviewFrame" src="" type="application/pdf" width="100%" height="100%">
                 </div>
             </div>
             <div class="modal-footer">
@@ -580,7 +580,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const pdfUrl = this.dataset.pdfUrl;
             const pdfFilename = this.dataset.pdfFilename;
             
-            pdfPreviewFrame.src = pdfUrl;
+            // Add PDF viewer parameters
+            pdfPreviewFrame.src = `${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1&view=FitH`;
             pdfPreviewTitle.textContent = `PDF Preview: ${pdfFilename}`;
             pdfDownloadLink.href = `${pdfUrl}?download=1`;
             
