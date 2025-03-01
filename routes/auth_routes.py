@@ -8,8 +8,13 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated or not current_user.is_admin:
+            # Clear any existing flashed messages
+            _ = get_flashed_messages()
+            # Then add our admin required message
             flash('You need admin privileges to access this area.', 'danger')
-            return redirect(url_for('login'))
+            # Make a response that doesn't preserve flash messages from login view
+            response = app.make_response(redirect(url_for('login')))
+            return response
         return f(*args, **kwargs)
     return decorated_function
 
