@@ -44,11 +44,21 @@ def main():
     try:
         # Initialize the application
         init_app()
+
+        # Configure host and port
+        host = "0.0.0.0"  # Listen on all available interfaces
+        port = 5000       # Use port 5000 for Replit deployment
+
+        logger.info(f"Starting application on {host}:{port}")
         
-        # Import and run the WSGI file
-        from wsgi import app as wsgi_app
-        logger.info("Application initialized, using wsgi.py for server execution")
-        
+        # Run the Flask application
+        app.run(
+            host=host,
+            port=port,
+            debug=True,  # Enable debug mode
+            use_reloader=True  # Enable auto-reload on code changes
+        )
+
     except Exception as e:
         logger.error(f"Failed to start application: {str(e)}")
         raise

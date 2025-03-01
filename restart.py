@@ -51,9 +51,9 @@ def restart_application():
         os.environ["FLASK_APP"] = "app.py"
         subprocess.run(["flask", "db", "upgrade"], check=True)
         
-        # Run using WSGI
-        logger.info("Running wsgi.py...")
-        subprocess.run(["python", "wsgi.py"], check=True)
+        # Run the main script properly
+        logger.info("Running main.py...")
+        subprocess.run(["python", "main.py"], check=True)
         
         return True
     except Exception as e:

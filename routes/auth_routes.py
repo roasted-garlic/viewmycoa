@@ -28,11 +28,9 @@ def login():
         if user and user.check_password(password):
             login_user(user)
             next_page = request.args.get('next')
-            if next_page:
-                return redirect(next_page)
-            return redirect(url_for('admin_dashboard'))
+            return redirect(next_page or url_for('admin_dashboard'))
         else:
-            return render_template('login.html')
+            return render_template('login.html', error='Invalid username or password')
             
     return render_template('login.html')
 
