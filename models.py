@@ -1,12 +1,28 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, relationship
+from flask_login import UserMixin
 import datetime
 import json
+import werkzeug.security
 
 class Base(DeclarativeBase):
     pass
 
 db = SQLAlchemy(model_class=Base)
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    
+    def set_password(self, password):
+        self.password_hash = werkzeug.security.generate_password_hash(password)
+        
+    def check_password(self, password):
+        return werkzeug.security.check_password_hash(self.password_hash, password)
 
 class ProductTemplate(db.Model):
     id = db.Column(db.Integer, primary_key=True)

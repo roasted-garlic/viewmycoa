@@ -7,11 +7,21 @@ import json
 from PIL import Image
 import datetime
 from flask_migrate import Migrate
+from flask_login import LoginManager, login_required, current_user, login_user, logout_user
 from utils import generate_batch_number, is_valid_image
-from models import db, product_categories
+from models import db, product_categories, User
 
 app = Flask(__name__)
 migrate = Migrate(app, db)
+
+# Setup Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'  # Specify the login route
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 # Configuration
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
@@ -75,6 +85,7 @@ def index():
 
 @app.route('/vmc-admin/', defaults={'path': ''})
 @app.route('/vmc-admin/<path:path>')
+@login_required
 def admin_index(path):
     if not path:
         return redirect(url_for('admin_dashboard'))

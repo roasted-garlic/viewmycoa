@@ -21,7 +21,18 @@ def init_app():
         # Initialize database
         with app.app_context():
             import models  # Import models before creating tables
+            import routes.auth_routes  # Import auth routes
             db.create_all()
+            
+            # Create default admin user if none exists
+            from models import User
+            if not User.query.filter_by(username='admin').first():
+                admin = User(username='admin', email='admin@example.com', is_admin=True)
+                admin.set_password('admin')  # Default password, should be changed
+                db.session.add(admin)
+                db.session.commit()
+                logger.info("Created default admin user")
+                
             logger.info("Database tables created successfully")
 
     except Exception as e:
