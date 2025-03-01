@@ -23,12 +23,16 @@ def find_and_kill_process_on_port(port):
         )
         
         if result.stdout:
-            pid = result.stdout.strip()
-            logger.info(f"Found process {pid} using port {port}")
-            
-            # Kill the process
-            subprocess.run(f"kill -9 {pid}", shell=True)
-            logger.info(f"Killed process {pid}")
+            pids = result.stdout.strip().split('\n')
+            for pid in pids:
+                if pid:
+                    logger.info(f"Found process {pid} using port {port}")
+                    try:
+                        # Kill the process
+                        subprocess.run(f"kill -9 {pid}", shell=True, check=True)
+                        logger.info(f"Killed process {pid}")
+                    except subprocess.CalledProcessError:
+                        logger.warning(f"Failed to kill process {pid}")
             return True
         else:
             logger.info(f"No process found using port {port}")
@@ -40,20 +44,35 @@ def find_and_kill_process_on_port(port):
 def restart_application():
     """Restart the Flask application"""
     try:
-        # Kill any process using port 5000
-        find_and_kill_process_on_port(5000)
+        # Kill any process using port 5000, 5001, 5002, or 5003
+        for port in [5000, 5001, 5002, 5003, 8080]:
+            find_and_kill_process_on_port(port)
         
-        # Wait a moment for the port to be released
-        time.sleep(1)
+        # Wait a moment for the ports to be released
+        time.sleep(2)
         
         # Start the application
         logger.info("Starting application...")
         os.environ["FLASK_APP"] = "app.py"
-        subprocess.run(["flask", "db", "upgrade"], check=True)
         
-        # Run the main script properly
+        # Run flask migration
+        try:
+            subprocess.run(["flask", "db", "upgrade"], check=True)
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Database migration error: {str(e)}")
+            logger.info("Continuing with application startup...")
+        
+        # Run the main script in background
         logger.info("Running main.py...")
-        subprocess.run(["python", "main.py"], check=True)
+        subprocess.Popen(["python", "main.py"], 
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE)
+        
+        # Let the user know the application is restarting
+        print("\n" + "="*50)
+        print("✅ Application restarting!")
+        print("The server should be available in a few seconds.")
+        print("="*50 + "\n")
         
         return True
     except Exception as e:

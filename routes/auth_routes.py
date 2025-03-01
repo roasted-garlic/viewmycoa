@@ -18,21 +18,28 @@ def admin_required(f):
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('admin_dashboard'))
-        
+    
+    error = None    
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         
-        user = User.query.filter_by(username=username).first()
-        
-        if user and user.check_password(password):
-            login_user(user)
-            next_page = request.args.get('next')
-            return redirect(next_page or url_for('admin_dashboard'))
-        else:
-            return render_template('login.html', error='Invalid username or password')
+        try:
+            user = User.query.filter_by(username=username).first()
             
-    return render_template('login.html')
+            if user and user.check_password(password):
+                login_user(user)
+                next_page = request.args.get('next')
+                if next_page:
+                    return redirect(next_page)
+                return redirect(url_for('admin_dashboard'))
+            else:
+                error = "Invalid username or password"
+        except Exception as e:
+            app.logger.error(f"Login error: {str(e)}")
+            error = "An error occurred during login. Please try again."
+            
+    return render_template('login.html', error=error)
 
 @app.route('/logout')
 @login_required

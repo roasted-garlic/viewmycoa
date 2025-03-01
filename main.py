@@ -45,18 +45,38 @@ def main():
         # Initialize the application
         init_app()
 
-        # Configure host and port
+        # Configure host
         host = "0.0.0.0"  # Listen on all available interfaces
-        port = 5000       # Use port 5000 for Replit deployment
-
+        
+        # Try different ports
+        import socket
+        ports = [5000, 5001, 5002, 5003, 8080]
+        port = None
+        
+        for test_port in ports:
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.bind((host, test_port))
+                s.close()
+                port = test_port
+                logger.info(f"Found free port: {port}")
+                break
+            except socket.error:
+                logger.info(f"Port {test_port} is in use, trying next port")
+                continue
+        
+        if port is None:
+            port = 8080  # Fallback to 8080 if all are taken
+            logger.warning(f"All preferred ports in use, using fallback port: {port}")
+        
         logger.info(f"Starting application on {host}:{port}")
         
         # Run the Flask application
         app.run(
             host=host,
             port=port,
-            debug=True,  # Enable debug mode
-            use_reloader=True  # Enable auto-reload on code changes
+            debug=True,
+            use_reloader=True
         )
 
     except Exception as e:
