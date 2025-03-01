@@ -18,6 +18,21 @@ def init_app():
                 os.makedirs(directory)
                 logger.info(f"Created directory at {directory}")
 
+        # Check for deployment mode with missing database URL
+        is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
+        db_url = os.environ.get("DATABASE_URL") 
+        
+        if is_deployment and not db_url:
+            # Check if we have individual Postgres variables
+            pg_user = os.environ.get("PGUSER")
+            pg_password = os.environ.get("PGPASSWORD")
+            pg_database = os.environ.get("PGDATABASE")
+            
+            if not (pg_user and pg_password and pg_database):
+                logger.error("DEPLOYMENT ERROR: Missing required database environment variables")
+                logger.error("Please set DATABASE_URL or PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT")
+                # We'll continue but the app will use the fallback SQLite DB which is not ideal for production
+
         # Initialize database
         with app.app_context():
             import models  # Import models before creating tables
@@ -35,7 +50,12 @@ def init_app():
                 logger.info("Database connection verified successfully")
             except Exception as db_error:
                 logger.error(f"Database connection error: {str(db_error)}")
-                logger.info("Attempting to create database tables anyway...")
+                
+                if is_deployment:
+                    logger.error("Deployment may fail - Please check database environment variables")
+                    logger.error("See DEPLOYMENT.md for required variables")
+                else:
+                    logger.info("Attempting to create database tables anyway...")
             
             db.create_all()
             

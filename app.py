@@ -26,10 +26,19 @@ login_manager.login_message_flashing = False  # Prevent automatic flashing
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Configuration
-app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
+# Configuration for secret key
+# IMPORTANT: For production deployment, set FLASK_SECRET_KEY environment variable
+app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a development-only secret key"
 
 # Database configuration with fallbacks
+# IMPORTANT: For production deployment, set either DATABASE_URL or individual Postgres variables
+# Required environment variables for deployment:
+# - DATABASE_URL (complete PostgreSQL connection string) OR
+# - PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT (individual PostgreSQL connection details)
+
+# For Replit deployment, we need to ensure these variables are set
+is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
+
 database_url = os.environ.get("DATABASE_URL")
 if not database_url:
     # Construct from individual Postgres environment variables if available
@@ -41,11 +50,15 @@ if not database_url:
     
     if pg_user and pg_password and pg_database:
         database_url = f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
-        app.logger.info(f"Constructed database URL from environment variables")
+        app.logger.info("Constructed database URL from individual PostgreSQL environment variables")
     else:
-        # Final fallback for development
-        database_url = "sqlite:///instance/database.db"
-        app.logger.warning("No database configuration found, using SQLite fallback")
+        # Final fallback for development only
+        if is_deployment:
+            app.logger.error("DEPLOYMENT ERROR: Missing required database connection environment variables.")
+            app.logger.error("Please set DATABASE_URL or PGUSER, PGPASSWORD, PGDATABASE, PGHOST, PGPORT.")
+        else:
+            database_url = "sqlite:///instance/database.db"
+            app.logger.warning("No database configuration found, using SQLite fallback (DEV MODE ONLY)")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
@@ -54,8 +67,12 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 }
 
 # Log database configuration (without credentials)
-db_log_url = database_url.replace("://", "://***:***@") if "://" in database_url else database_url
-app.logger.info(f"Using database: {db_log_url}")
+if database_url:
+    # Create a safe version of the URL without exposing credentials
+    db_log_url = database_url.replace("://", "://***:***@") if "://" in database_url else database_url
+    app.logger.info(f"Using database: {db_log_url}")
+else:
+    app.logger.warning("No database URL configured")
 
 
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
