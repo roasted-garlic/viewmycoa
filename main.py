@@ -21,7 +21,10 @@ def init_app():
         # Initialize database
         with app.app_context():
             import models  # Import models before creating tables
+            
+            # Import route modules
             import routes.auth_routes  # Import auth routes
+            import routes.admin_routes  # Import admin routes
             
             # Verify database connection
             try:

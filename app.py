@@ -114,7 +114,7 @@ def index():
 @login_required
 def admin_index(path):
     if not path:
-        return redirect(url_for('admin_dashboard'))
+        return redirect(url_for('admin_overview'))
     return redirect(url_for('admin_dashboard'))
 
 @app.errorhandler(404)
