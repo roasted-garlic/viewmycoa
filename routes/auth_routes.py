@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash, get_flashed_messages, jsonify
+from flask import render_template, request, redirect, url_for, flash, get_flashed_messages
 from flask_login import login_user, logout_user, login_required, current_user
 from app import app, db
 from models import User
@@ -7,16 +7,6 @@ from functools import wraps
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # Allow authenticated users to access overview route even if not admin
-        if request.endpoint == 'admin_overview':
-            if not current_user.is_authenticated:
-                _ = get_flashed_messages()
-                flash('You need to be logged in to access this area.', 'danger')
-                response = app.make_response(redirect(url_for('login')))
-                return response
-            return f(*args, **kwargs)
-        
-        # For all other admin routes, require admin privileges
         if not current_user.is_authenticated or not current_user.is_admin:
             # Clear any existing flashed messages
             _ = get_flashed_messages()
@@ -152,4 +142,17 @@ def edit_user(user_id):
 
     return render_template('user_edit.html', user=user)
 
-# Route removed - already defined in app.py
+@app.route('/api/users/<int:user_id>', methods=['DELETE'])
+@login_required
+@admin_required
+def delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+
+    # Prevent deleting yourself
+    if user.id == current_user.id:
+        return jsonify({'error': 'You cannot delete your own account'}), 400
+
+    db.session.delete(user)
+    db.session.commit()
+
+    return jsonify({'success': True})
