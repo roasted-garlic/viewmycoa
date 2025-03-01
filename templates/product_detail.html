@@ -312,11 +312,9 @@
                                     <a href="{{ url_for('serve_pdf', filename=product.batch_number + '/' + pdf.filename) }}?download=1" class="btn btn-primary btn-sm" title="Download PDF">
                                         <i class="fas fa-download"></i>
                                     </a>
-                                    {% if current_user.is_admin %}
                                     <button class="btn btn-danger btn-sm delete-pdf" data-pdf-id="{{ pdf.id }}" title="Delete PDF">
                                         <i class="fas fa-trash"></i>
                                     </button>
-                                    {% endif %}
                                 </div>
                             </li>
                             {% endif %}
@@ -638,18 +636,18 @@ document.addEventListener('DOMContentLoaded', function() {
         syncButton.addEventListener('click', async function() {
             const productId = this.dataset.productId;
             const button = this;
-            
+
             if (button.disabled) return;
-            
+
             try {
                 button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
                 button.disabled = true;
-                
+
                 const response = await fetch(`/api/square/sync/${productId}`, {
                     method: 'POST'
                 });
                 const data = await response.json();
-                
+
                 const resultsDiv = document.getElementById('syncResults');
                 if (data.success) {
                     resultsDiv.innerHTML = '<div class="alert alert-success">Product synced successfully!</div>';
@@ -684,7 +682,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (error) {
                 console.error('Error:', error);
                 const resultsDiv = document.getElementById('syncResults');
-                resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+                resultsDiv.innerHTML = `<div class="alert alert-dangerError: ${error.message}</div>`;
                 const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
                 modal.show();
                 button.innerHTML = '<i class="fas fa-sync"></i> Sync to Square';
@@ -699,7 +697,7 @@ document.addEventListener('DOMContentLoaded', function() {
         deleteButton.addEventListener('click', function() {
             deleteModal.show();
         });
-        
+
         // Clean up modal backdrop when modal is hidden
         document.getElementById('deleteConfirmModal').addEventListener('hidden.bs.modal', function() {
             document.querySelector('.modal-backdrop')?.remove();
@@ -712,15 +710,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const productId = deleteButton.dataset.productId;
             const confirmationMessage = document.querySelector('.confirmation-message');
             const resultsDiv = document.getElementById('deleteResults');
-            
+
             try {
                 confirmationMessage.style.display = 'none';
                 resultsDiv.innerHTML = '<div class="alert alert-info">Deleting product...</div>';
-                
+
                 const response = await fetch(`/api/delete_product/${productId}`, {
                     method: 'DELETE'
                 });
-                
+
                 if (response.ok) {
                     resultsDiv.innerHTML = '<div class="alert alert-success">Product deleted successfully!</div>';
                     setTimeout(() => {
@@ -780,7 +778,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const button = this;
             const normalState = button.querySelector('.normal-state');
             const loadingState = button.querySelector('.loading-state');
-            
+
             normalState.classList.add('d-none');
             loadingState.classList.remove('d-none');
             button.disabled = true;
@@ -816,12 +814,12 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const response = await fetch(`/api/generate_json/${productId}`);
                 const data = await response.json();
-                
+
                 const jsonPreview = document.getElementById('jsonPreview');
                 if (jsonPreview) {
                     jsonPreview.textContent = JSON.stringify(data, null, 2);
                 }
-                
+
                 jsonModal.show();
             } catch (error) {
                 console.error('Error:', error);
@@ -876,7 +874,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const unsyncButton = document.getElementById('unsyncSquare');
     const unsyncModalElement = document.getElementById('squareUnsyncModal');
     let unsyncModal;
-    
+
     if (unsyncButton && !unsyncButton.hasListener) {
         unsyncButton.hasListener = true;
         unsyncButton.addEventListener('click', function() {
@@ -915,18 +913,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const productId = unsyncButton.dataset.productId;
             const confirmationMessage = document.querySelector('#squareUnsyncModal .confirmation-message');
             const resultsDiv = document.getElementById('unsyncResults');
-            
+
             try {
                 confirmationMessage.style.display = 'none';
                 resultsDiv.innerHTML = '<div class="alert alert-info">Removing from Square...</div>';
                 unsyncButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
                 unsyncButton.disabled = true;
-                
+
                 const response = await fetch(`/api/square/unsync/${productId}`, {
                     method: 'POST'
                 });
                 const data = await response.json();
-                
+
                 if (data.success) {
                     resultsDiv.innerHTML = '<div class="alert alert-success">Product removed from Square successfully!</div>';
                     setTimeout(() => {
