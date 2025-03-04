@@ -59,8 +59,7 @@ function showNotification(message, type = 'success') {
 document.getElementById('confirmDelete')?.addEventListener('click', async function() {
     const productId = document.getElementById('deleteProduct').dataset.productId;
     const confirmationMessage = document.querySelector('.confirmation-message');
-    const resultsDiv = document.getElementById('deleteResults');
-    const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'));
+    const resultsDiv = document.getElementById('syncResults');
     
     try {
         confirmationMessage.style.display = 'none';
@@ -72,17 +71,9 @@ document.getElementById('confirmDelete')?.addEventListener('click', async functi
         
         if (response.ok) {
             resultsDiv.innerHTML = '<div class="alert alert-success">Product deleted successfully!</div>';
-            // Add a slight delay before redirecting to ensure the user sees the success message
             setTimeout(() => {
-                // Close the modal before redirecting
-                if (deleteModal) {
-                    deleteModal.hide();
-                }
                 window.location.href = '/vmc-admin/products';
-            }, 1500);
-            
-            // Disable the Delete Product button to prevent multiple clicks
-            document.getElementById('confirmDelete').disabled = true;
+            }, 2000);
         } else {
             const data = await response.json();
             resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
