@@ -46,6 +46,57 @@ document.addEventListener('DOMContentLoaded', function() {
             batchInput.readOnly = !this.checked;
         });
     }
+    
+    // Barcode generation and editing
+    const generateBarcodeBtn = document.getElementById('generateBarcode');
+    const barcodeInput = document.getElementById('barcode');
+    const enableBarcodeEdit = document.getElementById('enableBarcodeEdit');
+    
+    function generateBarcode() {
+        // Generate a UPC-A barcode (12 digits)
+        // First 11 digits are random, last digit is a check digit
+        let barcode = '';
+        for (let i = 0; i < 11; i++) {
+            barcode += Math.floor(Math.random() * 10).toString();
+        }
+        
+        // Calculate check digit according to UPC-A algorithm
+        // Sum the odd-positioned digits (1st, 3rd, 5th, etc) and multiply by 3
+        // Sum the even-positioned digits (2nd, 4th, 6th, etc)
+        // Add both sums and find the digit to add to make it a multiple of 10
+        let oddSum = 0;
+        let evenSum = 0;
+        
+        for (let i = 0; i < 11; i++) {
+            if (i % 2 === 0) {
+                oddSum += parseInt(barcode[i]);
+            } else {
+                evenSum += parseInt(barcode[i]);
+            }
+        }
+        
+        const totalSum = oddSum * 3 + evenSum;
+        const checkDigit = (10 - (totalSum % 10)) % 10;
+        
+        barcode += checkDigit;
+        
+        barcodeInput.value = barcode;
+    }
+    
+    if (generateBarcodeBtn) {
+        generateBarcodeBtn.addEventListener('click', generateBarcode);
+    }
+    
+    if (enableBarcodeEdit) {
+        enableBarcodeEdit.addEventListener('change', function() {
+            barcodeInput.readOnly = !this.checked;
+        });
+    }
+    
+    // Generate barcode if empty
+    if (barcodeInput && barcodeInput.value === '') {
+        generateBarcode();
+    }
 
     // Template handling
     if (templateSelect) {
