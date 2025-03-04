@@ -1,0 +1,13 @@
+{# 
+Helper template for rendering product images safely.
+This template ensures images are displayed even if missing and includes fallback to default image.
+#}
+
+{% macro product_image(image_path, alt_text, class_name="img-fluid", fallback_image=None) -%}
+  {% set safe_path = get_safe_image_path(image_path) %}
+  <img src="{{ url_for('static', filename=safe_path) }}" 
+       class="{{ class_name }}" 
+       alt="{{ alt_text }}" 
+       loading="lazy"
+       onerror="this.onerror=null; this.src='{{ url_for('static', filename=fallback_image or 'img/no-image.png') }}';">
+{%- endmacro %}

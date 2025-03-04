@@ -9,21 +9,25 @@ logger = logging.getLogger(__name__)
 def init_app():
     """Initialize the application"""
     try:
-        # Create static and uploads directories if they don't exist
-        static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
-        uploads_dir = os.path.join(static_dir, 'uploads')
-        
-        for directory in [static_dir, uploads_dir]:
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-                logger.info(f"Created directory at {directory}")
-
-        # SQLite will be used as a fallback in app.py when no database variables are set
-        # So we don't need to error here, just ensure that directories exist
-        os.makedirs('instance', exist_ok=True)
-        
         # Check if we're in deployment mode - define this before it's used later
         is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
+        
+        # Create all required directories (create with exist_ok to avoid race conditions)
+        static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+        uploads_dir = os.path.join(static_dir, 'uploads')
+        pdfs_dir = os.path.join(static_dir, 'pdfs')
+        
+        # Create these directories and log their creation
+        for directory in [static_dir, uploads_dir, pdfs_dir]:
+            try:
+                os.makedirs(directory, exist_ok=True)
+                logger.info(f"Ensured directory exists at {directory}")
+            except Exception as dir_error:
+                logger.error(f"Failed to create directory {directory}: {str(dir_error)}")
+                
+        # Ensure instance directory exists for SQLite fallback
+        os.makedirs('instance', exist_ok=True)
+        logger.info("Ensured instance directory exists")
 
         # Initialize database
         with app.app_context():

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#f0f0f0" />
+  <text x="200" y="200" font-family="Arial" font-size="24" text-anchor="middle" fill="#999">
+    Image not available
+  </text>
+  <path d="M150 120 L250 120 L250 180 L150 180 Z" stroke="#999" stroke-width="2" fill="none"/>
+  <path d="M180 140 A15 15 0 1 1 180 140.1" stroke="#999" stroke-width="2" fill="none"/>
+  <path d="M150 180 L180 160 L210 170 L250 150" stroke="#999" stroke-width="2" fill="none"/>
+</svg>

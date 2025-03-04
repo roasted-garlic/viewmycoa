@@ -43,6 +43,18 @@ is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
 # First, try to get a complete database URL
 database_url = os.environ.get("DATABASE_URL")
 
+# Log the environment variables we're checking (redacting sensitive info)
+env_vars = {
+    "REPLIT_DEPLOYMENT": os.environ.get("REPLIT_DEPLOYMENT", "0"),
+    "DATABASE_URL": "***redacted***" if database_url else "Not set",
+    "PGDATABASE": os.environ.get("PGDATABASE", "Not set"),
+    "PGHOST": os.environ.get("PGHOST", "Not set"),
+    "PGPORT": os.environ.get("PGPORT", "Not set"),
+    "PGUSER": "***redacted***" if os.environ.get("PGUSER") else "Not set",
+    "PGPASSWORD": "***redacted***" if os.environ.get("PGPASSWORD") else "Not set"
+}
+app.logger.info(f"Database environment check: {env_vars}")
+
 if not database_url:
     # Try to construct from individual Postgres environment variables
     pg_user = os.environ.get("PGUSER")
@@ -52,14 +64,20 @@ if not database_url:
     pg_database = os.environ.get("PGDATABASE")
 
     if pg_user and pg_password and pg_database:
+        # Format database URL correctly for SQLAlchemy
         database_url = f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
-        app.logger.info("Constructed database URL from individual PostgreSQL environment variables")
+        app.logger.info(f"Constructed database URL from individual PostgreSQL environment variables (host: {pg_host}, port: {pg_port}, database: {pg_database})")
     else:
         # Use SQLite as last resort, even in deployment to ensure app runs
         database_url = "sqlite:///instance/database.db"
-
+        
+        missing_vars = []
+        if not pg_user: missing_vars.append("PGUSER")
+        if not pg_password: missing_vars.append("PGPASSWORD") 
+        if not pg_database: missing_vars.append("PGDATABASE")
+        
         if is_deployment:
-            app.logger.warning("DEPLOYMENT NOTICE: Using SQLite database for deployment since no PostgreSQL variables were set.")
+            app.logger.warning(f"DEPLOYMENT NOTICE: Using SQLite database for deployment since PostgreSQL variables were missing: {', '.join(missing_vars)}")
             app.logger.warning("For production use, set DATABASE_URL or individual PostgreSQL variables.")
         else:
             app.logger.info("Using SQLite database for development")
@@ -80,8 +98,33 @@ else:
 
 
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size 
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Disable caching for development
+app.config['DEFAULT_IMAGE'] = 'img/no-image.png'  # Default image to use when one is missing
+
+# Helper function to safely get image paths, falling back to default if image is missing
+def get_safe_image_path(image_path):
+    """
+    Returns a safe image path, checking if the file exists and falling back to default if not.
+    
+    Args:
+        image_path: Relative path to the image file (usually from database)
+        
+    Returns:
+        Safe path to use in templates (default image if original is missing)
+    """
+    if not image_path:
+        # No image path provided, use default
+        return app.config['DEFAULT_IMAGE']
+        
+    # Check if file exists in static directory
+    full_path = os.path.join('static', image_path)
+    if os.path.isfile(full_path):
+        return image_path
+    else:
+        # Log the missing file
+        app.logger.warning(f"Image file not found: {full_path}, using default image")
+        return app.config['DEFAULT_IMAGE']
 
 @app.after_request
 def add_header(response):
@@ -1006,7 +1049,10 @@ def edit_product(product_id):
 @app.context_processor
 def inject_settings():
     """Make settings available to all templates."""
-    return {'settings': models.Settings.get_settings()}
+    return {
+        'settings': models.Settings.get_settings(),
+        'get_safe_image_path': get_safe_image_path,
+    }
 
 @app.route('/vmc-admin/settings', methods=['GET', 'POST'])
 @login_required
@@ -1295,26 +1341,65 @@ def sync_single_product(product_id):
         }), 500
 
 def save_image(file, product_id, image_type):
-    # Create product-specific directory
-    product_dir = os.path.join('uploads', str(product_id))
-    full_dir = os.path.join('static', product_dir)
-    os.makedirs(full_dir, exist_ok=True)
-
-    # Get file extension
-    ext = os.path.splitext(secure_filename(file.filename))[1]
-
-    # Create filename based on product_id and type
-    filename = f"{image_type}_{product_id}{ext}"
-    filepath = os.path.join(product_dir, filename)
-    full_filepath = os.path.join('static', filepath)
-
-    # Process and save image
-    img = Image.open(file)
-    img.thumbnail((800, 800))  # Resize if needed
-    img.save(full_filepath)
-
-    # Return path relative to static directory for proper URL generation
-    return filepath
+    """
+    Save an uploaded image file for a product.
+    
+    Args:
+        file: The uploaded file object
+        product_id: The product ID to associate with this image
+        image_type: Type of image (product_image, label_image, etc.)
+        
+    Returns:
+        The relative path to the saved image
+    """
+    try:
+        # Create product-specific directory with proper error handling
+        product_dir = os.path.join('uploads', str(product_id))
+        full_dir = os.path.join('static', product_dir)
+        
+        # Make sure directory exists with better error handling
+        try:
+            os.makedirs(full_dir, exist_ok=True)
+            app.logger.info(f"Created or verified directory: {full_dir}")
+        except Exception as dir_error:
+            app.logger.error(f"Failed to create directory {full_dir}: {str(dir_error)}")
+            # Try to continue anyway, it might still work
+        
+        # Get file extension with validation
+        orig_filename = secure_filename(file.filename)
+        if not orig_filename:
+            app.logger.warning(f"Invalid filename for {image_type}, using default extension")
+            ext = '.png'
+        else:
+            ext = os.path.splitext(orig_filename)[1].lower()
+            if not ext:
+                ext = '.png'  # Default to png if no extension
+        
+        # Create filename based on product_id and type with timestamp to prevent caching issues
+        timestamp = int(datetime.datetime.now().timestamp())
+        filename = f"{image_type}_{product_id}_{timestamp}{ext}"
+        filepath = os.path.join(product_dir, filename)
+        full_filepath = os.path.join('static', filepath)
+        
+        # Process and save image with error handling
+        img = Image.open(file)
+        # Resize to reasonable dimensions to save space
+        img.thumbnail((800, 800))  # Resize if needed
+        
+        # Ensure the image is in a web-friendly format (PNG)
+        if img.mode not in ('RGB', 'RGBA'):
+            img = img.convert('RGBA')
+            
+        # Save with explicit format
+        img.save(full_filepath, format='PNG' if ext.lower() == '.png' else 'JPEG')
+        app.logger.info(f"Saved image: {full_filepath}")
+        
+        # Return path relative to static directory for proper URL generation
+        return filepath
+    except Exception as e:
+        app.logger.error(f"Error saving image: {str(e)}")
+        # Return a default image path if saving fails
+        return 'img/no-image.png'
 
 @app.route('/api/square/clear-id/<int:product_id>', methods=['POST']) 
 @login_required
