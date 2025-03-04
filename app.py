@@ -50,14 +50,14 @@ if not database_url:
     pg_host = os.environ.get("PGHOST", "localhost") 
     pg_port = os.environ.get("PGPORT", "5432")
     pg_database = os.environ.get("PGDATABASE")
-    
+
     if pg_user and pg_password and pg_database:
         database_url = f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
         app.logger.info("Constructed database URL from individual PostgreSQL environment variables")
     else:
         # Use SQLite as last resort, even in deployment to ensure app runs
         database_url = "sqlite:///instance/database.db"
-        
+
         if is_deployment:
             app.logger.warning("DEPLOYMENT NOTICE: Using SQLite database for deployment since no PostgreSQL variables were set.")
             app.logger.warning("For production use, set DATABASE_URL or individual PostgreSQL variables.")
@@ -137,12 +137,12 @@ def admin_index(path):
     # Always allow access to the overview page for any logged-in user
     if not path or path == 'overview':
         return redirect(url_for('admin_overview'))
-    
+
     # For all other admin paths, check if user is an admin
     if not current_user.is_admin:
         flash('You need admin privileges to access this area.', 'danger')
         return redirect(url_for('admin_overview'))
-    
+
     # For admin users or overview, proceed normally
     return redirect(url_for('admin_dashboard'))
 
@@ -391,6 +391,7 @@ def create_product():
         from utils import generate_upc_barcode, generate_batch_number, generate_sku
         barcode_number = generate_upc_barcode()
         batch_number = request.form.get('batch_number')
+        barcode = request.form.get('barcode') # Added to handle manual entry
         if not batch_number:
             batch_number = generate_batch_number()
         sku = generate_sku()  # Generate unique SKU
@@ -398,7 +399,7 @@ def create_product():
         product = models.Product()
         product.title = title
         product.batch_number = batch_number
-        product.barcode = barcode_number
+        product.barcode = barcode or barcode_number # Use manual entry if available, otherwise auto-generated
         product.sku = sku
         product.cost = float(cost) if cost else None
         product.price = float(price) if price else None
@@ -812,7 +813,7 @@ def edit_product(product_id):
     templates = models.ProductTemplate.query.all()
     categories = models.Category.query.order_by(models.Category.name).all()
     settings = models.Settings.get_settings()
-    has_craftmypdf = bool(settings.craftmypdf_api_key)
+    has_craftmypdf =bool(settings.craftmypdf_api_key)
     pdf_templates = fetch_craftmypdf_templates()
 
     if request.method == 'POST':
@@ -820,7 +821,7 @@ def edit_product(product_id):
             product.title = request.form['title']
             product.cost = float(request.form['cost']) if request.form.get('cost') else None
             product.price = float(request.form['price']) if request.form.get('price') else None
-            
+
             # Handle attributes
             if 'attributes_data' in request.form:
                 product.attributes = request.form['attributes_data']
@@ -939,8 +940,8 @@ def edit_product(product_id):
                 if name and value:  # Only add if both name and value are provided
                     attributes[name] = value
             product.set_attributes(attributes)
+            product.barcode = request.form.get('barcode') # Added to handle manual entry and updates
 
-            # Handle product image
             # Handle product image
             if 'product_image' in request.files and request.files['product_image'].filename:
                 file = request.files['product_image']
