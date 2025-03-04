@@ -69,9 +69,25 @@
                                     <i class="fas fa-random"></i> Generate
                                 </button>
                             </div>
-                            <div class="form-check">
+                            <div class="form-check mb-3">
                                 <input class="form-check-input" type="checkbox" id="enableBarcodeEdit">
                                 <label class="form-check-label" for="enableBarcodeEdit">
+                                    Enable manual editing
+                                </label>
+                            </div>
+
+                            <h5 class="card-title text-info mb-3">
+                                <i class="fas fa-tag"></i> SKU
+                            </h5>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" id="sku" name="sku" value="{{ product.sku }}" readonly>
+                                <button type="button" class="btn btn-secondary" id="generateSku">
+                                    <i class="fas fa-random"></i> Generate
+                                </button>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="enableSkuEdit">
+                                <label class="form-check-label" for="enableSkuEdit">
                                     Enable manual editing
                                 </label>
                             </div>

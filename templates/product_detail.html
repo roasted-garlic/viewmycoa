@@ -707,6 +707,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmDeleteButton = document.getElementById('confirmDelete');
     if (confirmDeleteButton && deleteButton) {
         confirmDeleteButton.addEventListener('click', async function() {
+            // Prevent multiple clicks
+            if (confirmDeleteButton.disabled) return;
+            
+            // Disable the button and show loading state
+            confirmDeleteButton.disabled = true;
+            confirmDeleteButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
+            
+            // Also disable the Cancel button
+            const cancelButton = document.querySelector('.modal-body button[data-bs-dismiss="modal"]');
+            if (cancelButton) cancelButton.disabled = true;
+            
             const productId = deleteButton.dataset.productId;
             const confirmationMessage = document.querySelector('.confirmation-message');
             const resultsDiv = document.getElementById('deleteResults');
@@ -721,13 +732,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (response.ok) {
                     resultsDiv.innerHTML = '<div class="alert alert-success">Product deleted successfully!</div>';
+                    // Redirect faster
                     setTimeout(() => {
                         window.location.href = '/vmc-admin/products';
-                    }, 2000);
+                    }, 1000);
                 } else {
                     const data = await response.json();
                     resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
                     confirmationMessage.style.display = 'block';
+                    
+                    // Re-enable buttons on error
+                    confirmDeleteButton.disabled = false;
+                    confirmDeleteButton.innerHTML = 'Delete Product';
+                    if (cancelButton) cancelButton.disabled = false;
                 }
             } catch (error) {
                 console.error('Error:', error);
