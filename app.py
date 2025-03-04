@@ -119,8 +119,11 @@ db.init_app(app)
 
 logging.basicConfig(level=logging.DEBUG)
 
-# Ensure upload directory exists
+# Ensure all required directories exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs(os.path.join('static', 'pdfs'), exist_ok=True)
+for i in range(1, 100):  # Pre-create folders for product IDs 1-99
+    os.makedirs(os.path.join('static', 'uploads', str(i)), exist_ok=True)
 
 with app.app_context():
     import models
