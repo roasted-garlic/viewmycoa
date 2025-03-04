@@ -44,20 +44,12 @@ def init_app():
                 logger.error(f"Database connection error: {str(db_error)}")
                 
                 if is_deployment:
-                    logger.warning("Database connection issue - continuing with SQLite fallback")
-                    logger.info("See DEPLOYMENT.md for PostgreSQL configuration options")
+                    logger.error("Deployment may fail - Please check database environment variables")
+                    logger.error("See DEPLOYMENT.md for required variables")
                 else:
                     logger.info("Attempting to create database tables anyway...")
             
-            # Always try to create tables, even if the initial connection test failed
-            try:
-                db.create_all()
-                logger.info("Database tables created or verified successfully")
-            except Exception as create_error:
-                logger.error(f"Error creating database tables: {str(create_error)}")
-                if not is_deployment:
-                    # Only raise in development mode
-                    raise
+            db.create_all()
             
             # Create default admin user if none exists
             from models import User

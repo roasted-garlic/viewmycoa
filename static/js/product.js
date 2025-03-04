@@ -83,45 +83,15 @@ document.addEventListener('DOMContentLoaded', function() {
         barcodeInput.value = barcode;
     }
     
-    // SKU generation and editing
-    const generateSkuBtn = document.getElementById('generateSku');
-    const skuInput = document.getElementById('sku');
-    const enableSkuEdit = document.getElementById('enableSkuEdit');
-    
-    function generateSku() {
-        // Generate a SKU (2 uppercase letters + 6 digits)
-        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        let sku = '';
-        
-        // Add 2 random uppercase letters
-        for (let i = 0; i < 2; i++) {
-            sku += letters.charAt(Math.floor(Math.random() * letters.length));
-        }
-        
-        // Add 6 random digits
-        for (let i = 0; i < 6; i++) {
-            sku += Math.floor(Math.random() * 10).toString();
-        }
-        
-        skuInput.value = sku;
+    if (generateBarcodeBtn) {
+        generateBarcodeBtn.addEventListener('click', generateBarcode);
     }
     
-    if (generateSkuBtn) {
-        generateSkuBtn.addEventListener('click', generateSku);
-        
-        // Generate SKU on page load if the field is empty
-        if (!skuInput.value) {
-            generateSku();
-        }
-    }
-    
-    if (enableSkuEdit) {
-        enableSkuEdit.addEventListener('change', function() {
-            skuInput.readOnly = !this.checked;
+    if (enableBarcodeEdit) {
+        enableBarcodeEdit.addEventListener('change', function() {
+            barcodeInput.readOnly = !this.checked;
         });
     }
-    
-    if (generateBarcodeBtn) {
         generateBarcodeBtn.addEventListener('click', generateBarcode);
     }
     

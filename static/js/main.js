@@ -57,21 +57,9 @@ function showNotification(message, type = 'success') {
 }
 
 document.getElementById('confirmDelete')?.addEventListener('click', async function() {
-    // Prevent multiple clicks
-    const confirmBtn = this;
-    if (confirmBtn.disabled) return;
-    
-    // Disable the button and show loading state
-    confirmBtn.disabled = true;
-    confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
-    
-    // Also disable the Cancel button
-    const cancelButton = document.querySelector('.modal-body button[data-bs-dismiss="modal"]');
-    if (cancelButton) cancelButton.disabled = true;
-    
     const productId = document.getElementById('deleteProduct').dataset.productId;
     const confirmationMessage = document.querySelector('.confirmation-message');
-    const resultsDiv = document.getElementById('deleteResults') || document.getElementById('syncResults');
+    const resultsDiv = document.getElementById('syncResults');
     
     try {
         confirmationMessage.style.display = 'none';
@@ -83,31 +71,17 @@ document.getElementById('confirmDelete')?.addEventListener('click', async functi
         
         if (response.ok) {
             resultsDiv.innerHTML = '<div class="alert alert-success">Product deleted successfully!</div>';
-            // Close the modal or make it non-interactive
-            document.querySelector('.btn-close')?.setAttribute('disabled', 'true');
-            
-            // Redirect faster
             setTimeout(() => {
                 window.location.href = '/vmc-admin/products';
-            }, 1000);
+            }, 2000);
         } else {
             const data = await response.json();
             resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
             confirmationMessage.style.display = 'block';
-            
-            // Re-enable buttons on error
-            confirmBtn.disabled = false;
-            confirmBtn.innerHTML = 'Delete Product';
-            if (cancelButton) cancelButton.disabled = false;
         }
     } catch (error) {
         console.error('Error:', error);
         resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
         confirmationMessage.style.display = 'block';
-        
-        // Re-enable buttons on error
-        confirmBtn.disabled = false;
-        confirmBtn.innerHTML = 'Delete Product';
-        if (cancelButton) cancelButton.disabled = false;
     }
 });
