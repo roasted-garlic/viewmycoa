@@ -392,9 +392,10 @@ def create_product():
         barcode_number = generate_upc_barcode()
         batch_number = request.form.get('batch_number')
         barcode = request.form.get('barcode') # Added to handle manual entry
+        manual_sku = request.form.get('sku') # Added to handle manual SKU entry
         if not batch_number:
             batch_number = generate_batch_number()
-        sku = generate_sku()  # Generate unique SKU
+        sku = manual_sku or generate_sku()  # Use manual entry if available, otherwise auto-generated
 
         product = models.Product()
         product.title = title
@@ -941,6 +942,7 @@ def edit_product(product_id):
                     attributes[name] = value
             product.set_attributes(attributes)
             product.barcode = request.form.get('barcode') # Added to handle manual entry and updates
+            product.sku = request.form.get('sku') # Added to handle manual entry and updates for SKU
 
             # Handle product image
             if 'product_image' in request.files and request.files['product_image'].filename:
