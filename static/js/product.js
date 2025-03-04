@@ -92,14 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
             barcodeInput.readOnly = !this.checked;
         });
     }
-        generateBarcodeBtn.addEventListener('click', generateBarcode);
-    }
-    
-    if (enableBarcodeEdit) {
-        enableBarcodeEdit.addEventListener('change', function() {
-            barcodeInput.readOnly = !this.checked;
-        });
-    }
     
     // Generate barcode if empty
     if (barcodeInput && barcodeInput.value === '') {
