@@ -24,20 +24,36 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
     if not os.path.exists(image_path):
         return None
 
-    # Get Square API credentials from database
+    # Get Square API credentials - use the direct approach for consistency
+    # First from square_product_sync to ensure consistent behavior
+    from square_product_sync import get_square_headers
+    
+    app.logger.info("Getting Square credentials for image upload")
+    
+    # Get headers using the same function for all Square API calls
+    headers = get_square_headers()
+    
+    # Check if we have valid headers with authorization
+    if 'Authorization' not in headers:
+        app.logger.error("No Square authorization available for image upload")
+        return None
+    
+    # Get settings to determine base URL
     settings = Settings.get_settings()
     credentials = settings.get_active_square_credentials()
     
-    # Check if we have valid credentials
-    if not credentials:
-        app.logger.error("No Square credentials available for image upload")
-        return None
-        
-    url = f"{credentials['base_url']}/v2/catalog/images"
-    headers = {
-        'Square-Version': '2024-12-18',
-        'Authorization': f'Bearer {credentials["access_token"]}'
-    }
+    # Fall back to hardcoded URLs if credentials method failed
+    if not credentials or 'base_url' not in credentials:
+        app.logger.warning("Could not get base_url from credentials, using fallback")
+        if settings.square_environment == 'production':
+            base_url = 'https://connect.squareup.com'
+        else:
+            base_url = 'https://connect.squareupsandbox.com'
+    else:
+        base_url = credentials['base_url']
+    
+    url = f"{base_url}/v2/catalog/images"
+    app.logger.info(f"Square image upload URL: {url}")
 
     try:
         # Clear any existing image ID

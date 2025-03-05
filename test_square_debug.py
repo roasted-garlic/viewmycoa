@@ -27,15 +27,17 @@ def test_debug_endpoint():
         csrf_token = re.search(r'name="csrf_token" value="(.+?)"', login_page.text)
         
         if not csrf_token:
-            print("Failed to get CSRF token")
+            print("Failed to get CSRF token, page content:")
+            print(login_page.text[:200])
             return
             
         csrf_token = csrf_token.group(1)
+        print(f"Found CSRF token: {csrf_token}")
         
         # Log in with admin credentials
         login_data = {
             "username": "admin",
-            "password": "password",  # Default password, adjust as needed
+            "password": "admin",  # Default password, adjust as needed
             "csrf_token": csrf_token
         }
         

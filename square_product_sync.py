@@ -100,18 +100,35 @@ def sync_product_to_square(product):
     """Sync a single product to Square catalog"""
     from square_category_sync import sync_category_to_square
 
+    # Get settings and log information about the product
+    app.logger.info(f"Starting sync for product {product.id} - {product.title} with SKU {product.sku}")
+    
+    # Get required headers for Square API
+    headers = get_square_headers()
+    if 'Authorization' not in headers:
+        app.logger.error("No authorization header available for Square API")
+        return {"error": "Square credentials are not configured or invalid. Please set up your Square integration in Settings.", "needs_setup": True}
+    
+    # Determine base URL and location ID from settings
     settings = Settings.get_settings()
-    credentials = settings.get_active_square_credentials()
-
-    if not credentials:
-        return {"error": "Square credentials are not configured. Please set up your Square integration in Settings.", "needs_setup": True}
-
-    SQUARE_API_URL = f"{credentials['base_url']}/v2/catalog/object"
+    
+    # Directly check the settings values to determine which environment
+    if settings.square_environment == 'production':
+        base_url = 'https://connect.squareup.com'
+        location_id = settings.square_production_location_id
+    else:
+        base_url = 'https://connect.squareupsandbox.com'
+        location_id = settings.square_sandbox_location_id
+    
+    app.logger.info(f"Using Square base URL: {base_url}")
+    app.logger.info(f"Using location ID: {location_id}")
+    
+    SQUARE_API_URL = f"{base_url}/v2/catalog/object"
 
     idempotency_key = str(uuid.uuid4())
-    location_id = credentials['location_id']
 
     if not location_id:
+        app.logger.error("Square location ID not configured")
         return {"error": "Square location ID not configured"}
 
     # Check if product has a category with Square ID
@@ -140,8 +157,9 @@ def sync_product_to_square(product):
     
     if existing_id:
         try:
+            # Use the base_url we determined earlier instead of credentials to avoid None issues
             response = requests.get(
-                f"{credentials['base_url']}/v2/catalog/object/{existing_id}",
+                f"{base_url}/v2/catalog/object/{existing_id}",
                 headers=get_square_headers()
             )
             if response.status_code == 200:
@@ -308,19 +326,29 @@ def delete_product_from_square(product):
         # We intentionally do not clear category IDs here to preserve them
         db.session.commit()
 
-        settings = Settings.get_settings()
-        credentials = settings.get_active_square_credentials()
+        # Get headers directly from our improved function
+        headers = get_square_headers()
         
-        # If we don't have credentials, report an error but still clear local IDs
-        if not credentials:
-            app.logger.error("Failed to get Square credentials for deletion")
+        # If no authorization header, we can't make the deletion request
+        if 'Authorization' not in headers:
+            app.logger.error("No Square authorization available for deletion")
             return {"success": True, "warning": "Product unlinked locally but not deleted from Square due to missing credentials"}
+        
+        # Determine base URL from settings
+        settings = Settings.get_settings()
+        if settings.square_environment == 'production':
+            base_url = 'https://connect.squareup.com'
+        else:
+            base_url = 'https://connect.squareupsandbox.com'
             
         # Delete catalog item (will also delete associated images)
         try:
+            delete_url = f"{base_url}/v2/catalog/object/{square_id}"
+            app.logger.info(f"Square delete URL: {delete_url}")
+            
             response = requests.delete(
-                f"{credentials['base_url']}/v2/catalog/object/{square_id}",
-                headers=get_square_headers()
+                delete_url,
+                headers=headers
             )
         except Exception as e:
             app.logger.error(f"Exception during Square deletion: {str(e)}")
