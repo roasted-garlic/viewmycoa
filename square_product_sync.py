@@ -31,10 +31,10 @@ def sync_product_to_square(product):
 
     settings = Settings.get_settings()
     credentials = settings.get_active_square_credentials()
-    
+
     if not credentials:
         return {"error": "Square credentials are not configured. Please set up your Square integration in Settings.", "needs_setup": True}
-        
+
     SQUARE_API_URL = f"{credentials['base_url']}/v2/catalog/object"
 
     idempotency_key = str(uuid.uuid4())
@@ -91,7 +91,7 @@ def sync_product_to_square(product):
             "upc": product.barcode,
             "pricing_type": "FIXED_PRICING" if product.price else "VARIABLE_PRICING",
             "price_money": format_price_money(product.price) if product.price else None,
-            "track_inventory": True,
+            # Don't include track_inventory to preserve existing inventory settings
             "item_option_values": [],
             "location_overrides": [{
                 "location_id": location_id
