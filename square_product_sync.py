@@ -93,10 +93,8 @@ def sync_product_to_square(product):
             "price_money": format_price_money(product.price) if product.price else None,
             # ALWAYS include track_inventory as true to ensure Square maintains inventory
             "track_inventory": True,
-            "item_option_values": [],
-            "location_overrides": [{
-                "location_id": location_id
-            }]
+            "item_option_values": []
+            # Remove location_overrides to preserve existing inventory counts
         }
     }
 
