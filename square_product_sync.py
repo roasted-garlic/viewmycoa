@@ -10,6 +10,16 @@ SQUARE_VERSION = "2024-12-18"
 def get_square_headers():
     settings = Settings.get_settings()
     credentials = settings.get_active_square_credentials()
+    
+    # Ensure we have valid credentials before accessing them
+    if not credentials:
+        app.logger.error("No Square credentials found. Cannot generate headers.")
+        # Return minimal headers without authorization token
+        return {
+            'Square-Version': SQUARE_VERSION,
+            'Content-Type': 'application/json'
+        }
+        
     return {
         'Square-Version': SQUARE_VERSION,
         'Authorization': f'Bearer {credentials["access_token"]}',
@@ -239,12 +249,21 @@ def delete_product_from_square(product):
 
         settings = Settings.get_settings()
         credentials = settings.get_active_square_credentials()
-
+        
+        # If we don't have credentials, report an error but still clear local IDs
+        if not credentials:
+            app.logger.error("Failed to get Square credentials for deletion")
+            return {"success": True, "warning": "Product unlinked locally but not deleted from Square due to missing credentials"}
+            
         # Delete catalog item (will also delete associated images)
-        response = requests.delete(
-            f"{credentials['base_url']}/v2/catalog/object/{square_id}",
-            headers=get_square_headers()
-        )
+        try:
+            response = requests.delete(
+                f"{credentials['base_url']}/v2/catalog/object/{square_id}",
+                headers=get_square_headers()
+            )
+        except Exception as e:
+            app.logger.error(f"Exception during Square deletion: {str(e)}")
+            return {"success": True, "warning": f"Product unlinked locally but error occurred during Square deletion: {str(e)}"}
 
         # Even if Square returns 404, we've already cleared the IDs locally
         if response.status_code in [200, 404]:

@@ -187,24 +187,51 @@ class Settings(db.Model):
 
     def get_active_square_credentials(self):
         """Get the active Square API credentials based on current environment."""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Log current settings state to help diagnose issues
+        logger.info(f"Square environment: {self.square_environment}")
+        
+        # Check if production credentials are set
+        has_prod_credentials = (self.square_production_access_token and 
+                              self.square_production_location_id and 
+                              self.square_production_access_token.strip() != '' and 
+                              self.square_production_location_id.strip() != '')
+        
+        # Check if sandbox credentials are set
+        has_sandbox_credentials = (self.square_sandbox_access_token and 
+                                 self.square_sandbox_location_id and 
+                                 self.square_sandbox_access_token.strip() != '' and 
+                                 self.square_sandbox_location_id.strip() != '')
+        
+        logger.info(f"Production credentials available: {has_prod_credentials}")
+        logger.info(f"Sandbox credentials available: {has_sandbox_credentials}")
+        
         if self.square_environment == 'production':
-            if not self.square_production_access_token or not self.square_production_location_id:
+            if not has_prod_credentials:
+                logger.error("Production environment selected but credentials are missing")
                 return None
+                
+            logger.info("Using production Square credentials")
             return {
                 'access_token': self.square_production_access_token,
                 'location_id': self.square_production_location_id,
                 'base_url': 'https://connect.squareup.com',
                 'is_sandbox': False
             }
-
-        if not self.square_sandbox_access_token or not self.square_sandbox_location_id:
-            return None
-        return {
-            'access_token': self.square_sandbox_access_token,
-            'location_id': self.square_sandbox_location_id,
-            'base_url': 'https://connect.squareupsandbox.com',
-            'is_sandbox': True
-        }
+        else:  # Default to sandbox
+            if not has_sandbox_credentials:
+                logger.error("Sandbox environment selected but credentials are missing")
+                return None
+                
+            logger.info("Using sandbox Square credentials")
+            return {
+                'access_token': self.square_sandbox_access_token,
+                'location_id': self.square_sandbox_location_id,
+                'base_url': 'https://connect.squareupsandbox.com',
+                'is_sandbox': True
+            }
 
     def get_craftmypdf_credentials(self):
         """Get the CraftMyPDF API credentials."""

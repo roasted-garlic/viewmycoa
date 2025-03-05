@@ -31,7 +31,7 @@ args = "FLASK_APP=app.py flask db upgrade && python main.py"
 waitForPort = 3000
 
 [deployment]
-run = ["sh", "-c", "REPLIT_DEPLOYMENT=1 python main.py"]
+run = ["sh", "-c", "FLASK_APP=app.py flask db upgrade && python main.py"]
 
 [[ports]]
 localPort = 3000
