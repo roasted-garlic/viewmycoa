@@ -79,11 +79,35 @@ def sync_product_to_square(product):
     # Create product data structure
     sku_id = f"#{product.sku}"
     variation_id = f"#{product.sku}_regular"
-
+    
+    # Check for existing variation ID to preserve inventory
+    existing_variation_id = None
+    if existing_id:
+        try:
+            # Fetch the current item to get existing variation ID
+            get_response = requests.get(
+                f"{credentials['base_url']}/v2/catalog/object/{existing_id}",
+                headers=get_square_headers()
+            )
+            
+            if get_response.status_code == 200:
+                item_data = get_response.json().get('object', {})
+                variations = item_data.get('item_data', {}).get('variations', [])
+                # Find the variation matching our product's SKU
+                for var in variations:
+                    var_data = var.get('item_variation_data', {})
+                    if var_data.get('sku') == product.sku:
+                        existing_variation_id = var.get('id')
+                        app.logger.info(f"Found existing variation ID: {existing_variation_id} for SKU: {product.sku}")
+                        break
+        except Exception as e:
+            app.logger.error(f"Error fetching existing variation ID: {str(e)}")
+            # Continue with the process, using the default ID if needed
+    
     # Create variation data with ID for both new and existing items
     variation_data = {
         "type": "ITEM_VARIATION",
-        "id": variation_id,
+        "id": existing_variation_id if existing_variation_id else variation_id,
         "item_variation_data": {
             "item_id": existing_id if existing_id else sku_id,
             "name": "Regular",
@@ -136,6 +160,36 @@ def sync_product_to_square(product):
         app.logger.info(f"Square API Response Status: {response.status_code}")
         app.logger.info(f"Square API Response Body: {response.text}")
 
+        # Handle version mismatch error
+        if response.status_code == 400 and "VERSION_MISMATCH" in response.text:
+            app.logger.info("Version mismatch detected, fetching latest version")
+            try:
+                # Fetch the latest object version
+                version_response = requests.get(
+                    f"{credentials['base_url']}/v2/catalog/object/{existing_id}",
+                    headers=get_square_headers()
+                )
+                
+                if version_response.status_code == 200:
+                    latest_version = version_response.json().get('object', {}).get('version', 0)
+                    app.logger.info(f"Retrieved latest version: {latest_version}")
+                    
+                    # Update with latest version and generate new idempotency key
+                    product_data["object"]["version"] = latest_version
+                    product_data["idempotency_key"] = str(uuid.uuid4())
+                    
+                    # Try the request again with updated version
+                    response = requests.post(
+                        SQUARE_API_URL,
+                        headers=get_square_headers(),
+                        json=product_data
+                    )
+                    
+                    app.logger.info(f"Retry response status: {response.status_code}")
+                    app.logger.info(f"Retry response body: {response.text}")
+            except Exception as e:
+                app.logger.error(f"Error handling version mismatch: {str(e)}")
+
         if response.status_code == 401:
             return {"error": "Square API authentication failed. Please verify your access token."}
         elif response.status_code != 200:
@@ -147,6 +201,16 @@ def sync_product_to_square(product):
         catalog_object = result.get('catalog_object', {})
         if catalog_object and catalog_object.get('id'):
             product.square_catalog_id = catalog_object['id']
+            
+            # Store variation ID information for future reference
+            variations = catalog_object.get('item_data', {}).get('variations', [])
+            if variations and len(variations) > 0:
+                variation = variations[0]
+                variation_id = variation.get('id')
+                app.logger.info(f"Variation ID: {variation_id} for product {product.id}")
+                
+                # For now log it, but in the future add a square_variation_id field to Product model
+                
             db.session.commit()
 
             # Now handle image upload with the product's Square catalog ID
