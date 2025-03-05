@@ -78,7 +78,8 @@ def sync_product_to_square(product):
 
     # Create product data structure
     sku_id = f"#{product.sku}"
-    variation_id = f"#{product.sku}_regular"
+    # Use existing variation_id or create a new one
+    variation_id = product.square_variation_id if product.square_variation_id else f"#{product.sku}_regular"
 
     # Create variation data with ID for both new and existing items
     variation_data = {
@@ -147,6 +148,15 @@ def sync_product_to_square(product):
         catalog_object = result.get('catalog_object', {})
         if catalog_object and catalog_object.get('id'):
             product.square_catalog_id = catalog_object['id']
+            
+            # Get and store the variation ID from the response
+            item_data = catalog_object.get('item_data', {})
+            variations = item_data.get('variations', [])
+            if variations and len(variations) > 0:
+                variation = variations[0]
+                if variation and variation.get('id'):
+                    product.square_variation_id = variation.get('id')
+            
             db.session.commit()
 
             # Now handle image upload with the product's Square catalog ID
@@ -184,8 +194,10 @@ def delete_product_from_square(product):
         # Store IDs and clear them first
         square_id = product.square_catalog_id
         image_id = product.square_image_id
+        variation_id = product.square_variation_id
         product.square_catalog_id = None
         product.square_image_id = None
+        product.square_variation_id = None
         # We intentionally do not clear category IDs here to preserve them
         db.session.commit()
 

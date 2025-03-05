@@ -88,6 +88,7 @@ class Product(db.Model):
     label_qty = db.Column(db.Integer, default=4, nullable=False)
     square_catalog_id = db.Column(db.String(255), nullable=True)
     square_image_id = db.Column(db.String(255), nullable=True)
+    square_variation_id = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     generated_pdfs = db.relationship('GeneratedPDF', backref='product', lazy='dynamic')
     batch_history = db.relationship('BatchHistory', backref='product', lazy='dynamic')
