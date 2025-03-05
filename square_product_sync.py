@@ -91,6 +91,7 @@ def sync_product_to_square(product):
             "upc": product.barcode,
             "pricing_type": "FIXED_PRICING" if product.price else "VARIABLE_PRICING",
             "price_money": format_price_money(product.price) if product.price else None,
+            # ALWAYS include track_inventory as true to ensure Square maintains inventory
             "track_inventory": True,
             "item_option_values": [],
             "location_overrides": [{
