@@ -1,0 +1,363 @@
+Update Catalog Objects
+Applies to: Catalog API
+
+Learn how to update one catalog object at a time or multiple catalog objects at the same time.
+
+Important
+Sparse updates are not supported by the Catalog API. You must provide the full existing object in any update requests.
+
+Perform update operations
+Note
+If you experience a delay when performing an update operation, make sure to refresh your application to clear the client-side cache and retry the call. In rare occasions, the cause of the delay might be attributed to the backend, although Square makes every effort to update the catalog in real time.
+
+To update a catalog object, call the UpsertCatalogObject or BatchUpsertCatalogObjects endpoint. The first endpoint updates one item at a time, whereas the second endpoint can handle updates of multiple objects at the same time.
+
+These are the same endpoints used to create items, item variations, and other types of catalog objects. To update an object, you must specify the object ID, version number, and type as well as other object properties. To create an object, you must specify the object type in addition to other object properties. The object ID and version number are created for you when the object is created.
+
+Given that the following item exists in a catalog:
+
+
+
+{
+  "object": {
+    "type": "ITEM",
+    "id": "YNDDANS6FVWXOUZ7HRTEE57I",
+    "updated_at": "2020-11-02T21:36:30.016Z",
+    "version": 1604352990016,
+    "is_deleted": false,
+    "present_at_all_locations": true,
+    "item_data": {
+      "name": "Coaching",
+      "description": "I coach and you learn",
+      "variations": [
+        {
+          "type": "ITEM_VARIATION",
+          "id": "GUN7HNQBH7ZRARYZN52E7O4B",
+          "updated_at": "2020-11-02T21:36:30.016Z",
+          "version": 1604352990016,
+          "is_deleted": false,
+          "present_at_all_locations": true,
+          "item_variation_data": {
+            "item_id": "YNDDANS6FVWXOUZ7HRTEE57I",
+            "name": "Regular",
+            "ordinal": 1,
+            "pricing_type": "FIXED_PRICING",
+            "price_money": {
+              "amount": 8000,
+              "currency": "USD"
+            },
+            "service_duration": 3600000,
+            "available_for_booking": true,
+            "team_member_ids": [
+              "2_uNFkqPYqV-AZB-7neN"
+            ]
+          }
+        }
+      ],
+      "product_type": "APPOINTMENTS_SERVICE",
+      "skip_modifier_screen": false
+    }
+  }
+}
+
+This item represents a Coaching service that the seller advertised with a tagline of I coach and you learn. At present, the seller only offers the Regular type of session that last 3,600,000 milliseconds (that is, 1 hour) and is billed at $80/hr.
+
+Suppose the seller wants to lower the price for a regular session from $80/hr to $70/hr to attract new customers. You can call the UpsertCatalogObject or BatchUpsertCatalogObjects endpoint and specify the item and the included item variation to be updated as the input. You can also call the endpoint and provide the item variation only as the input, because the update involves only the included item variation and doesn't otherwise affect the containing item.
+
+For reasons discussed next, you should perform the update operation on an object, instead of its parent object, with its own attribute values being modified. For this example, you should call the update endpoint on the affected item variation, instead of its containing item.
+
+The UpsertCatalogObject (or its batch version BatchUpsertCatalogObjects) endpoint embodies a POST operation. As such, the specified input overrides the original object. This means, when applying the endpoint on an item variation to lower the service price only, you must also preserve other previously assigned attribute values by explicitly restating all of them in the input.
+
+The following code example shows how to lower the session charge from $80/hr to $70/hr by updating the price_money from 8000 to 7000 on the embedded item variation only:
+
+Upsert catalog object
+
+
+cURL
+
+
+
+curl https://connect.squareupsandbox.com/v2/catalog/object \
+  -X POST \
+  -H 'Square-Version: 2025-02-20' \
+  -H 'Authorization: Bearer ACCESS_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "idempotency_key": "f4fc65c1-6351-47ab-86f1-e893f3ce5bb2",
+    "object": {
+      "id": "GUN7HNQBH7ZRARYZN52E7O4B",
+      "type": "ITEM_VARIATION",
+      "item_variation_data": {
+        "item_id": "YNDDANS6FVWXOUZ7HRTEE57I",
+        "name": "Regular",
+        "price_money": {
+          "amount": 7000,
+          "currency": "USD"
+        },
+        "pricing_type": "FIXED_PRICING",
+        "service_duration": 3600000,
+        "team_member_ids": [
+          "2_uNFkqPYqV-AZB-7neN"
+        ]
+      },
+      "version": 1612242853018
+    }
+  }'
+
+
+When the request succeeds, a 200 OK response is returned with a payload similar to the following:
+
+
+
+{
+  "catalog_object": {
+    "type": "ITEM_VARIATION",
+    "id": "GUN7HNQBH7ZRARYZN52E7O4B",
+    "updated_at": "2021-02-02T18:57:02.351Z",
+    "version": 1612292222351,
+    "is_deleted": false,
+    "present_at_all_locations": true,
+    "item_variation_data": {
+      "item_id": "YNDDANS6FVWXOUZ7HRTEE57I",
+      "name": "Regular",
+      "pricing_type": "FIXED_PRICING",
+      "price_money": {
+        "amount": 7000,
+        "currency": "USD"
+      },
+      "service_duration": 3600000,
+      "available_for_booking": true,
+      "team_member_ids": [
+        "2_uNFkqPYqV-AZB-7neN"
+      ]
+    }
+  }
+}
+
+Notice that in the request payload, the original values of other attributes, such as name, service_duration, and team_member_ids, are also explicitly specified. If you fail to do so, these attributes are reassigned to their default values or not set at all and, hence, excluded from the updated object. As an illustration, try the following example request without explicitly specifying the name, service_duration, and team_member_ids attribute values and see what happens:
+
+Upsert catalog object
+
+
+cURL
+
+
+
+curl https://connect.squareupsandbox.com/v2/catalog/object \
+  -X POST \
+  -H 'Square-Version: 2025-02-20' \
+  -H 'Authorization: Bearer ACCESS_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "idempotency_key": "4797488f-fc5d-4b35-9927-8fdd4e18014b",
+    "object": {
+      "id": "GUN7HNQBH7ZRARYZN52E7O4B",
+      "type": "ITEM_VARIATION",
+      "item_variation_data": {
+        "item_id": "YNDDANS6FVWXOUZ7HRTEE57I",
+        "price_money": {
+          "amount": 7000,
+          "currency": "USD"
+        },
+        "pricing_type": "FIXED_PRICING"
+      },
+      "version": 1604352990016
+    }
+  }'
+
+
+When the previous update request succeeds, a 200 OK response returns the following result:
+
+
+
+{
+  "catalog_object": {
+    "type": "ITEM_VARIATION",
+    "id": "GUN7HNQBH7ZRARYZN52E7O4B",
+    "updated_at": "2021-02-01T23:55:37.269Z",
+    "version": 1612223737269,
+    "is_deleted": false,
+    "present_at_all_locations": true,
+    "item_variation_data": {
+      "item_id": "YNDDANS6FVWXOUZ7HRTEE57I",
+      "name": "",
+      "pricing_type": "FIXED_PRICING",
+      "price_money": {
+        "amount": 7000,
+        "currency": "USD"
+      },
+      "available_for_booking": true
+    }
+  }
+}
+
+Notice that the name attribute is now an empty string, whereas the service_duration and team_member_ids are excluded from the updated item variation.
+
+Ensure continued inventory tracking
+To further demonstrate the need of performing the update options properly, examine how a catalog object should be updated while preserving its inventory tracking.
+
+When track_inventory is activated on an item variation, the in-stock quantity of the item variation is decremented when sales are made of the product represented by the item variation. When updating the price of a product, failing to also specify the tracking_inventory = true in the input accidentally interrupts the inventory tracking of the item variation, because the default value is false.
+
+Object version as a point of time
+Each time you call the UpsertCatalogObject endpoint, the affected catalog objects have their version numbers incremented as well. Updating an item variation affects both the item variation and its containing item. The version numbers on the item and item variation are both updated to the same value. You can verify this by calling the RetrieveCatalogObject endpoint and specifying the id (YNDDANS6FVWXOUZ7HRTEE57I) to retrieve the containing item.
+
+Retrieve catalog object
+
+
+cURL
+
+
+
+curl https://connect.squareupsandbox.com/v2/catalog/object/YNDDANS6FVWXOUZ7HRTEE57I \
+  -H 'Square-Version: 2025-02-20' \
+  -H 'Authorization: Bearer ACCESS_TOKEN' \
+  -H 'Content-Type: application/json'
+
+The result is shown as follows:
+
+
+
+{
+  "object": {
+    "type": "ITEM",
+    "id": "YNDDANS6FVWXOUZ7HRTEE57I",
+    "updated_at": "2021-02-02T18:57:02.351Z",
+    "version": 1612292222351,
+    "is_deleted": false,
+    "present_at_all_locations": true,
+    "item_data": {
+      "name": "Coaching",
+      "description": "I coach and you learn",
+      "variations": [
+        {
+          "type": "ITEM_VARIATION",
+          "id": "GUN7HNQBH7ZRARYZN52E7O4B",
+          "updated_at": "2021-02-02T18:57:02.351Z",
+          "version": 1612292222351,
+          "is_deleted": false,
+          "present_at_all_locations": true,
+          "item_variation_data": {
+            "item_id": "YNDDANS6FVWXOUZ7HRTEE57I",
+            "name": "Regular",
+            "pricing_type": "FIXED_PRICING",
+            "price_money": {
+              "amount": 7000,
+              "currency": "USD"
+            },
+            "service_duration": 3600000,
+            "price_description": "$80/hr",
+            "available_for_booking": true,
+            "team_member_ids": [
+              "2_uNFkqPYqV-AZB-7neN"
+            ]
+          }
+        }
+      ],
+      "product_type": "APPOINTMENTS_SERVICE",
+      "skip_modifier_screen": false
+    }
+  }
+}
+
+Comparing the version value of the object of the ITEM type and the version value of the object of the ITEM_VARIATION type, you see both are upgraded to 1612292222351 from 1612242853018.
+
+Important
+Unlike with item variation updates, if you update a CatalogItem, only its version number is incremented. The version numbers of its variations are not incremented.
+
+The version number thus represents a point of time in the history of a catalog. To ensure that no part of the history is rewritten, you must explicitly specify the object version when calling UpsertCatalogObject or BatchUpsertCatalogObjects.
+
+As an object version represents a point of time, a catalog version represents a time period up to and including the specified point of time as represented by the specified version number. Hence, calling ListCatalog with a specified catalog version returns all catalog objects with version numbers less than or equal to the specified version number. If the catalog version isn't specified, it returns all the catalog objects. For more information, see Retrieve Catalog Objects
+Learn how to retrieve Square catalog objects of given IDs or versions using the Catalog API.
+Guide
+.
+
+Did you know?
+When you call CreateOrder with a line item that includes a catalog variation ID and catalog_version, the order uses the catalog object values from that specified version, not the current version. For instance, it uses the item variation price from the specified version instead of the current price.
+
+Required attributes and modifiable properties
+When calling the UpserCatalogObject or BatchUpsertCatalogObjects endpoint, the input you specify as the payload overrides the original object values. However, some attributes are required, while others are optional. Certain required attributes serve to identify the object of interest. The id, version, and type attributes fall into such required attributes and must be explicitly specified in every call.
+
+Other required attributes depend on the presence or a specific value of a related property. For example, when updating an item variation, if pricing_type on an item variation is set to FIXED_PRICING, the price_money property must be specified. Another required attribute is the ID of the containing item (item_id) that is part of the item_variation_data.
+
+Failing to specify a required attribute in the input of the request results in a 400 error response. The resulting error message tells you what has gone wrong and can be useful to resolve the error. For example, if you forget to specify the pricing_type attribute value when pricing_money is set, you get the following error response:
+
+
+
+{
+  "errors": [
+    {
+      "category": "INVALID_REQUEST_ERROR",
+      "code": "INVALID_VALUE",
+      "detail": "Item Variation with id GUN7HNQBH7ZRARYZN52E7O4B has no pricing_type"
+    }
+  ]
+}
+On the other hand, if you attempt to set a price_money value on an item variation of the VARIABLE_PRICING type, you also get a 400 error response with the following error message:
+
+
+
+{
+  "errors": [
+    {
+      "category": "INVALID_REQUEST_ERROR",
+      "code": "INVALID_VALUE",
+      "detail": "Item Variation with id GUN7HNQBH7ZRARYZN52E7O4B has VARIABLE_PRICING pricing_type with price_money set"
+    }
+  ]
+}
+This offers an example of when an attribute must not be present in the update request payload.
+
+Change a service session from fixed pricing to variable pricing
+To update an item variation from pricing_type of FIXED_PRICING to VARIABLE_PRICING, follow this example to call the UpsertCatalogObject endpoint:
+
+Upsert catalog object
+
+
+cURL
+
+
+
+curl https://connect.squareupsandbox.com/v2/catalog/object \
+  -X POST \
+  -H 'Square-Version: 2025-02-20' \
+  -H 'Authorization: Bearer ACCESS_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "idempotency_key": "f4fc65c1-6351-47ab-86f1-e893f3ce5bb2",
+    "object": {
+      "id": "GUN7HNQBH7ZRARYZN52E7O4B",
+      "type": "ITEM_VARIATION",
+      "item_variation_data": {
+        "item_id": "YNDDANS6FVWXOUZ7HRTEE57I",
+        "name": "Regular",
+        "pricing_type": "VARIABLE_PRICING",
+        "service_duration": 3600000,
+        "team_member_ids": [
+          "2_uNFkqPYqV-AZB-7neN"
+        ]
+      },
+      "version": 1612242853018
+    }
+  }'
+
+
+A successful response is as follows:
+
+
+
+{
+  "catalog_object": {
+    "type": "ITEM_VARIATION",
+    "id": "GUN7HNQBH7ZRARYZN52E7O4B",
+    "updated_at": "2021-02-02T02:07:47.485Z",
+    "version": 1612231667485,
+    "is_deleted": false,
+    "present_at_all_locations": true,
+    "item_variation_data": {
+        "item_id": "YNDDANS6FVWXOUZ7HRTEE57I",
+        "name": "Regular",
+        "pricing_type": "VARIABLE_PRICING",
+        "service_duration": 3600000,
+        "team_member_ids": [
+          "2_uNFkqPYqV-AZB-7neN"
+        ]
