@@ -31,10 +31,10 @@ def sync_product_to_square(product):
 
     settings = Settings.get_settings()
     credentials = settings.get_active_square_credentials()
-    
+
     if not credentials:
         return {"error": "Square credentials are not configured. Please set up your Square integration in Settings.", "needs_setup": True}
-        
+
     SQUARE_API_URL = f"{credentials['base_url']}/v2/catalog/object"
 
     idempotency_key = str(uuid.uuid4())
@@ -94,9 +94,14 @@ def sync_product_to_square(product):
             # ALWAYS include track_inventory as true to ensure Square maintains inventory
             "track_inventory": True,
             "item_option_values": []
-            # Remove location_overrides to preserve existing inventory counts
         }
     }
+
+    # Only add location_overrides for new items, not for updates
+    if not existing_id:
+        variation_data["item_variation_data"]["location_overrides"] = [{
+            "location_id": location_id
+        }]
 
     product_data = {
         "idempotency_key": idempotency_key,
