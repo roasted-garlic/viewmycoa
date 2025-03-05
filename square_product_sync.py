@@ -91,13 +91,17 @@ def sync_product_to_square(product):
             "upc": product.barcode,
             "pricing_type": "FIXED_PRICING" if product.price else "VARIABLE_PRICING",
             "price_money": format_price_money(product.price) if product.price else None,
-            "track_inventory": True,
+            # Only set track_inventory for new items, not for updates
             "item_option_values": [],
             "location_overrides": [{
                 "location_id": location_id
             }]
         }
     }
+    
+    # Only set track_inventory for new items, not for existing ones
+    if not existing_id:
+        variation_data["item_variation_data"]["track_inventory"] = True
 
     product_data = {
         "idempotency_key": idempotency_key,
