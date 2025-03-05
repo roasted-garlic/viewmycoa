@@ -44,8 +44,9 @@ def find_and_kill_process_on_port(port):
 def restart_application():
     """Restart the Flask application"""
     try:
-        # Get port from environment variable or default to 5000
-        port = int(os.getenv("PORT", 5000))
+        # Get port from environment variable or use consistent port for both development and deployment
+        # Use port 3000 for compatibility with Replit deployment
+        port = int(os.getenv("PORT", 3000))
         
         # Kill any process using the port
         find_and_kill_process_on_port(port)
@@ -65,7 +66,7 @@ def restart_application():
             logger.info("Continuing with application startup...")
         
         # Run the main script in background
-        logger.info("Running main.py...")
+        logger.info(f"Running main.py on port {port}...")
         subprocess.Popen(["python", "main.py"], 
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE)

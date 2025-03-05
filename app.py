@@ -55,31 +55,57 @@ env_vars = {
 }
 app.logger.info(f"Database environment check: {env_vars}")
 
-if not database_url:
-    # Try to construct from individual Postgres environment variables
-    pg_user = os.environ.get("PGUSER")
-    pg_password = os.environ.get("PGPASSWORD")
-    pg_host = os.environ.get("PGHOST", "localhost") 
-    pg_port = os.environ.get("PGPORT", "5432")
-    pg_database = os.environ.get("PGDATABASE")
-
-    if pg_user and pg_password and pg_database:
-        # Format database URL correctly for SQLAlchemy
-        database_url = f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
-        app.logger.info(f"Constructed database URL from individual PostgreSQL environment variables (host: {pg_host}, port: {pg_port}, database: {pg_database})")
-    else:
-        # Use SQLite as last resort, even in deployment to ensure app runs
-        database_url = "sqlite:///instance/database.db"
+# Handle deployment specially to ensure we detect and fix database issues
+if is_deployment:
+    app.logger.warning("DEPLOYMENT MODE DETECTED - Checking database configuration...")
+    
+    # If we're in deployment and database_url isn't set, we need to construct it 
+    if not database_url:
+        app.logger.warning("No DATABASE_URL found in deployment, constructing from individual variables")
         
-        missing_vars = []
-        if not pg_user: missing_vars.append("PGUSER")
-        if not pg_password: missing_vars.append("PGPASSWORD") 
-        if not pg_database: missing_vars.append("PGDATABASE")
+        # Make sure these individual variables are present
+        pg_user = os.environ.get("PGUSER")
+        pg_password = os.environ.get("PGPASSWORD")
+        pg_host = os.environ.get("PGHOST") 
+        pg_port = os.environ.get("PGPORT")
+        pg_database = os.environ.get("PGDATABASE")
         
-        if is_deployment:
-            app.logger.warning(f"DEPLOYMENT NOTICE: Using SQLite database for deployment since PostgreSQL variables were missing: {', '.join(missing_vars)}")
-            app.logger.warning("For production use, set DATABASE_URL or individual PostgreSQL variables.")
+        # Check if all PostgreSQL variables are set
+        if pg_user and pg_password and pg_host and pg_port and pg_database:
+            database_url = f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
+            app.logger.info("Successfully constructed PostgreSQL URL from environment variables")
         else:
+            # Missing variables - this will cause deployment to fail
+            missing_vars = []
+            if not pg_user: missing_vars.append("PGUSER")
+            if not pg_password: missing_vars.append("PGPASSWORD") 
+            if not pg_host: missing_vars.append("PGHOST")
+            if not pg_port: missing_vars.append("PGPORT")
+            if not pg_database: missing_vars.append("PGDATABASE")
+            
+            app.logger.error(f"CRITICAL ERROR: Missing required PostgreSQL environment variables: {', '.join(missing_vars)}")
+            app.logger.error("These variables must be set in deployment secrets for successful deployment")
+            
+            # Fall back to SQLite for development purposes - deployment will likely fail
+            database_url = "sqlite:///instance/database.db"
+            app.logger.warning("Falling back to SQLite, but deployment will likely fail")
+else:
+    # Development environment
+    if not database_url:
+        # Try to construct from individual Postgres environment variables
+        pg_user = os.environ.get("PGUSER")
+        pg_password = os.environ.get("PGPASSWORD")
+        pg_host = os.environ.get("PGHOST", "localhost") 
+        pg_port = os.environ.get("PGPORT", "5432")
+        pg_database = os.environ.get("PGDATABASE")
+
+        if pg_user and pg_password and pg_database:
+            # Format database URL correctly for SQLAlchemy
+            database_url = f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
+            app.logger.info(f"Constructed database URL from individual PostgreSQL variables")
+        else:
+            # Use SQLite for development
+            database_url = "sqlite:///instance/database.db"
             app.logger.info("Using SQLite database for development")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
@@ -117,13 +143,18 @@ def get_safe_image_path(image_path):
         # No image path provided, use default
         return app.config['DEFAULT_IMAGE']
         
-    # Check if file exists in static directory
-    full_path = os.path.join('static', image_path)
+    # Construct full path using workspace root to check if file exists
+    workspace_root = os.getcwd()
+    full_path = os.path.join(workspace_root, 'static', image_path)
+    
     if os.path.isfile(full_path):
+        # File exists, return the correct relative path
         return image_path
     else:
-        # Log the missing file
-        app.logger.warning(f"Image file not found: {full_path}, using default image")
+        # Log the missing file with detailed information
+        app.logger.warning(f"Image file not found: {full_path}")
+        app.logger.warning(f"Original path requested: {image_path}")
+        app.logger.warning(f"Using default image: {app.config['DEFAULT_IMAGE']}")
         return app.config['DEFAULT_IMAGE']
 
 @app.after_request
@@ -138,23 +169,38 @@ def add_header(response):
 @app.route('/static/pdfs/<path:filename>')
 def serve_pdf(filename):
     try:
-        pdf_dir = os.path.join('static', 'pdfs')
+        # Get absolute path to PDF directory
+        workspace_root = os.getcwd()
+        pdf_dir = os.path.join(workspace_root, 'static', 'pdfs')
         file_path = os.path.join(pdf_dir, filename)
+
+        app.logger.info(f"Attempting to serve PDF from: {file_path}")
 
         if not os.path.exists(file_path):
             app.logger.error(f"PDF not found at path: {file_path}")
             return "PDF not found", 404
 
-        download = request.args.get('download', '0') == '1'
+        # Get file size for logging
+        file_size = os.path.getsize(file_path)
+        app.logger.info(f"Found PDF file ({file_size} bytes)")
 
+        download = request.args.get('download', '0') == '1'
+        
+        # Use the relative path for send_from_directory
+        relative_pdf_dir = os.path.join('static', 'pdfs')
+        
+        app.logger.info(f"Serving PDF with download={download}")
         return send_from_directory(
-            pdf_dir, 
+            relative_pdf_dir, 
             filename,
             as_attachment=download,
             mimetype='application/pdf'
         )
     except Exception as e:
         app.logger.error(f"Error serving PDF {filename}: {str(e)}")
+        # Add stack trace for better debugging
+        import traceback
+        app.logger.error(f"Stack trace: {traceback.format_exc()}")
         return f"Error accessing PDF: {str(e)}", 500
 
 
@@ -987,42 +1033,77 @@ def edit_product(product_id):
             product.barcode = request.form.get('barcode') # Added to handle manual entry and updates
             product.sku = request.form.get('sku') # Added to handle manual entry and updates for SKU
 
-            # Handle product image
+            # Handle product image with improved path handling
             if 'product_image' in request.files and request.files['product_image'].filename:
                 file = request.files['product_image']
                 if file and is_valid_image(file):
                     if product.product_image:  # Delete old image if it exists
                         try:
-                            os.remove(os.path.join('static', product.product_image))
-                        except OSError:
+                            # Use absolute path for file operations
+                            workspace_root = os.getcwd()
+                            old_image_path = os.path.join(workspace_root, 'static', product.product_image)
+                            if os.path.exists(old_image_path):
+                                os.remove(old_image_path)
+                                app.logger.info(f"Deleted old product image: {old_image_path}")
+                        except OSError as e:
+                            app.logger.error(f"Failed to delete old product image: {str(e)}")
                             pass
                     product.product_image = save_image(file, product.id, 'product_image')
 
-            # Handle COA PDF upload
+            # Handle COA PDF upload with improved path handling
             if 'coa_pdf' in request.files and request.files['coa_pdf'].filename:
                 coa_pdf = request.files['coa_pdf']
                 if coa_pdf:
-                    if product.coa_pdf:  # Delete old PDF if it exists
+                    # Get workspace root for consistent path handling
+                    workspace_root = os.getcwd()
+                    
+                    # Delete old PDF if it exists
+                    if product.coa_pdf:
                         try:
-                            os.remove(os.path.join('static', product.coa_pdf))
-                        except OSError:
+                            old_pdf_path = os.path.join(workspace_root, 'static', product.coa_pdf)
+                            if os.path.exists(old_pdf_path):
+                                os.remove(old_pdf_path)
+                                app.logger.info(f"Deleted old PDF: {old_pdf_path}")
+                        except OSError as e:
+                            app.logger.error(f"Failed to delete old PDF: {str(e)}")
                             pass
+                            
                     if coa_pdf.filename:
                         filename = secure_filename(coa_pdf.filename)
                         batch_dir = os.path.join('pdfs', product.batch_number)
                         filepath = os.path.join(batch_dir, filename)
-                        os.makedirs(os.path.join('static', batch_dir), exist_ok=True)
-                        coa_pdf.save(os.path.join('static', filepath))
-                        product.coa_pdf = filepath
+                        
+                        # Create directory with absolute path
+                        full_dir = os.path.join(workspace_root, 'static', batch_dir)
+                        os.makedirs(full_dir, exist_ok=True)
+                        app.logger.info(f"Created or verified directory: {full_dir}")
+                        
+                        # Save file with absolute path
+                        full_filepath = os.path.join(workspace_root, 'static', filepath)
+                        app.logger.info(f"Saving PDF to: {full_filepath}")
+                        coa_pdf.save(full_filepath)
+                        
+                        # Verify file exists after saving
+                        if os.path.exists(full_filepath):
+                            app.logger.info(f"Successfully saved PDF: {full_filepath} ({os.path.getsize(full_filepath)} bytes)")
+                            product.coa_pdf = filepath
+                        else:
+                            app.logger.error(f"Failed to save PDF: {full_filepath} does not exist after save operation")
 
-            # Handle label image
+            # Handle label image with improved path handling
             if 'label_image' in request.files and request.files['label_image'].filename:
                 file = request.files['label_image']
                 if file and is_valid_image(file):
                     if product.label_image:  # Delete old image if it exists
                         try:
-                            os.remove(os.path.join('static', product.label_image))
-                        except OSError:
+                            # Use absolute path for file operations
+                            workspace_root = os.getcwd()
+                            old_image_path = os.path.join(workspace_root, 'static', product.label_image)
+                            if os.path.exists(old_image_path):
+                                os.remove(old_image_path)
+                                app.logger.info(f"Deleted old label image: {old_image_path}")
+                        except OSError as e:
+                            app.logger.error(f"Failed to delete old label image: {str(e)}")
                             pass
                     product.label_image = save_image(file, product.id, 'label_image')
 
@@ -1092,32 +1173,43 @@ def settings():
 def delete_batch_history(history_id):
     try:
         history = models.BatchHistory.query.get_or_404(history_id)
+        workspace_root = os.getcwd()
 
-        # Delete the entire batch directory
-        batch_dir = os.path.join('static', 'pdfs', history.batch_number)
+        # Delete the entire batch directory with absolute path
+        batch_dir_rel = os.path.join('pdfs', history.batch_number)
+        batch_dir = os.path.join(workspace_root, 'static', batch_dir_rel)
         if os.path.exists(batch_dir):
             import shutil
+            app.logger.info(f"Deleting batch directory: {batch_dir}")
             shutil.rmtree(batch_dir)
+            app.logger.info(f"Successfully deleted batch directory")
 
         # Delete historical COA if exists and it's not in the batch directory
         if history.coa_pdf:
-            coa_path = os.path.join('static', history.coa_pdf)
-            if os.path.exists(coa_path) and not coa_path.startswith(batch_dir):
+            coa_path = os.path.join(workspace_root, 'static', history.coa_pdf)
+            if os.path.exists(coa_path) and history.coa_pdf.find(batch_dir_rel) == -1:
+                app.logger.info(f"Deleting historical COA file: {coa_path}")
                 os.remove(coa_path)
+                app.logger.info(f"Successfully deleted COA file")
 
         # Delete PDF records
         pdfs = models.GeneratedPDF.query.filter_by(
             batch_history_id=history.id
         ).all()
+        app.logger.info(f"Deleting {len(pdfs)} PDF records from database")
         for pdf in pdfs:
             db.session.delete(pdf)
 
         db.session.delete(history)
         db.session.commit()
+        app.logger.info(f"Successfully deleted batch history ID {history_id}")
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"Error deleting batch history: {str(e)}")
+        # Add stack trace for better debugging
+        import traceback
+        app.logger.error(f"Stack trace: {traceback.format_exc()}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/delete_coa/<int:product_id>', methods=['DELETE'])
@@ -1126,16 +1218,27 @@ def delete_coa(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
         if product.coa_pdf:
-            # Delete physical file
-            file_path = os.path.join('static', product.coa_pdf)
+            # Delete physical file with absolute path
+            workspace_root = os.getcwd()
+            file_path = os.path.join(workspace_root, 'static', product.coa_pdf)
             if os.path.exists(file_path):
+                app.logger.info(f"Deleting COA file: {file_path}")
                 os.remove(file_path)
+                app.logger.info(f"Successfully deleted COA file")
+            else:
+                app.logger.warning(f"COA file not found for deletion: {file_path}")
+                
             # Clear database reference
             product.coa_pdf = None
             db.session.commit()
+            app.logger.info(f"Successfully cleared COA reference for product ID {product_id}")
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
+        app.logger.error(f"Error deleting COA: {str(e)}")
+        # Add stack trace for better debugging
+        import traceback
+        app.logger.error(f"Stack trace: {traceback.format_exc()}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/duplicate_product/<int:product_id>', methods=['POST'])
@@ -1219,8 +1322,13 @@ def delete_product(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
         batch_number = product.batch_number
-        product_dir = os.path.join('static', 'uploads', str(product.id))
-        pdf_dir = os.path.join('static', 'pdfs', batch_number)
+        
+        # Use absolute paths for file operations
+        workspace_root = os.getcwd()
+        product_dir_rel = os.path.join('static', 'uploads', str(product.id))
+        pdf_dir_rel = os.path.join('static', 'pdfs', batch_number)
+        product_dir = os.path.join(workspace_root, product_dir_rel)
+        pdf_dir = os.path.join(workspace_root, pdf_dir_rel)
 
         # If product has Square ID, remove from Square first
         if product.square_catalog_id:
@@ -1244,19 +1352,24 @@ def delete_product(product_id):
 
         # Commit the transaction
         db.session.commit()
+        app.logger.info(f"Successfully deleted product ID {product_id} from database")
 
         # Clean up files after successful database operations
         if os.path.exists(pdf_dir):
             try:
                 import shutil
+                app.logger.info(f"Deleting PDF directory: {pdf_dir}")
                 shutil.rmtree(pdf_dir)
+                app.logger.info(f"Successfully deleted PDF directory")
             except OSError as e:
                 app.logger.warning(f"Error deleting PDF directory: {e}")
 
         if os.path.exists(product_dir):
             try:
                 import shutil
+                app.logger.info(f"Deleting product directory: {product_dir}")
                 shutil.rmtree(product_dir)
+                app.logger.info(f"Successfully deleted product directory")
             except OSError as e:
                 app.logger.warning(f"Error deleting product directory: {e}")
 
@@ -1264,6 +1377,9 @@ def delete_product(product_id):
     except Exception as e:
         db.session.rollback()
         app.logger.error(f"Error deleting product: {e}")
+        # Add stack trace for better debugging
+        import traceback
+        app.logger.error(f"Stack trace: {traceback.format_exc()}")
         return jsonify({'error': str(e)}), 500
 
 
@@ -1342,7 +1458,7 @@ def sync_single_product(product_id):
 
 def save_image(file, product_id, image_type):
     """
-    Save an uploaded image file for a product.
+    Save an uploaded image file for a product with improved persistence handling.
     
     Args:
         file: The uploaded file object
@@ -1353,9 +1469,13 @@ def save_image(file, product_id, image_type):
         The relative path to the saved image
     """
     try:
+        # Use absolute path with workspace root to ensure consistency across environments
+        workspace_root = os.getcwd()
+        
         # Create product-specific directory with proper error handling
         product_dir = os.path.join('uploads', str(product_id))
-        full_dir = os.path.join('static', product_dir)
+        relative_dir = os.path.join('static', product_dir)
+        full_dir = os.path.join(workspace_root, relative_dir)
         
         # Make sure directory exists with better error handling
         try:
@@ -1374,30 +1494,49 @@ def save_image(file, product_id, image_type):
             ext = os.path.splitext(orig_filename)[1].lower()
             if not ext:
                 ext = '.png'  # Default to png if no extension
+            
+            # Ensure we have a valid extension for web images
+            valid_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+            if ext.lower() not in valid_extensions:
+                ext = '.png'  # Default to PNG for unsupported formats
         
         # Create filename based on product_id and type with timestamp to prevent caching issues
         timestamp = int(datetime.datetime.now().timestamp())
         filename = f"{image_type}_{product_id}_{timestamp}{ext}"
         filepath = os.path.join(product_dir, filename)
-        full_filepath = os.path.join('static', filepath)
+        full_filepath = os.path.join(workspace_root, 'static', filepath)
         
         # Process and save image with error handling
         img = Image.open(file)
+        
         # Resize to reasonable dimensions to save space
         img.thumbnail((800, 800))  # Resize if needed
         
-        # Ensure the image is in a web-friendly format (PNG)
+        # Ensure the image is in a web-friendly format
         if img.mode not in ('RGB', 'RGBA'):
             img = img.convert('RGBA')
             
+        # Log before saving
+        app.logger.info(f"Saving image to: {full_filepath}")
+        
         # Save with explicit format
-        img.save(full_filepath, format='PNG' if ext.lower() == '.png' else 'JPEG')
-        app.logger.info(f"Saved image: {full_filepath}")
+        format_type = 'PNG' if ext.lower() == '.png' else 'JPEG'
+        img.save(full_filepath, format=format_type, quality=85)  # Add quality parameter for JPEGs
+        
+        # Verify file exists after saving
+        if os.path.exists(full_filepath):
+            app.logger.info(f"Successfully saved image: {full_filepath} ({os.path.getsize(full_filepath)} bytes)")
+        else:
+            app.logger.error(f"Failed to save image: {full_filepath} does not exist after save operation")
+            return 'img/no-image.png'
         
         # Return path relative to static directory for proper URL generation
         return filepath
     except Exception as e:
         app.logger.error(f"Error saving image: {str(e)}")
+        # Add stack trace for better debugging
+        import traceback
+        app.logger.error(f"Stack trace: {traceback.format_exc()}")
         # Return a default image path if saving fails
         return 'img/no-image.png'
 
@@ -1453,6 +1592,17 @@ def clear_square_image_id(product_id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
+@app.route('/health')
+def health_check():
+    """
+    Health check endpoint for deployment
+    Returns 200 OK if the application is running
+    """
+    app.logger.info("Health check request received")
+    return 'OK', 200
+
 if __name__ == "__main__":
+    # Use port 3000 for both development and production to ensure consistency
     port = int(os.environ.get("PORT", 3000))
+    app.logger.info(f"Starting application on port {port}")
     app.run(host='0.0.0.0', port=port)

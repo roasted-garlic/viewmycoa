@@ -12,8 +12,14 @@ def init_app():
         # Check if we're in deployment mode - define this before it's used later
         is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
         
+        # Get the workspace directory - this is where persistent storage should go
+        # Using os.getcwd() ensures we're starting from the workspace root in both dev and prod
+        workspace_dir = os.getcwd()
+        logger.info(f"Using workspace directory: {workspace_dir}")
+        
         # Create all required directories (create with exist_ok to avoid race conditions)
-        static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+        # Always use relative paths from workspace root to ensure consistent paths
+        static_dir = os.path.join(workspace_dir, 'static')
         uploads_dir = os.path.join(static_dir, 'uploads')
         pdfs_dir = os.path.join(static_dir, 'pdfs')
         
@@ -26,7 +32,7 @@ def init_app():
                 logger.error(f"Failed to create directory {directory}: {str(dir_error)}")
                 
         # Ensure instance directory exists for SQLite fallback
-        os.makedirs('instance', exist_ok=True)
+        os.makedirs(os.path.join(workspace_dir, 'instance'), exist_ok=True)
         logger.info("Ensured instance directory exists")
 
         # Initialize database
@@ -83,14 +89,27 @@ def main():
         # Initialize the application
         init_app()
 
-        # Configure host and port
+        # Configure host and port - always use port 3000 for consistency between dev and prod
         host = "0.0.0.0"  # Listen on all available interfaces
-        port = int(os.getenv("PORT", 3000))  # Use environment port or default to 3000
+        port = int(os.getenv("PORT", 3000))  # Always default to 3000 for Replit compatibility
         
         # Check if we're in production mode
         is_production = os.getenv("REPLIT_DEPLOYMENT", "0") == "1"
         
         logger.info(f"Starting application on {host}:{port} (Production: {is_production})")
+        
+        # Handle environment variables for production
+        if is_production:
+            # Log environment variable status for deployment debugging
+            env_vars = {
+                "DATABASE_URL": "***" if os.environ.get("DATABASE_URL") else "Not set",
+                "PGDATABASE": os.environ.get("PGDATABASE", "Not set"),
+                "PGHOST": os.environ.get("PGHOST", "Not set"),
+                "PGPORT": os.environ.get("PGPORT", "Not set"),
+                "PGUSER": "***" if os.environ.get("PGUSER") else "Not set",
+                "PGPASSWORD": "***" if os.environ.get("PGPASSWORD") else "Not set"
+            }
+            logger.info(f"Production environment variables: {env_vars}")
         
         # Run the Flask application
         app.run(
