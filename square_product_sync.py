@@ -8,23 +8,84 @@ from models import db, Product, Settings
 SQUARE_VERSION = "2024-12-18"
 
 def get_square_headers():
-    settings = Settings.get_settings()
-    credentials = settings.get_active_square_credentials()
+    # Direct database debug - bypassing Settings.get_settings()
+    from flask_sqlalchemy import SQLAlchemy
+    from models import Settings
     
-    # Ensure we have valid credentials before accessing them
-    if not credentials:
-        app.logger.error("No Square credentials found. Cannot generate headers.")
+    app.logger.info("Starting Square headers generation process")
+    
+    # Direct SQL query to inspect settings table
+    import sqlalchemy
+    from sqlalchemy import create_engine, text
+    from sqlalchemy.orm import sessionmaker
+    
+    # Get database URI from app config
+    db_uri = app.config.get('SQLALCHEMY_DATABASE_URI')
+    app.logger.info(f"Database URI from config: {db_uri}")
+    
+    # Create a new engine and session
+    engine = create_engine(db_uri)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    
+    # Direct raw SQL query to debug
+    try:
+        result = session.execute(text("SELECT id, square_environment, square_sandbox_access_token, square_sandbox_location_id, square_production_access_token, square_production_location_id FROM settings LIMIT 1"))
+        row = result.fetchone()
+        if row:
+            app.logger.info(f"Raw Settings Row: {row}")
+            
+            # Extract values for easier debugging
+            env = row[1]
+            sandbox_token = row[2]
+            sandbox_location = row[3]
+            prod_token = row[4]
+            prod_location = row[5]
+            
+            app.logger.info(f"Environment: {env}")
+            app.logger.info(f"Sandbox token present: {bool(sandbox_token)}")
+            app.logger.info(f"Sandbox location present: {bool(sandbox_location)}")
+            app.logger.info(f"Production token present: {bool(prod_token)}")
+            app.logger.info(f"Production location present: {bool(prod_location)}")
+            
+            # Determine which credentials to use
+            if env == 'production' and prod_token and prod_location:
+                app.logger.info("Using production credentials from direct SQL")
+                return {
+                    'Square-Version': SQUARE_VERSION,
+                    'Authorization': f'Bearer {prod_token}',
+                    'Content-Type': 'application/json'
+                }
+            elif env != 'production' and sandbox_token and sandbox_location:
+                app.logger.info("Using sandbox credentials from direct SQL")
+                return {
+                    'Square-Version': SQUARE_VERSION,
+                    'Authorization': f'Bearer {sandbox_token}',
+                    'Content-Type': 'application/json'
+                }
+            else:
+                app.logger.error("Credentials exist but don't match environment setting")
+                # Return minimal headers without authorization token
+                return {
+                    'Square-Version': SQUARE_VERSION,
+                    'Content-Type': 'application/json'
+                }
+        else:
+            app.logger.error("No settings row found in database")
+            # Return minimal headers without authorization token
+            return {
+                'Square-Version': SQUARE_VERSION,
+                'Content-Type': 'application/json'
+            }
+    except Exception as e:
+        app.logger.error(f"SQL exception when querying Settings: {str(e)}")
         # Return minimal headers without authorization token
         return {
             'Square-Version': SQUARE_VERSION,
             'Content-Type': 'application/json'
         }
-        
-    return {
-        'Square-Version': SQUARE_VERSION,
-        'Authorization': f'Bearer {credentials["access_token"]}',
-        'Content-Type': 'application/json'
-    }
+    finally:
+        session.close()
 
 def format_price_money(price):
     """Convert float price to Square's integer cents format"""

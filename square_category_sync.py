@@ -7,23 +7,9 @@ from models import db, Category, Settings
 SQUARE_VERSION = "2024-12-18"
 
 def get_square_headers():
-    settings = Settings.get_settings()
-    credentials = settings.get_active_square_credentials()
-    
-    # Ensure we have valid credentials before accessing them
-    if not credentials:
-        app.logger.error("No Square credentials found. Cannot generate headers.")
-        # Return minimal headers without authorization token
-        return {
-            'Square-Version': SQUARE_VERSION,
-            'Content-Type': 'application/json'
-        }
-        
-    return {
-        'Square-Version': SQUARE_VERSION,
-        'Authorization': f'Bearer {credentials["access_token"]}',
-        'Content-Type': 'application/json'
-    }
+    # Use the same function from square_product_sync to ensure consistent behavior
+    from square_product_sync import get_square_headers as product_get_headers
+    return product_get_headers()
 
 def sync_category_to_square(category):
     """Sync a single category to Square catalog"""
