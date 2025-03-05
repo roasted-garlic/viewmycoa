@@ -91,10 +91,9 @@ def sync_product_to_square(product):
             "upc": product.barcode,
             "pricing_type": "FIXED_PRICING" if product.price else "VARIABLE_PRICING",
             "price_money": format_price_money(product.price) if product.price else None,
-            "track_inventory": True,
-            "item_option_values": [],
-            "location_overrides": [{
-                "location_id": location_id
+            # Don't include track_inventory or location_overrides to preserve existing inventory settings
+            "item_option_values": []
+            # Remove location_overrides to avoid affecting inventory counts
             }]
         }
     }
