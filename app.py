@@ -1434,6 +1434,17 @@ def generate_json(product_id):
 def sync_single_product(product_id):
     """Sync a single product to Square"""
     try:
+        # First check if Square credentials are properly configured
+        settings = models.Settings.get_settings()
+        credentials = settings.get_active_square_credentials()
+        
+        if not credentials or not credentials.get('access_token') or not credentials.get('location_id'):
+            return jsonify({
+                'success': False,
+                'error': "Square credentials are not configured. Please set up your Square integration in Settings.",
+                'needs_setup': True
+            }), 400
+        
         from square_product_sync import sync_product_to_square
         product = models.Product.query.get_or_404(product_id)
         result = sync_product_to_square(product)
@@ -1441,7 +1452,8 @@ def sync_single_product(product_id):
         if 'error' in result:
             return jsonify({
                 'success': False,
-                'error': result['error']
+                'error': result['error'],
+                'needs_setup': result.get('needs_setup', False)
             }), 400
 
         return jsonify({
