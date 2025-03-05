@@ -42,8 +42,17 @@ def sync_product_to_square(product):
     settings = Settings.get_settings()
     credentials = settings.get_active_square_credentials()
 
+    # Log credential status for debugging
+    app.logger.info(f"Square credentials check: {bool(credentials)}")
+    
     if not credentials:
+        app.logger.error("Square credentials not found or invalid")
         return {"error": "Square credentials are not configured. Please set up your Square integration in Settings.", "needs_setup": True}
+    
+    # Validate required credentials fields
+    if not credentials.get('access_token') or not credentials.get('location_id') or not credentials.get('base_url'):
+        app.logger.error(f"Incomplete Square credentials: access_token: {bool(credentials.get('access_token'))}, location_id: {bool(credentials.get('location_id'))}, base_url: {bool(credentials.get('base_url'))}")
+        return {"error": "Square credentials are incomplete. Please check your Square integration in Settings.", "needs_setup": True}
 
     SQUARE_API_URL = f"{credentials['base_url']}/v2/catalog/object"
 
@@ -171,6 +180,48 @@ def sync_product_to_square(product):
 
         if response.status_code == 401:
             return {"error": "Square API authentication failed. Please verify your access token."}
+        elif response.status_code == 400:
+            # Check for version mismatch error specifically
+            error_body = response.json()
+            errors = error_body.get('errors', [])
+            
+            for error in errors:
+                if error.get('code') == 'VERSION_MISMATCH':
+                    app.logger.info("Detected version mismatch, fetching latest version and retrying")
+                    
+                    # Fetch the latest version
+                    try:
+                        refresh_response = requests.get(
+                            f"{credentials['base_url']}/v2/catalog/object/{existing_id}",
+                            headers=get_square_headers()
+                        )
+                        
+                        if refresh_response.status_code == 200:
+                            latest_item = refresh_response.json().get('object', {})
+                            latest_version = latest_item.get('version', 0)
+                            
+                            # Update product_data with latest version and retry
+                            product_data['object']['version'] = latest_version
+                            
+                            # Retry the request
+                            app.logger.info(f"Retrying with version {latest_version}")
+                            retry_response = requests.post(
+                                SQUARE_API_URL,
+                                headers=get_square_headers(),
+                                json=product_data
+                            )
+                            
+                            if retry_response.status_code == 200:
+                                return retry_response.json()
+                            else:
+                                app.logger.error(f"Retry failed: {retry_response.text}")
+                                return {"error": f"Square API error on retry: {retry_response.text}"}
+                    except Exception as retry_error:
+                        app.logger.error(f"Error during version mismatch retry: {str(retry_error)}")
+                        return {"error": f"Error during version mismatch handling: {str(retry_error)}"}
+            
+            # If we get here, it's a different 400 error
+            return {"error": f"Square API error: {response.text}"}
         elif response.status_code != 200:
             return {"error": f"Square API error: {response.text}"}
 
