@@ -65,14 +65,24 @@ def sync_product_to_square(product):
 
     # If updating existing item, fetch current version
     current_version = 0
+    current_variation_version = 0
     if existing_id:
         try:
             response = requests.get(
                 f"{credentials['base_url']}/v2/catalog/object/{existing_id}",
                 headers=get_square_headers()
             )
+            
             if response.status_code == 200:
-                current_version = response.json().get('object', {}).get('version', 0)
+                result = response.json()
+                current_version = result.get('object', {}).get('version', 0)
+                
+                # Also get the version for variation if it exists
+                variations = result.get('object', {}).get('item_data', {}).get('variations', [])
+                if variations and len(variations) > 0:
+                    current_variation_version = variations[0].get('version', current_version)
+                else:
+                    current_variation_version = current_version
         except requests.exceptions.RequestException:
             pass
 
@@ -85,6 +95,7 @@ def sync_product_to_square(product):
     variation_data = {
         "type": "ITEM_VARIATION",
         "id": variation_id,
+        "version": current_variation_version, # Include version for existing variations
         "item_variation_data": {
             "item_id": existing_id if existing_id else sku_id,
             "name": "Regular",
@@ -139,6 +150,26 @@ def sync_product_to_square(product):
 
         if response.status_code == 401:
             return {"error": "Square API authentication failed. Please verify your access token."}
+        elif response.status_code == 400:
+            error_data = response.json()
+            errors = error_data.get('errors', [])
+            
+            # Check if this is a version mismatch error
+            for error in errors:
+                if error.get('code') == 'VERSION_MISMATCH':
+                    # Attempt to retry with fresh version
+                    try:
+                        refresh_response = requests.get(
+                            f"{credentials['base_url']}/v2/catalog/object/{existing_id}",
+                            headers=get_square_headers()
+                        )
+                        if refresh_response.status_code == 200:
+                            # Return a special error that indicates version mismatch
+                            return {"error": "Version mismatch. Please try again.", "needs_refresh": True}
+                    except:
+                        pass
+            
+            return {"error": f"Square API error: {response.text}"}
         elif response.status_code != 200:
             return {"error": f"Square API error: {response.text}"}
 
