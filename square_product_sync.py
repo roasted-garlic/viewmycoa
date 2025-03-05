@@ -63,72 +63,41 @@ def sync_product_to_square(product):
     product.square_image_id = None
     db.session.commit()
 
-    # Create basic structure
-    sku_id = f"#{product.sku}"
-    variation_id = f"#{product.sku}_regular"
-
-    # If updating existing item, fetch current data including inventory settings
+    # If updating existing item, fetch current version
     current_version = 0
-    existing_variations = []
-    
     if existing_id:
         try:
             response = requests.get(
                 f"{credentials['base_url']}/v2/catalog/object/{existing_id}",
                 headers=get_square_headers()
             )
-            
             if response.status_code == 200:
-                catalog_object = response.json().get('object', {})
-                current_version = catalog_object.get('version', 0)
-                
-                # Extract existing variations to preserve inventory settings
-                existing_variations = catalog_object.get('item_data', {}).get('variations', [])
-                
-                app.logger.info(f"Found existing Square catalog object: {json.dumps(catalog_object, indent=2)}")
-            else:
-                app.logger.warning(f"Failed to fetch existing catalog object: {response.text}")
-        except requests.exceptions.RequestException as e:
-            app.logger.error(f"Error fetching existing catalog object: {str(e)}")
-    
-    # If this is a new product, create new variation data
-    if not existing_id or not existing_variations:
-        # Create fresh variation data for new products
-        variation_data = {
-            "type": "ITEM_VARIATION",
-            "id": variation_id,
-            "item_variation_data": {
-                "item_id": existing_id if existing_id else sku_id,
-                "name": "Regular",
-                "sku": product.sku,
-                "upc": product.barcode,
-                "pricing_type": "FIXED_PRICING" if product.price else "VARIABLE_PRICING",
-                "price_money": format_price_money(product.price) if product.price else None,
-                "track_inventory": True,
-                "item_option_values": []
-            }
+                current_version = response.json().get('object', {}).get('version', 0)
+        except requests.exceptions.RequestException:
+            pass
+
+    # Create product data structure
+    sku_id = f"#{product.sku}"
+    variation_id = f"#{product.sku}_regular"
+
+    # Create variation data with ID for both new and existing items
+    variation_data = {
+        "type": "ITEM_VARIATION",
+        "id": variation_id,
+        "item_variation_data": {
+            "item_id": existing_id if existing_id else sku_id,
+            "name": "Regular",
+            "sku": product.sku,
+            "upc": product.barcode,
+            "pricing_type": "FIXED_PRICING" if product.price else "VARIABLE_PRICING",
+            "price_money": format_price_money(product.price) if product.price else None,
+            "track_inventory": True,
+            "item_option_values": [],
+            "location_overrides": [{
+                "location_id": location_id
+            }]
         }
-    else:
-        # For existing products, preserve inventory settings
-        # Get the first variation (assuming there's only one)
-        existing_variation = existing_variations[0]
-        variation_id_from_square = existing_variation.get('id')
-        
-        # Create updated variation data but preserve inventory-related fields
-        variation_data = {
-            "type": "ITEM_VARIATION",
-            "id": variation_id_from_square,  # Use existing ID from Square
-            "item_variation_data": {
-                "item_id": existing_id,
-                "name": "Regular",
-                "sku": product.sku,
-                "upc": product.barcode,
-                "pricing_type": "FIXED_PRICING" if product.price else "VARIABLE_PRICING",
-                "price_money": format_price_money(product.price) if product.price else None,
-                # Don't include track_inventory or location_overrides to preserve inventory settings
-                "item_option_values": []
-            }
-        }
+    }
 
     product_data = {
         "idempotency_key": idempotency_key,
