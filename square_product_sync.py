@@ -8,84 +8,13 @@ from models import db, Product, Settings
 SQUARE_VERSION = "2024-12-18"
 
 def get_square_headers():
-    # Direct database debug - bypassing Settings.get_settings()
-    from flask_sqlalchemy import SQLAlchemy
-    from models import Settings
-    
-    app.logger.info("Starting Square headers generation process")
-    
-    # Direct SQL query to inspect settings table
-    import sqlalchemy
-    from sqlalchemy import create_engine, text
-    from sqlalchemy.orm import sessionmaker
-    
-    # Get database URI from app config
-    db_uri = app.config.get('SQLALCHEMY_DATABASE_URI')
-    app.logger.info(f"Database URI from config: {db_uri}")
-    
-    # Create a new engine and session
-    engine = create_engine(db_uri)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    
-    # Direct raw SQL query to debug
-    try:
-        result = session.execute(text("SELECT id, square_environment, square_sandbox_access_token, square_sandbox_location_id, square_production_access_token, square_production_location_id FROM settings LIMIT 1"))
-        row = result.fetchone()
-        if row:
-            app.logger.info(f"Raw Settings Row: {row}")
-            
-            # Extract values for easier debugging
-            env = row[1]
-            sandbox_token = row[2]
-            sandbox_location = row[3]
-            prod_token = row[4]
-            prod_location = row[5]
-            
-            app.logger.info(f"Environment: {env}")
-            app.logger.info(f"Sandbox token present: {bool(sandbox_token)}")
-            app.logger.info(f"Sandbox location present: {bool(sandbox_location)}")
-            app.logger.info(f"Production token present: {bool(prod_token)}")
-            app.logger.info(f"Production location present: {bool(prod_location)}")
-            
-            # Determine which credentials to use
-            if env == 'production' and prod_token and prod_location:
-                app.logger.info("Using production credentials from direct SQL")
-                return {
-                    'Square-Version': SQUARE_VERSION,
-                    'Authorization': f'Bearer {prod_token}',
-                    'Content-Type': 'application/json'
-                }
-            elif env != 'production' and sandbox_token and sandbox_location:
-                app.logger.info("Using sandbox credentials from direct SQL")
-                return {
-                    'Square-Version': SQUARE_VERSION,
-                    'Authorization': f'Bearer {sandbox_token}',
-                    'Content-Type': 'application/json'
-                }
-            else:
-                app.logger.error("Credentials exist but don't match environment setting")
-                # Return minimal headers without authorization token
-                return {
-                    'Square-Version': SQUARE_VERSION,
-                    'Content-Type': 'application/json'
-                }
-        else:
-            app.logger.error("No settings row found in database")
-            # Return minimal headers without authorization token
-            return {
-                'Square-Version': SQUARE_VERSION,
-                'Content-Type': 'application/json'
-            }
-    except Exception as e:
-        app.logger.error(f"SQL exception when querying Settings: {str(e)}")
-        # Return minimal headers without authorization token
-        return {
-            'Square-Version': SQUARE_VERSION,
-            'Content-Type': 'application/json'
-        }
-    finally:
-        session.close()
+    settings = Settings.get_settings()
+    credentials = settings.get_active_square_credentials()
+    return {
+        'Square-Version': SQUARE_VERSION,
+        'Authorization': f'Bearer {credentials["access_token"]}',
+        'Content-Type': 'application/json'
+    }
 
 def format_price_money(price):
     """Convert float price to Square's integer cents format"""
@@ -100,35 +29,18 @@ def sync_product_to_square(product):
     """Sync a single product to Square catalog"""
     from square_category_sync import sync_category_to_square
 
-    # Get settings and log information about the product
-    app.logger.info(f"Starting sync for product {product.id} - {product.title} with SKU {product.sku}")
-    
-    # Get required headers for Square API
-    headers = get_square_headers()
-    if 'Authorization' not in headers:
-        app.logger.error("No authorization header available for Square API")
-        return {"error": "Square credentials are not configured or invalid. Please set up your Square integration in Settings.", "needs_setup": True}
-    
-    # Determine base URL and location ID from settings
     settings = Settings.get_settings()
-    
-    # Directly check the settings values to determine which environment
-    if settings.square_environment == 'production':
-        base_url = 'https://connect.squareup.com'
-        location_id = settings.square_production_location_id
-    else:
-        base_url = 'https://connect.squareupsandbox.com'
-        location_id = settings.square_sandbox_location_id
-    
-    app.logger.info(f"Using Square base URL: {base_url}")
-    app.logger.info(f"Using location ID: {location_id}")
-    
-    SQUARE_API_URL = f"{base_url}/v2/catalog/object"
+    credentials = settings.get_active_square_credentials()
+
+    if not credentials:
+        return {"error": "Square credentials are not configured. Please set up your Square integration in Settings.", "needs_setup": True}
+
+    SQUARE_API_URL = f"{credentials['base_url']}/v2/catalog/object"
 
     idempotency_key = str(uuid.uuid4())
+    location_id = credentials['location_id']
 
     if not location_id:
-        app.logger.error("Square location ID not configured")
         return {"error": "Square location ID not configured"}
 
     # Check if product has a category with Square ID
@@ -151,48 +63,24 @@ def sync_product_to_square(product):
     product.square_image_id = None
     db.session.commit()
 
-    # If updating existing item, fetch current version and variation ID
+    # If updating existing item, fetch current version
     current_version = 0
-    existing_variation_id = None
-    
     if existing_id:
         try:
-            # Use the base_url we determined earlier instead of credentials to avoid None issues
             response = requests.get(
-                f"{base_url}/v2/catalog/object/{existing_id}",
+                f"{credentials['base_url']}/v2/catalog/object/{existing_id}",
                 headers=get_square_headers()
             )
             if response.status_code == 200:
-                item_data = response.json().get('object', {})
-                current_version = item_data.get('version', 0)
-                
-                # Extract the actual variation ID from the response
-                variations = item_data.get('item_data', {}).get('variations', [])
-                if variations and len(variations) > 0:
-                    existing_variation_id = variations[0].get('id')
-                    # Store this variation ID for future use
-                    if existing_variation_id:
-                        product.square_variation_id = existing_variation_id
-                        db.session.commit()
-                        app.logger.info(f"Found existing Square variation ID: {existing_variation_id}")
-        except requests.exceptions.RequestException as e:
-            app.logger.error(f"Error fetching existing item: {str(e)}")
+                current_version = response.json().get('object', {}).get('version', 0)
+        except requests.exceptions.RequestException:
             pass
 
     # Create product data structure
     sku_id = f"#{product.sku}"
-    
-    # Use the existing variation ID if we have one, otherwise create a new client-defined ID
-    if product.square_variation_id and existing_id:
-        # Use the actual Square-assigned variation ID for existing products
-        variation_id = product.square_variation_id
-        app.logger.info(f"Using stored Square variation ID: {variation_id}")
-    else:
-        # For new products, use our client-defined ID format
-        variation_id = f"#{product.sku}_regular"
-        app.logger.info(f"Using new client-defined variation ID: {variation_id}")
+    variation_id = f"#{product.sku}_regular"
 
-    # Create variation data with appropriate ID
+    # Create variation data with ID for both new and existing items
     variation_data = {
         "type": "ITEM_VARIATION",
         "id": variation_id,
@@ -257,31 +145,8 @@ def sync_product_to_square(product):
 
         # Store the catalog ID from Square's response
         catalog_object = result.get('catalog_object', {})
-        id_mappings = result.get('id_mappings', [])
-        
         if catalog_object and catalog_object.get('id'):
             product.square_catalog_id = catalog_object['id']
-            
-            # Look for variation ID in the response mappings
-            for mapping in id_mappings:
-                client_id = mapping.get('client_object_id')
-                object_id = mapping.get('object_id')
-                
-                # If this is a variation ID mapping
-                if client_id and object_id and client_id.endswith('_regular'):
-                    app.logger.info(f"Found variation ID mapping: {client_id} -> {object_id}")
-                    product.square_variation_id = object_id
-                    break
-            
-            # If we couldn't find it in mappings, try to extract from the response object directly
-            if not product.square_variation_id:
-                variations = catalog_object.get('item_data', {}).get('variations', [])
-                if variations and len(variations) > 0:
-                    variation_id = variations[0].get('id')
-                    if variation_id:
-                        app.logger.info(f"Found variation ID in response: {variation_id}")
-                        product.square_variation_id = variation_id
-            
             db.session.commit()
 
             # Now handle image upload with the product's Square catalog ID
@@ -319,40 +184,19 @@ def delete_product_from_square(product):
         # Store IDs and clear them first
         square_id = product.square_catalog_id
         image_id = product.square_image_id
-        variation_id = product.square_variation_id
         product.square_catalog_id = None
         product.square_image_id = None
-        product.square_variation_id = None
         # We intentionally do not clear category IDs here to preserve them
         db.session.commit()
 
-        # Get headers directly from our improved function
-        headers = get_square_headers()
-        
-        # If no authorization header, we can't make the deletion request
-        if 'Authorization' not in headers:
-            app.logger.error("No Square authorization available for deletion")
-            return {"success": True, "warning": "Product unlinked locally but not deleted from Square due to missing credentials"}
-        
-        # Determine base URL from settings
         settings = Settings.get_settings()
-        if settings.square_environment == 'production':
-            base_url = 'https://connect.squareup.com'
-        else:
-            base_url = 'https://connect.squareupsandbox.com'
-            
+        credentials = settings.get_active_square_credentials()
+
         # Delete catalog item (will also delete associated images)
-        try:
-            delete_url = f"{base_url}/v2/catalog/object/{square_id}"
-            app.logger.info(f"Square delete URL: {delete_url}")
-            
-            response = requests.delete(
-                delete_url,
-                headers=headers
-            )
-        except Exception as e:
-            app.logger.error(f"Exception during Square deletion: {str(e)}")
-            return {"success": True, "warning": f"Product unlinked locally but error occurred during Square deletion: {str(e)}"}
+        response = requests.delete(
+            f"{credentials['base_url']}/v2/catalog/object/{square_id}",
+            headers=get_square_headers()
+        )
 
         # Even if Square returns 404, we've already cleared the IDs locally
         if response.status_code in [200, 404]:
@@ -361,7 +205,6 @@ def delete_product_from_square(product):
             # If other error, restore the IDs
             product.square_catalog_id = square_id
             product.square_image_id = image_id
-            product.square_variation_id = variation_id
             db.session.commit()
             return {"error": f"Square API error: {response.text}"}
 

@@ -88,7 +88,6 @@ class Product(db.Model):
     label_qty = db.Column(db.Integer, default=4, nullable=False)
     square_catalog_id = db.Column(db.String(255), nullable=True)
     square_image_id = db.Column(db.String(255), nullable=True)
-    square_variation_id = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     generated_pdfs = db.relationship('GeneratedPDF', backref='product', lazy='dynamic')
     batch_history = db.relationship('BatchHistory', backref='product', lazy='dynamic')
@@ -187,62 +186,24 @@ class Settings(db.Model):
 
     def get_active_square_credentials(self):
         """Get the active Square API credentials based on current environment."""
-        # First, use Flask app logger if available, fallback to standard logging if not
-        try:
-            from app import app
-            logger = app.logger
-        except (ImportError, AttributeError):
-            import logging
-            logger = logging.getLogger(__name__)
-        
-        # Log current settings state to help diagnose issues
-        logger.info(f"Square environment: {self.square_environment}")
-        
-        # Safely check credential values with proper None handling
-        prod_token = self.square_production_access_token
-        prod_location = self.square_production_location_id
-        sandbox_token = self.square_sandbox_access_token
-        sandbox_location = self.square_sandbox_location_id
-        
-        # Check if production credentials are set (with None protection)
-        has_prod_credentials = (prod_token is not None and 
-                              prod_location is not None and 
-                              str(prod_token).strip() != '' and 
-                              str(prod_location).strip() != '')
-        
-        # Check if sandbox credentials are set (with None protection)
-        has_sandbox_credentials = (sandbox_token is not None and 
-                                 sandbox_location is not None and 
-                                 str(sandbox_token).strip() != '' and 
-                                 str(sandbox_location).strip() != '')
-        
-        logger.info(f"Production credentials available: {has_prod_credentials}")
-        logger.info(f"Sandbox credentials available: {has_sandbox_credentials}")
-        
         if self.square_environment == 'production':
-            if not has_prod_credentials:
-                logger.error("Production environment selected but credentials are missing")
+            if not self.square_production_access_token or not self.square_production_location_id:
                 return None
-                
-            logger.info("Using production Square credentials")
             return {
-                'access_token': prod_token,
-                'location_id': prod_location,
+                'access_token': self.square_production_access_token,
+                'location_id': self.square_production_location_id,
                 'base_url': 'https://connect.squareup.com',
                 'is_sandbox': False
             }
-        else:  # Default to sandbox
-            if not has_sandbox_credentials:
-                logger.error("Sandbox environment selected but credentials are missing")
-                return None
-                
-            logger.info("Using sandbox Square credentials")
-            return {
-                'access_token': sandbox_token,
-                'location_id': sandbox_location,
-                'base_url': 'https://connect.squareupsandbox.com',
-                'is_sandbox': True
-            }
+
+        if not self.square_sandbox_access_token or not self.square_sandbox_location_id:
+            return None
+        return {
+            'access_token': self.square_sandbox_access_token,
+            'location_id': self.square_sandbox_location_id,
+            'base_url': 'https://connect.squareupsandbox.com',
+            'is_sandbox': True
+        }
 
     def get_craftmypdf_credentials(self):
         """Get the CraftMyPDF API credentials."""

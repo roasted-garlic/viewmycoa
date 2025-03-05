@@ -7,30 +7,24 @@ from models import db, Category, Settings
 SQUARE_VERSION = "2024-12-18"
 
 def get_square_headers():
-    # Use the same function from square_product_sync to ensure consistent behavior
-    from square_product_sync import get_square_headers as product_get_headers
-    return product_get_headers()
+    settings = Settings.get_settings()
+    credentials = settings.get_active_square_credentials()
+    return {
+        'Square-Version': SQUARE_VERSION,
+        'Authorization': f'Bearer {credentials["access_token"]}',
+        'Content-Type': 'application/json'
+    }
 
 def sync_category_to_square(category):
     """Sync a single category to Square catalog"""
-    # Get headers directly from our improved function
-    headers = get_square_headers()
-    
-    # If no authorization header, we can't proceed
-    if 'Authorization' not in headers:
-        app.logger.error("No Square authorization available for category sync")
-        return {"error": "Square credentials are not configured. Please set up your Square integration in Settings.", "needs_setup": True}
-    
-    # Determine base URL from settings
     settings = Settings.get_settings()
-    if settings.square_environment == 'production':
-        base_url = 'https://connect.squareup.com'
-    else:
-        base_url = 'https://connect.squareupsandbox.com'
+    credentials = settings.get_active_square_credentials()
     
-    SQUARE_API_URL = f"{base_url}/v2/catalog/object"
-    app.logger.info(f"Square category sync URL: {SQUARE_API_URL}")
-    
+    if not credentials:
+        return {"error": "Square credentials are not configured. Please set up your Square integration in Settings.", "needs_setup": True}
+        
+    SQUARE_API_URL = f"{credentials['base_url']}/v2/catalog/object"
+
     idempotency_key = str(uuid.uuid4())
 
     # Prepare the category data
@@ -48,7 +42,7 @@ def sync_category_to_square(category):
     try:
         response = requests.post(
             SQUARE_API_URL,
-            headers=headers,
+            headers=get_square_headers(),
             json=category_data
         )
 
@@ -80,33 +74,14 @@ def delete_category_from_square(category):
         category.square_category_id = None
         db.session.commit()
 
-        # Get headers directly from our improved function
-        headers = get_square_headers()
-        
-        # If no authorization header, we can't make the deletion request
-        if 'Authorization' not in headers:
-            app.logger.error("No Square authorization available for category deletion")
-            return {"success": True, "warning": "Category unlinked locally but not deleted from Square due to missing credentials"}
-        
-        # Determine base URL from settings
         settings = Settings.get_settings()
-        if settings.square_environment == 'production':
-            base_url = 'https://connect.squareup.com'
-        else:
-            base_url = 'https://connect.squareupsandbox.com'
-            
+        credentials = settings.get_active_square_credentials()
+
         # Delete catalog item
-        try:
-            delete_url = f"{base_url}/v2/catalog/object/{square_id}"
-            app.logger.info(f"Square category delete URL: {delete_url}")
-            
-            response = requests.delete(
-                delete_url,
-                headers=headers
-            )
-        except Exception as e:
-            app.logger.error(f"Exception during Square category deletion: {str(e)}")
-            return {"success": True, "warning": f"Category unlinked locally but error occurred during Square deletion: {str(e)}"}
+        response = requests.delete(
+            f"{credentials['base_url']}/v2/catalog/object/{square_id}",
+            headers=get_square_headers()
+        )
 
         # Even if Square returns 404, we've already cleared the ID locally
         if response.status_code in [200, 404]:
