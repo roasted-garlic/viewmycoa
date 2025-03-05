@@ -70,19 +70,29 @@ def delete_category_from_square(category):
         category.square_category_id = None
         db.session.commit()
 
-        settings = Settings.get_settings()
-        credentials = settings.get_active_square_credentials()
+        # Get headers directly from our improved function
+        headers = get_square_headers()
         
-        # If we don't have credentials, report an error but still clear local IDs
-        if not credentials:
-            app.logger.error("Failed to get Square credentials for category deletion")
+        # If no authorization header, we can't make the deletion request
+        if 'Authorization' not in headers:
+            app.logger.error("No Square authorization available for category deletion")
             return {"success": True, "warning": "Category unlinked locally but not deleted from Square due to missing credentials"}
         
+        # Determine base URL from settings
+        settings = Settings.get_settings()
+        if settings.square_environment == 'production':
+            base_url = 'https://connect.squareup.com'
+        else:
+            base_url = 'https://connect.squareupsandbox.com'
+            
         # Delete catalog item
         try:
+            delete_url = f"{base_url}/v2/catalog/object/{square_id}"
+            app.logger.info(f"Square category delete URL: {delete_url}")
+            
             response = requests.delete(
-                f"{credentials['base_url']}/v2/catalog/object/{square_id}",
-                headers=get_square_headers()
+                delete_url,
+                headers=headers
             )
         except Exception as e:
             app.logger.error(f"Exception during Square category deletion: {str(e)}")

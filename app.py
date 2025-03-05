@@ -1601,6 +1601,45 @@ def health_check():
     app.logger.info("Health check request received")
     return 'OK', 200
     
+@app.route('/api/debug/square-test')
+def debug_square_test():
+    """Public debug endpoint for Square credentials testing (no authentication required)"""
+    from models import Settings
+    import json
+    
+    # Get the settings
+    settings = Settings.get_settings()
+    
+    # Test the improved model method
+    credentials = settings.get_active_square_credentials()
+    
+    # Get Square headers using the improved function
+    from square_product_sync import get_square_headers
+    headers = get_square_headers()
+    
+    # Return diagnostic information
+    response = {
+        "settings_check": {
+            "environment": settings.square_environment,
+            "has_sandbox_token": bool(settings.square_sandbox_access_token),
+            "has_production_token": bool(settings.square_production_access_token)
+        },
+        "credentials_check": {
+            "credentials_returned": bool(credentials),
+            "details": {} if not credentials else {
+                "has_access_token": bool(credentials.get("access_token")),
+                "has_location_id": bool(credentials.get("location_id")),
+                "has_base_url": bool(credentials.get("base_url"))
+            }
+        },
+        "headers_check": {
+            "headers_returned": bool(headers),
+            "has_auth_header": "Authorization" in headers
+        }
+    }
+    
+    return jsonify(response)
+    
 @app.route('/debug/square-credentials')
 @admin_required
 def debug_square_credentials():
