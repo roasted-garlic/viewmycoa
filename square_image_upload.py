@@ -27,6 +27,12 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
     # Get Square API credentials from database
     settings = Settings.get_settings()
     credentials = settings.get_active_square_credentials()
+    
+    # Check if we have valid credentials
+    if not credentials:
+        app.logger.error("No Square credentials available for image upload")
+        return None
+        
     url = f"{credentials['base_url']}/v2/catalog/images"
     headers = {
         'Square-Version': '2024-12-18',
