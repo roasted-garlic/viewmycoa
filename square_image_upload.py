@@ -98,7 +98,7 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
             app.logger.info(f"Square Image Upload Response: {response.text}")
 
             if response.status_code != 200:
-                print(f"Error response from Square: {response.text}")
+                app.logger.error(f"Error response from Square: {response.text}")
                 return None
 
             # Extract image ID from response
@@ -114,7 +114,10 @@ def upload_product_image_to_square(product: Product) -> Optional[str]:
             return None
 
     except Exception as e:
-        print(f"Error uploading image to Square: {str(e)}")
+        app.logger.error(f"Error uploading image to Square: {str(e)}")
+        # Include stack trace for better debugging
+        import traceback
+        app.logger.error(f"Stack trace: {traceback.format_exc()}")
         product.square_image_id = None
         db.session.commit()
         return None

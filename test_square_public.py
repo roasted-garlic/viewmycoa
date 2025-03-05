@@ -35,6 +35,16 @@ def test_square_public_debug():
                 print("Headers have authorization token - Square API should work!")
             else:
                 print("Headers do NOT have authorization token - Square API will fail!")
+            
+            # Test image upload
+            print("\nChecking if product image upload would work...")
+            if data.get("headers_check", {}).get("has_auth_header") and data.get("credentials_check", {}).get("credentials_returned"):
+                if data.get("credentials_check", {}).get("details", {}).get("has_base_url"):
+                    print("All requirements met for image upload to work!")
+                else:
+                    print("Missing base_url - image upload may fail!")
+            else:
+                print("Image upload would fail due to missing credentials or headers!")
                 
         except ValueError:
             print(f"Failed to parse JSON from response: {response.text[:100]}...")
