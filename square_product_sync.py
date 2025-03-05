@@ -94,33 +94,9 @@ def sync_product_to_square(product):
             # ALWAYS include track_inventory as true to ensure Square maintains inventory
             "track_inventory": True,
             "item_option_values": []
+            # Remove location_overrides to preserve existing inventory counts
         }
     }
-    
-    # If this is an existing product, fetch the current inventory counts
-    if existing_id:
-        try:
-            # Get the current variation ID from the Square API
-            variation_response = requests.get(
-                f"{credentials['base_url']}/v2/catalog/object/{existing_id}",
-                headers=get_square_headers()
-            )
-            
-            if variation_response.status_code == 200:
-                variation_data = variation_response.json().get('object', {})
-                # Extract the first variation ID
-                if 'item_data' in variation_data and 'variations' in variation_data['item_data'] and len(variation_data['item_data']['variations']) > 0:
-                    existing_variation = variation_data['item_data']['variations'][0]
-                    
-                    # Get the current inventory counts for this variation
-                    inventory_response = requests.get(
-                        f"{credentials['base_url']}/v2/inventory/{existing_variation['id']}",
-                        headers=get_square_headers()
-                    )
-                    
-                    app.logger.info(f"Fetched existing inventory data: {inventory_response.text}")
-        except Exception as e:
-            app.logger.error(f"Error fetching inventory data: {str(e)}")
 
     product_data = {
         "idempotency_key": idempotency_key,
