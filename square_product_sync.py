@@ -81,40 +81,21 @@ def sync_product_to_square(product):
     variation_id = f"#{product.sku}_regular"
 
     # Create variation data with ID for both new and existing items
-    if existing_id:
-        # For existing products, only update non-inventory fields
-        variation_data = {
-            "type": "ITEM_VARIATION",
-            "id": variation_id,
-            "item_variation_data": {
-                "item_id": existing_id,
-                "name": "Regular",
-                "sku": product.sku,
-                "upc": product.barcode,
-                "pricing_type": "FIXED_PRICING" if product.price else "VARIABLE_PRICING",
-                "price_money": format_price_money(product.price) if product.price else None,
-                # No inventory fields for existing products
-                "item_option_values": []
-            }
-        }
-    else:
-        # For new products, set up normal inventory tracking
-        variation_data = {
-            "type": "ITEM_VARIATION",
-            "id": variation_id,
-            "item_variation_data": {
-                "item_id": sku_id,
-                "name": "Regular",
-                "sku": product.sku,
-                "upc": product.barcode,
-                "pricing_type": "FIXED_PRICING" if product.price else "VARIABLE_PRICING",
-                "price_money": format_price_money(product.price) if product.price else None,
-                "track_inventory": True,
-                "item_option_values": [],
-                "location_overrides": [{
-                    "location_id": location_id
-                }]
-            }
+    variation_data = {
+        "type": "ITEM_VARIATION",
+        "id": variation_id,
+        "item_variation_data": {
+            "item_id": existing_id if existing_id else sku_id,
+            "name": "Regular",
+            "sku": product.sku,
+            "upc": product.barcode,
+            "pricing_type": "FIXED_PRICING" if product.price else "VARIABLE_PRICING",
+            "price_money": format_price_money(product.price) if product.price else None,
+            "track_inventory": True,
+            "item_option_values": [],
+            "location_overrides": [{
+                "location_id": location_id
+            }]
         }
     }
 
