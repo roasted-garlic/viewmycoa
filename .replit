@@ -7,6 +7,15 @@ channel = "stable-24_05"
 runButton = "Project"
 
 [[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Flask Server"
+
+[[workflows.workflow]]
 name = "Flask Server"
 author = "agent"
 
@@ -19,16 +28,7 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "FLASK_APP=app.py flask db upgrade && python main.py"
-waitForPort = 5000
-
-[[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Flask Server"
+waitForPort = 3000
 
 [deployment]
 run = ["sh", "-c", "REPLIT_DEPLOYMENT=1 python main.py"]

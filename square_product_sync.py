@@ -63,8 +63,10 @@ def sync_product_to_square(product):
     product.square_image_id = None
     db.session.commit()
 
-    # If updating existing item, fetch current version
+    # If updating existing item, fetch current version and variation ID
     current_version = 0
+    existing_variation_id = None
+    
     if existing_id:
         try:
             response = requests.get(
@@ -72,15 +74,36 @@ def sync_product_to_square(product):
                 headers=get_square_headers()
             )
             if response.status_code == 200:
-                current_version = response.json().get('object', {}).get('version', 0)
-        except requests.exceptions.RequestException:
+                item_data = response.json().get('object', {})
+                current_version = item_data.get('version', 0)
+                
+                # Extract the actual variation ID from the response
+                variations = item_data.get('item_data', {}).get('variations', [])
+                if variations and len(variations) > 0:
+                    existing_variation_id = variations[0].get('id')
+                    # Store this variation ID for future use
+                    if existing_variation_id:
+                        product.square_variation_id = existing_variation_id
+                        db.session.commit()
+                        app.logger.info(f"Found existing Square variation ID: {existing_variation_id}")
+        except requests.exceptions.RequestException as e:
+            app.logger.error(f"Error fetching existing item: {str(e)}")
             pass
 
     # Create product data structure
     sku_id = f"#{product.sku}"
-    variation_id = f"#{product.sku}_regular"
+    
+    # Use the existing variation ID if we have one, otherwise create a new client-defined ID
+    if product.square_variation_id and existing_id:
+        # Use the actual Square-assigned variation ID for existing products
+        variation_id = product.square_variation_id
+        app.logger.info(f"Using stored Square variation ID: {variation_id}")
+    else:
+        # For new products, use our client-defined ID format
+        variation_id = f"#{product.sku}_regular"
+        app.logger.info(f"Using new client-defined variation ID: {variation_id}")
 
-    # Create variation data with ID for both new and existing items
+    # Create variation data with appropriate ID
     variation_data = {
         "type": "ITEM_VARIATION",
         "id": variation_id,
@@ -145,8 +168,31 @@ def sync_product_to_square(product):
 
         # Store the catalog ID from Square's response
         catalog_object = result.get('catalog_object', {})
+        id_mappings = result.get('id_mappings', [])
+        
         if catalog_object and catalog_object.get('id'):
             product.square_catalog_id = catalog_object['id']
+            
+            # Look for variation ID in the response mappings
+            for mapping in id_mappings:
+                client_id = mapping.get('client_object_id')
+                object_id = mapping.get('object_id')
+                
+                # If this is a variation ID mapping
+                if client_id and object_id and client_id.endswith('_regular'):
+                    app.logger.info(f"Found variation ID mapping: {client_id} -> {object_id}")
+                    product.square_variation_id = object_id
+                    break
+            
+            # If we couldn't find it in mappings, try to extract from the response object directly
+            if not product.square_variation_id:
+                variations = catalog_object.get('item_data', {}).get('variations', [])
+                if variations and len(variations) > 0:
+                    variation_id = variations[0].get('id')
+                    if variation_id:
+                        app.logger.info(f"Found variation ID in response: {variation_id}")
+                        product.square_variation_id = variation_id
+            
             db.session.commit()
 
             # Now handle image upload with the product's Square catalog ID
@@ -184,8 +230,10 @@ def delete_product_from_square(product):
         # Store IDs and clear them first
         square_id = product.square_catalog_id
         image_id = product.square_image_id
+        variation_id = product.square_variation_id
         product.square_catalog_id = None
         product.square_image_id = None
+        product.square_variation_id = None
         # We intentionally do not clear category IDs here to preserve them
         db.session.commit()
 
@@ -205,6 +253,7 @@ def delete_product_from_square(product):
             # If other error, restore the IDs
             product.square_catalog_id = square_id
             product.square_image_id = image_id
+            product.square_variation_id = variation_id
             db.session.commit()
             return {"error": f"Square API error: {response.text}"}
 
