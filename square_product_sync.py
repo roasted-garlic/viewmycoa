@@ -157,6 +157,34 @@ def sync_product_to_square(product):
         app.logger.info(f"Square API Response Status: {response.status_code}")
         app.logger.info(f"Square API Response Body: {response.text}")
 
+        # Handle version mismatch error
+        if response.status_code == 400 and "VERSION_MISMATCH" in response.text:
+            app.logger.info(f"Version mismatch detected, fetching latest version")
+            try:
+                # Fetch the latest object version
+                version_response = requests.get(
+                    f"{credentials['base_url']}/v2/catalog/object/{existing_id}",
+                    headers=get_square_headers()
+                )
+                if version_response.status_code == 200:
+                    latest_version = version_response.json().get('object', {}).get('version', 0)
+                    app.logger.info(f"Retrieved latest version: {latest_version}")
+                    
+                    # Update product data with latest version
+                    product_data["object"]["version"] = latest_version
+                    
+                    # Try the request again with updated version
+                    response = requests.post(
+                        SQUARE_API_URL,
+                        headers=get_square_headers(),
+                        json=product_data
+                    )
+                    
+                    app.logger.info(f"Retry response status: {response.status_code}")
+                    app.logger.info(f"Retry response body: {response.text}")
+            except Exception as e:
+                app.logger.error(f"Error retrieving latest version: {str(e)}")
+
         if response.status_code == 401:
             return {"error": "Square API authentication failed. Please verify your access token."}
         elif response.status_code != 200:
