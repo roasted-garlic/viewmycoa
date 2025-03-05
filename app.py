@@ -1600,6 +1600,88 @@ def health_check():
     """
     app.logger.info("Health check request received")
     return 'OK', 200
+    
+@app.route('/debug/square-credentials')
+@admin_required
+def debug_square_credentials():
+    """Debug endpoint to check Square credentials directly"""
+    from models import Settings
+    import json
+    
+    # Get the settings
+    settings = Settings.get_settings()
+    
+    # Directly check database values 
+    environment = settings.square_environment
+    has_sandbox_token = bool(settings.square_sandbox_access_token and settings.square_sandbox_access_token.strip())
+    has_sandbox_location = bool(settings.square_sandbox_location_id and settings.square_sandbox_location_id.strip())
+    has_production_token = bool(settings.square_production_access_token and settings.square_production_access_token.strip())
+    has_production_location = bool(settings.square_production_location_id and settings.square_production_location_id.strip())
+    
+    # Try to get credentials via the method
+    credentials = settings.get_active_square_credentials()
+    credentials_returned = bool(credentials)
+    
+    # Get credentials via our direct SQL approach
+    import sqlalchemy
+    from sqlalchemy import create_engine, text
+    from sqlalchemy.orm import sessionmaker
+    
+    # Get database URI from app config
+    db_uri = app.config.get('SQLALCHEMY_DATABASE_URI')
+    
+    # Create a new engine and session
+    engine = create_engine(db_uri)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    
+    # Direct raw SQL query to debug
+    sql_results = {}
+    try:
+        result = session.execute(text("SELECT id, square_environment, square_sandbox_access_token, square_sandbox_location_id, square_production_access_token, square_production_location_id FROM settings LIMIT 1"))
+        row = result.fetchone()
+        if row:
+            sql_results = {
+                "id": row[0],
+                "environment": row[1],
+                "has_sandbox_token": bool(row[2] and row[2].strip()),
+                "has_sandbox_location": bool(row[3] and row[3].strip()),
+                "has_production_token": bool(row[4] and row[4].strip()),
+                "has_production_location": bool(row[5] and row[5].strip()),
+            }
+    except Exception as e:
+        sql_results = {"error": str(e)}
+    finally:
+        session.close()
+    
+    # Try to execute the get_square_headers function
+    from square_product_sync import get_square_headers
+    headers = get_square_headers()
+    
+    # Return all diagnostic info
+    return jsonify({
+        "orm_check": {
+            "environment": environment,
+            "has_sandbox_token": has_sandbox_token,
+            "has_sandbox_location": has_sandbox_location,
+            "has_production_token": has_production_token,
+            "has_production_location": has_production_location
+        },
+        "credentials_method": {
+            "credentials_returned": credentials_returned,
+            "credentials": {
+                "has_access_token": bool(credentials and 'access_token' in credentials),
+                "has_location_id": bool(credentials and 'location_id' in credentials),
+                "has_base_url": bool(credentials and 'base_url' in credentials)
+            } if credentials else None
+        },
+        "headers_check": {
+            "headers_returned": bool(headers),
+            "has_authorization": bool(headers and 'Authorization' in headers)
+        },
+        "sql_check": sql_results,
+        "database_uri": "***redacted***" if db_uri else None
+    })
 
 if __name__ == "__main__":
     # Use port 3000 for both development and production to ensure consistency

@@ -187,23 +187,34 @@ class Settings(db.Model):
 
     def get_active_square_credentials(self):
         """Get the active Square API credentials based on current environment."""
-        import logging
-        logger = logging.getLogger(__name__)
+        # First, use Flask app logger if available, fallback to standard logging if not
+        try:
+            from app import app
+            logger = app.logger
+        except (ImportError, AttributeError):
+            import logging
+            logger = logging.getLogger(__name__)
         
         # Log current settings state to help diagnose issues
         logger.info(f"Square environment: {self.square_environment}")
         
-        # Check if production credentials are set
-        has_prod_credentials = (self.square_production_access_token and 
-                              self.square_production_location_id and 
-                              self.square_production_access_token.strip() != '' and 
-                              self.square_production_location_id.strip() != '')
+        # Safely check credential values with proper None handling
+        prod_token = self.square_production_access_token
+        prod_location = self.square_production_location_id
+        sandbox_token = self.square_sandbox_access_token
+        sandbox_location = self.square_sandbox_location_id
         
-        # Check if sandbox credentials are set
-        has_sandbox_credentials = (self.square_sandbox_access_token and 
-                                 self.square_sandbox_location_id and 
-                                 self.square_sandbox_access_token.strip() != '' and 
-                                 self.square_sandbox_location_id.strip() != '')
+        # Check if production credentials are set (with None protection)
+        has_prod_credentials = (prod_token is not None and 
+                              prod_location is not None and 
+                              str(prod_token).strip() != '' and 
+                              str(prod_location).strip() != '')
+        
+        # Check if sandbox credentials are set (with None protection)
+        has_sandbox_credentials = (sandbox_token is not None and 
+                                 sandbox_location is not None and 
+                                 str(sandbox_token).strip() != '' and 
+                                 str(sandbox_location).strip() != '')
         
         logger.info(f"Production credentials available: {has_prod_credentials}")
         logger.info(f"Sandbox credentials available: {has_sandbox_credentials}")
@@ -215,8 +226,8 @@ class Settings(db.Model):
                 
             logger.info("Using production Square credentials")
             return {
-                'access_token': self.square_production_access_token,
-                'location_id': self.square_production_location_id,
+                'access_token': prod_token,
+                'location_id': prod_location,
                 'base_url': 'https://connect.squareup.com',
                 'is_sandbox': False
             }
@@ -227,8 +238,8 @@ class Settings(db.Model):
                 
             logger.info("Using sandbox Square credentials")
             return {
-                'access_token': self.square_sandbox_access_token,
-                'location_id': self.square_sandbox_location_id,
+                'access_token': sandbox_token,
+                'location_id': sandbox_location,
                 'base_url': 'https://connect.squareupsandbox.com',
                 'is_sandbox': True
             }
