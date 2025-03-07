@@ -118,26 +118,31 @@ def main():
             }
             logger.info(f"Production environment variables: {env_vars}")
         else:
-            # In development mode, run startup sync in a background thread
-            logger.info("Development environment detected, running startup sync")
-            import threading
-            import time
-            import sys
-            
-            def delayed_startup_sync():
-                # Wait for app to initialize before running sync
-                time.sleep(5)
-                try:
-                    import subprocess
-                    logger.info("Starting background sync on development startup")
-                    subprocess.Popen([sys.executable, "startup_sync.py"])
-                except Exception as e:
-                    logger.error(f"Error launching startup sync: {str(e)}")
-            
-            # Start sync in background thread to not block app startup
-            sync_thread = threading.Thread(target=delayed_startup_sync)
-            sync_thread.daemon = True  # Thread will exit when main thread exits
-            sync_thread.start()
+            # Only run sync in development mode
+            is_development = os.environ.get("REPLIT_DEPLOYMENT", "0") != "1"
+            if is_development:
+                # In development mode, run startup sync in a background thread
+                logger.info("Development environment detected, running startup sync")
+                import threading
+                import time
+                import sys
+                
+                def delayed_startup_sync():
+                    # Wait for app to initialize before running sync
+                    time.sleep(5)
+                    try:
+                        import subprocess
+                        logger.info("Starting background sync on development startup")
+                        subprocess.Popen([sys.executable, "startup_sync.py"])
+                    except Exception as e:
+                        logger.error(f"Error launching startup sync: {str(e)}")
+                
+                # Start sync in background thread to not block app startup
+                sync_thread = threading.Thread(target=delayed_startup_sync)
+                sync_thread.daemon = True  # Thread will exit when main thread exits
+                sync_thread.start()
+            else:
+                logger.info("Production environment detected, skipping startup sync")
             
         # Run the Flask application
         app.run(
