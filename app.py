@@ -89,7 +89,7 @@ if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
                 
                 app.logger.error(f"CRITICAL ERROR in deployment: Missing PostgreSQL variables: {', '.join(missing_vars)}")
                 app.logger.error("These must be set in your deployment secrets. See DEPLOYMENT.md for details.")
-        else:
+            
             # Missing variables - this will cause deployment to fail
             missing_vars = []
             if not pg_user: missing_vars.append("PGUSER")
@@ -1803,7 +1803,7 @@ def health_check():
     return 'OK', 200
 
 if __name__ == "__main__":
-    # Use port 3000 for both development and production to ensure consistency
-    port = int(os.environ.get("PORT", 3000))
+    # Always use port 3000 for both development and production to ensure consistency
+    port = 3000
     app.logger.info(f"Starting application on port {port}")
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, debug=False)

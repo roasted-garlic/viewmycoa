@@ -117,7 +117,8 @@ def main():
 
         # Configure host and port - use PORT env variable for deployment compatibility
         host = "0.0.0.0"  # Listen on all available interfaces
-        # port is now defined at module level and uses PORT environment variable
+        # Always use port 3000 for consistency between development and production
+        port = 3000
         
         # Check if we're in production mode
         is_production = os.getenv("REPLIT_DEPLOYMENT", "0") == "1"
