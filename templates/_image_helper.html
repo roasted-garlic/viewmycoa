@@ -1,13 +1,33 @@
 {# 
-Helper template for rendering product images safely.
+Helper template for rendering product images safely across environments.
 This template ensures images are displayed even if missing and includes fallback to default image.
+It also adds special data attributes to help identify missing images.
 #}
 
-{% macro product_image(image_path, alt_text, class_name="img-fluid", fallback_image=None) -%}
+{% macro product_image(image_path, alt_text, class_name="img-fluid", fallback_image=None, product_id=None) -%}
   {% set safe_path = get_safe_image_path(image_path) %}
+  {% set fallback_img = fallback_image or 'img/no-image.png' %}
   <img src="{{ url_for('static', filename=safe_path) }}" 
        class="{{ class_name }}" 
        alt="{{ alt_text }}" 
        loading="lazy"
-       onerror="this.onerror=null; this.src='{{ url_for('static', filename=fallback_image or 'img/no-image.png') }}';">
+       {% if product_id %}data-product-id="{{ product_id }}"{% endif %}
+       {% if image_path %}data-original-path="{{ image_path }}"{% endif %}
+       onerror="this.onerror=null; this.src='{{ url_for('static', filename=fallback_img) }}'; this.classList.add('image-error');">
+{%- endmacro %}
+
+{# 
+Helper macro for product cards that includes extra error handling
+#}
+{% macro product_card_image(product, class_name="card-img-top", fallback_image=None) -%}
+  {% set img_path = product.product_image %}
+  {% set safe_path = get_safe_image_path(img_path) %}
+  {% set fallback_img = fallback_image or 'img/no-image.png' %}
+  <img src="{{ url_for('static', filename=safe_path) }}" 
+       class="{{ class_name }}"
+       alt="{{ product.title }}" 
+       loading="lazy"
+       data-product-id="{{ product.id }}"
+       {% if img_path %}data-original-path="{{ img_path }}"{% endif %}
+       onerror="this.onerror=null; this.src='{{ url_for('static', filename=fallback_img) }}'; this.classList.add('image-error'); console.log('Image failed to load for product {{ product.id }}');">
 {%- endmacro %}

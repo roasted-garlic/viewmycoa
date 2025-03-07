@@ -1474,7 +1474,7 @@ def sync_single_product(product_id):
 
 def save_image(file, product_id, image_type):
     """
-    Save an uploaded image file for a product with improved persistence handling.
+    Save an uploaded image file for a product with improved cross-environment compatibility.
     
     Args:
         file: The uploaded file object
@@ -1485,25 +1485,25 @@ def save_image(file, product_id, image_type):
         The relative path to the saved image
     """
     try:
-        # Check if we're in deployment or development
+        # Check if we're in deployment or development - useful for logging
         is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
         app.logger.info(f"Saving image in {'deployment' if is_deployment else 'development'} environment")
         
-        # Use absolute path with workspace root to ensure consistency across environments
+        # Use absolute path with workspace root for consistency
         workspace_root = os.getcwd()
         
-        # Create product-specific directory with proper error handling
+        # Create product-specific directory 
         product_dir = os.path.join('uploads', str(product_id))
         relative_dir = os.path.join('static', product_dir)
         full_dir = os.path.join(workspace_root, relative_dir)
         
-        # Make sure directory exists with better error handling
+        # Make sure directory exists
         try:
             os.makedirs(full_dir, exist_ok=True)
             app.logger.info(f"Created or verified directory: {full_dir}")
         except Exception as dir_error:
             app.logger.error(f"Failed to create directory {full_dir}: {str(dir_error)}")
-            # Try to continue anyway, it might still work
+            # Try to continue anyway
         
         # Get file extension with validation
         orig_filename = secure_filename(file.filename)
@@ -1520,17 +1520,18 @@ def save_image(file, product_id, image_type):
             if ext.lower() not in valid_extensions:
                 ext = '.png'  # Default to PNG for unsupported formats
         
-        # Create a more consistent filename without timestamp to help with environment syncing
-        # Just use product_id and type to ensure file names are consistent across environments
+        # IMPORTANT CHANGE: Use a completely deterministic filename that will be the same
+        # in both production and development for the same product
+        # Remove any timestamp or random components that would make filenames differ
         filename = f"{image_type}_{product_id}{ext}"
         filepath = os.path.join(product_dir, filename)
         full_filepath = os.path.join(workspace_root, 'static', filepath)
         
-        # Process and save image with error handling
+        # Process and save image
         img = Image.open(file)
         
-        # Resize to reasonable dimensions to save space
-        img.thumbnail((800, 800))  # Resize if needed
+        # Resize to reasonable dimensions to save space and ensure consistency
+        img.thumbnail((800, 800))  # Consistent size across environments
         
         # Ensure the image is in a web-friendly format
         if img.mode not in ('RGB', 'RGBA'):
@@ -1541,7 +1542,7 @@ def save_image(file, product_id, image_type):
         
         # Save with explicit format
         format_type = 'PNG' if ext.lower() == '.png' else 'JPEG'
-        img.save(full_filepath, format=format_type, quality=85)  # Add quality parameter for JPEGs
+        img.save(full_filepath, format=format_type, quality=85)  # Consistent quality
         
         # Verify file exists after saving
         if os.path.exists(full_filepath):
@@ -1554,10 +1555,8 @@ def save_image(file, product_id, image_type):
         return filepath
     except Exception as e:
         app.logger.error(f"Error saving image: {str(e)}")
-        # Add stack trace for better debugging
         import traceback
         app.logger.error(f"Stack trace: {traceback.format_exc()}")
-        # Return a default image path if saving fails
         return 'img/no-image.png'
 
 @app.route('/api/square/clear-id/<int:product_id>', methods=['POST']) 
