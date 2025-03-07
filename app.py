@@ -763,7 +763,7 @@ def generate_pdf(product_id):
             db.session.commit()
 
             # If this is running in production, trigger sync to development
-            is_deployment = os.environ.get(""REPLIT_DEPLOYMENT", "0") == "1"
+            is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
             if is_deployment:
                 try:
                     # Import auto sync module
