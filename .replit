@@ -47,7 +47,15 @@ task = "shell.exec"
 args = "python sync_pdfs.py"
 
 [[workflows.workflow]]
-name = "Scheduled Sync"
+name = "Run Manual Sync"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python startup_sync.py"
+
+[[workflows.workflow]]
+name = "Run Scheduled Sync"
 author = "agent"
 
 [[workflows.workflow.tasks]]
