@@ -138,14 +138,22 @@ def main():
             }
             logger.info(f"Production environment variables: {env_vars}")
         else:
-            # Only run sync in development mode
+            # Only run sync in development mode and only for the parent process
             is_development = os.environ.get("REPLIT_DEPLOYMENT", "0") != "1"
-            if is_development:
+            # Create a marker file to detect if this is the first run or a reloader run
+            sync_marker = os.path.join(os.getcwd(), '.sync_running')
+            
+            if is_development and not os.path.exists(sync_marker):
                 # In development mode, run startup sync in a background thread
+                # but only if this is the first process (not the reloader)
                 logger.info("Development environment detected, running startup sync")
                 import threading
                 import time
                 import sys
+                
+                # Create marker file to prevent duplicate syncs
+                with open(sync_marker, 'w') as f:
+                    f.write(str(time.time()))
                 
                 def delayed_startup_sync():
                     # Wait for app to initialize before running sync
@@ -156,13 +164,20 @@ def main():
                         subprocess.Popen([sys.executable, "startup_sync.py"])
                     except Exception as e:
                         logger.error(f"Error launching startup sync: {str(e)}")
+                    finally:
+                        # Remove marker after sync completes or fails
+                        if os.path.exists(sync_marker):
+                            os.remove(sync_marker)
                 
                 # Start sync in background thread to not block app startup
                 sync_thread = threading.Thread(target=delayed_startup_sync)
                 sync_thread.daemon = True  # Thread will exit when main thread exits
                 sync_thread.start()
             else:
-                logger.info("Production environment detected, skipping startup sync")
+                if os.path.exists(sync_marker):
+                    logger.info("Startup sync already running or completed, skipping duplicate")
+                else:
+                    logger.info("Production environment detected, skipping startup sync")
             
         # Run the Flask application
         app.run(
