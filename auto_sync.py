@@ -20,37 +20,65 @@ def trigger_image_sync(product_id):
     try:
         logger.info(f"Triggering image sync for product ID: {product_id}")
         
+        # Check if we're trying to sync with ourselves (which would be redundant)
+        # This can happen if both production and dev environments try to sync with each other
+        if os.environ.get("REPLIT_DEPLOYMENT", "0") != "1":
+            logger.info(f"Skipping image sync in development environment")
+            return True
+            
         # Make request to development server sync endpoint
         endpoint = f"{DEV_ENDPOINT}/api/sync/images"
         logger.info(f"Sending request to endpoint: {endpoint}")
         
-        response = requests.post(
-            endpoint, 
-            json={"product_ids": [product_id]},
-            timeout=30
-        )
-        
-        logger.info(f"Response status code: {response.status_code}")
-        
-        if response.status_code == 200:
-            logger.info(f"Successfully triggered image sync for product ID {product_id}")
-            return True
-        else:
-            logger.error(f"Failed to trigger image sync. Status code: {response.status_code}")
-            logger.error(f"Response: {response.text}")
-            # Try another attempt with a different protocol if https fails
-            if "https" in DEV_ENDPOINT:
-                alt_endpoint = DEV_ENDPOINT.replace("https", "http")
-                logger.info(f"Trying alternative endpoint: {alt_endpoint}/api/sync/images")
+        # Make multiple attempts with different protocols and timeouts
+        try:
+            response = requests.post(
+                endpoint, 
+                json={"product_ids": [product_id]},
+                timeout=30
+            )
+            
+            logger.info(f"Response status code: {response.status_code}")
+            
+            if response.status_code == 200:
+                logger.info(f"Successfully triggered image sync for product ID {product_id}")
+                return True
+        except requests.exceptions.RequestException as e:
+            logger.error(f"First attempt failed: {str(e)}")
+            
+        # Try with alternative protocol
+        if "https" in DEV_ENDPOINT:
+            alt_endpoint = DEV_ENDPOINT.replace("https", "http")
+            logger.info(f"Trying alternative endpoint: {alt_endpoint}/api/sync/images")
+            try:
                 alt_response = requests.post(
                     f"{alt_endpoint}/api/sync/images",
                     json={"product_ids": [product_id]},
-                    timeout=30
+                    timeout=45  # Extended timeout for retry
                 )
                 if alt_response.status_code == 200:
                     logger.info(f"Successfully triggered image sync using alternative endpoint")
                     return True
-            return False
+            except requests.exceptions.RequestException as e:
+                logger.error(f"Alternative attempt failed: {str(e)}")
+        
+        # Final attempt with direct IP if available
+        try:
+            direct_endpoint = "http://0.0.0.0:3000/api/sync/images"
+            logger.info(f"Trying direct endpoint: {direct_endpoint}")
+            direct_response = requests.post(
+                direct_endpoint,
+                json={"product_ids": [product_id]},
+                timeout=45
+            )
+            if direct_response.status_code == 200:
+                logger.info(f"Successfully triggered image sync using direct endpoint")
+                return True
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Direct attempt failed: {str(e)}")
+            
+        logger.error(f"All sync attempts failed for product ID {product_id}")
+        return False
             
     except Exception as e:
         logger.error(f"Error triggering image sync: {str(e)}")
@@ -68,37 +96,65 @@ def trigger_pdf_sync(product_id):
     try:
         logger.info(f"Triggering PDF sync for product ID: {product_id}")
         
+        # Check if we're trying to sync with ourselves (which would be redundant)
+        # This can happen if both production and dev environments try to sync with each other
+        if os.environ.get("REPLIT_DEPLOYMENT", "0") != "1":
+            logger.info(f"Skipping PDF sync in development environment")
+            return True
+            
         # Make request to development server sync endpoint
         endpoint = f"{DEV_ENDPOINT}/api/sync/pdfs"
         logger.info(f"Sending request to endpoint: {endpoint}")
         
-        response = requests.post(
-            endpoint, 
-            json={"product_ids": [product_id]},
-            timeout=30  # Extended timeout for PDF transfer
-        )
-        
-        logger.info(f"Response status code: {response.status_code}")
-        
-        if response.status_code == 200:
-            logger.info(f"Successfully triggered PDF sync for product ID {product_id}")
-            return True
-        else:
-            logger.error(f"Failed to trigger PDF sync. Status code: {response.status_code}")
-            logger.error(f"Response: {response.text}")
-            # Try another attempt with a different protocol if https fails
-            if "https" in DEV_ENDPOINT:
-                alt_endpoint = DEV_ENDPOINT.replace("https", "http")
-                logger.info(f"Trying alternative endpoint: {alt_endpoint}/api/sync/pdfs")
+        # Make multiple attempts with different protocols and timeouts
+        try:
+            response = requests.post(
+                endpoint, 
+                json={"product_ids": [product_id]},
+                timeout=45  # Extended timeout for PDF transfer
+            )
+            
+            logger.info(f"Response status code: {response.status_code}")
+            
+            if response.status_code == 200:
+                logger.info(f"Successfully triggered PDF sync for product ID {product_id}")
+                return True
+        except requests.exceptions.RequestException as e:
+            logger.error(f"First attempt failed: {str(e)}")
+            
+        # Try with alternative protocol
+        if "https" in DEV_ENDPOINT:
+            alt_endpoint = DEV_ENDPOINT.replace("https", "http")
+            logger.info(f"Trying alternative endpoint: {alt_endpoint}/api/sync/pdfs")
+            try:
                 alt_response = requests.post(
                     f"{alt_endpoint}/api/sync/pdfs",
                     json={"product_ids": [product_id]},
-                    timeout=30
+                    timeout=60  # Extended timeout for retry
                 )
                 if alt_response.status_code == 200:
                     logger.info(f"Successfully triggered PDF sync using alternative endpoint")
                     return True
-            return False
+            except requests.exceptions.RequestException as e:
+                logger.error(f"Alternative attempt failed: {str(e)}")
+        
+        # Final attempt with direct IP if available
+        try:
+            direct_endpoint = "http://0.0.0.0:3000/api/sync/pdfs"
+            logger.info(f"Trying direct endpoint: {direct_endpoint}")
+            direct_response = requests.post(
+                direct_endpoint,
+                json={"product_ids": [product_id]},
+                timeout=60
+            )
+            if direct_response.status_code == 200:
+                logger.info(f"Successfully triggered PDF sync using direct endpoint")
+                return True
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Direct attempt failed: {str(e)}")
+            
+        logger.error(f"All sync attempts failed for product ID {product_id}")
+        return False
             
     except Exception as e:
         logger.error(f"Error triggering PDF sync: {str(e)}")

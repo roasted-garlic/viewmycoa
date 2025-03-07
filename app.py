@@ -556,13 +556,17 @@ def create_product():
         if is_deployment:
             try:
                 # Import auto sync module
-                from auto_sync import trigger_image_sync
+                from auto_sync import trigger_image_sync, trigger_pdf_sync
                 # Trigger image sync in background (don't wait for response)
                 import threading
                 threading.Thread(target=trigger_image_sync, args=(product.id,)).start()
                 app.logger.info(f"Triggered image sync for new product ID {product.id}")
+                
+                # Also trigger PDF sync if needed (for existing PDFs that might have been imported)
+                threading.Thread(target=trigger_pdf_sync, args=(product.id,)).start()
+                app.logger.info(f"Triggered PDF sync for new product ID {product.id}")
             except Exception as sync_error:
-                app.logger.error(f"Error triggering image sync: {str(sync_error)}")
+                app.logger.error(f"Error triggering sync: {str(sync_error)}")
 
         flash('Product created successfully!', 'success')
         return redirect(url_for('product_detail', product_id=product.id))
@@ -770,8 +774,14 @@ def generate_pdf(product_id):
                     from auto_sync import trigger_pdf_sync
                     # Trigger PDF sync in background (don't wait for response)
                     import threading
-                    threading.Thread(target=trigger_pdf_sync, args=(product.id,)).start()
-                    app.logger.info(f"Triggered PDF sync for product ID {product.id}")
+                    # Use a small delay to ensure the file is fully written before sync
+                    def delayed_sync(product_id):
+                        import time
+                        time.sleep(1)  # Small delay to ensure file is saved completely
+                        trigger_pdf_sync(product_id)
+                        
+                    threading.Thread(target=delayed_sync, args=(product.id,)).start()
+                    app.logger.info(f"Scheduled PDF sync for product ID {product.id}")
                 except Exception as sync_error:
                     app.logger.error(f"Error triggering PDF sync: {str(sync_error)}")
 
@@ -1174,6 +1184,24 @@ def edit_product(product_id):
                     product.label_image = save_image(file, product.id, 'label_image')
 
             db.session.commit()
+            
+            # If this is running in production, trigger sync to development
+            is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
+            if is_deployment:
+                try:
+                    # Import auto sync module
+                    from auto_sync import trigger_image_sync, trigger_pdf_sync
+                    # Trigger image sync in background
+                    import threading
+                    threading.Thread(target=trigger_image_sync, args=(product.id,)).start()
+                    app.logger.info(f"Triggered image sync for updated product ID {product.id}")
+                    
+                    # Also trigger PDF sync for updated product
+                    threading.Thread(target=trigger_pdf_sync, args=(product.id,)).start()
+                    app.logger.info(f"Triggered PDF sync for updated product ID {product.id}")
+                except Exception as sync_error:
+                    app.logger.error(f"Error triggering sync: {str(sync_error)}")
+                    
             flash('Product updated successfully!', 'success')
             show_reminder = '?showSquareReminder=true' if product.square_catalog_id else ''
             return redirect(url_for('product_detail', product_id=product.id) + show_reminder)
