@@ -60,10 +60,24 @@ def sync_product_images(product_ids=None):
     Args:
         product_ids: Optional list of product IDs to sync. If None, syncs all products.
     """
+    # Skip sync in production environment - first safety check
+    if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
+        logger.warning("Attempting to run image sync in production environment - aborting")
+        return
+        
     from models import Product
     from app import app
 
     with app.app_context():
+        # Double-check the environment inside the app context - second safety check
+        if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
+            logger.warning("Attempting to run image sync in production environment - aborting")
+            return
+            
+        # Log the environment to make it clear
+        env_type = "PRODUCTION" if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1" else "DEVELOPMENT"
+        logger.info(f"Running in {env_type} environment")
+        
         # Query products
         query = Product.query
         if product_ids:
@@ -141,6 +155,7 @@ def sync_product_images(product_ids=None):
 def clean_orphaned_images(valid_image_paths):
     """
     Remove image files that exist in development but not in production.
+    Only runs in development environment.
     
     Args:
         valid_image_paths: Set of image paths that should be kept
@@ -148,6 +163,11 @@ def clean_orphaned_images(valid_image_paths):
     Returns:
         Number of files removed
     """
+    # Skip cleanup in production environment
+    if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
+        logger.info("Skipping orphaned image cleanup in production environment")
+        return 0
+        
     cleanup_count = 0
     uploads_dir = os.path.join('static', 'uploads')
     
@@ -174,9 +194,11 @@ def clean_orphaned_images(valid_image_paths):
             # Check if file is in our valid paths list
             if file_path not in valid_image_paths:
                 try:
-                    os.remove(file_path)
-                    logger.info(f"Removed orphaned image: {file_path}")
-                    cleanup_count += 1
+                    # Extra safety check to ensure we're in development
+                    if os.environ.get("REPLIT_DEPLOYMENT", "0") == "0":
+                        os.remove(file_path)
+                        logger.info(f"[DEV] Removed orphaned image: {file_path}")
+                        cleanup_count += 1
                 except OSError as e:
                     logger.error(f"Error removing orphaned image {file_path}: {str(e)}")
     

@@ -58,7 +58,21 @@ def sync_product_pdfs(product_ids=None):
     Args:
         product_ids: Optional list of product IDs to sync. If None, syncs all products.
     """
+    # Skip sync in production environment - first safety check
+    if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
+        logger.warning("Attempting to run PDF sync in production environment - aborting")
+        return
+    
     with app.app_context():
+        # Double-check the environment inside the app context - second safety check
+        if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
+            logger.warning("Attempting to run PDF sync in production environment - aborting")
+            return
+            
+        # Log the environment to make it clear
+        env_type = "PRODUCTION" if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1" else "DEVELOPMENT"
+        logger.info(f"Running in {env_type} environment")
+        
         # Query products
         query = Product.query
         if product_ids:
@@ -137,6 +151,7 @@ def sync_product_pdfs(product_ids=None):
 def clean_orphaned_pdfs(valid_pdf_paths):
     """
     Remove PDF files that exist in development but not in production.
+    Only runs in development environment.
     
     Args:
         valid_pdf_paths: Set of PDF paths that should be kept
@@ -144,6 +159,11 @@ def clean_orphaned_pdfs(valid_pdf_paths):
     Returns:
         Number of files removed
     """
+    # Skip cleanup in production environment
+    if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
+        logger.info("Skipping orphaned PDF cleanup in production environment")
+        return 0
+        
     cleanup_count = 0
     pdfs_dir = os.path.join('static', 'pdfs')
     
@@ -170,21 +190,24 @@ def clean_orphaned_pdfs(valid_pdf_paths):
             # Check if file is in our valid paths list
             if file_path not in valid_pdf_paths:
                 try:
-                    os.remove(file_path)
-                    logger.info(f"Removed orphaned PDF: {file_path}")
-                    cleanup_count += 1
+                    # Extra safety check to ensure we're in development
+                    if os.environ.get("REPLIT_DEPLOYMENT", "0") == "0":
+                        os.remove(file_path)
+                        logger.info(f"[DEV] Removed orphaned PDF: {file_path}")
+                        cleanup_count += 1
                 except OSError as e:
                     logger.error(f"Error removing orphaned PDF {file_path}: {str(e)}")
     
-    # Clean up empty batch directories
-    for batch_dir in os.listdir(pdfs_dir):
-        batch_path = os.path.join(pdfs_dir, batch_dir)
-        if os.path.isdir(batch_path) and not os.listdir(batch_path):
-            try:
-                os.rmdir(batch_path)
-                logger.info(f"Removed empty batch directory: {batch_path}")
-            except OSError as e:
-                logger.error(f"Error removing empty batch directory {batch_path}: {str(e)}")
+    # Clean up empty batch directories in development environment only
+    if os.environ.get("REPLIT_DEPLOYMENT", "0") == "0":
+        for batch_dir in os.listdir(pdfs_dir):
+            batch_path = os.path.join(pdfs_dir, batch_dir)
+            if os.path.isdir(batch_path) and not os.listdir(batch_path):
+                try:
+                    os.rmdir(batch_path)
+                    logger.info(f"[DEV] Removed empty batch directory: {batch_path}")
+                except OSError as e:
+                    logger.error(f"Error removing empty batch directory {batch_path}: {str(e)}")
     
     return cleanup_count
 
