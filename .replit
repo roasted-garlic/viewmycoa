@@ -1,10 +1,10 @@
-modules = ["python-3.11", "postgresql-16"]
+modules = ["python-3.11:v22-20240304-0f5edf4", "postgresql-16"]
 
 [nix]
-channel = "stable-24_05"
+channel = "stable-23_11"
 
 [workflows]
-runButton = "Project"
+runButton = "Flask Server"
 
 [[workflows.workflow]]
 name = "Flask Server"
@@ -18,7 +18,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "FLASK_APP=app.py flask db upgrade && python main.py"
+args = "python main.py"
 waitForPort = 5000
 
 [[workflows.workflow]]
@@ -31,8 +31,20 @@ task = "workflow.run"
 args = "Flask Server"
 
 [deployment]
-run = ["sh", "-c", "REPLIT_DEPLOYMENT=1 python main.py"]
+run = "python main.py"
+deploymentTarget = "cloudrun"
 
 [[ports]]
 localPort = 3000
 externalPort = 80
+
+[unitTest]
+language = "python3"
+
+[languages]
+
+[languages.python3]
+pattern = "**/*.py"
+
+[languages.python3.languageServer]
+start = "pylsp"

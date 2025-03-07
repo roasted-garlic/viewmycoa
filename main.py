@@ -126,6 +126,25 @@ def main():
             }
             logger.info(f"Production environment variables: {env_vars}")
         
+        # Run database migrations if needed
+        try:
+            from flask.cli import ScriptInfo
+            from flask_migrate import upgrade
+            
+            # Create a ScriptInfo object to create the Flask app
+            script_info = ScriptInfo(create_app=lambda: app)
+            
+            # Get the Flask app
+            flask_app = script_info.load_app()
+            
+            # Run migrations with app context
+            with flask_app.app_context():
+                upgrade()
+                logger.info("Database migrations completed successfully")
+        except Exception as e:
+            logger.error(f"Database migration error: {str(e)}")
+            logger.info("Continuing with application startup...")
+        
         # Run the Flask application
         app.run(
             host=host,
