@@ -40,6 +40,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (generateBatchBtn) {
         generateBatchBtn.addEventListener('click', generateBatchNumber);
     }
+    
+    // Make batch number input always uppercase
+    if (batchInput) {
+        batchInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+    }
 
     if (enableBatchEdit) {
         enableBatchEdit.addEventListener('change', function() {
@@ -118,6 +125,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (enableSkuEdit) {
         enableSkuEdit.addEventListener('change', function() {
             skuInput.readOnly = !this.checked;
+        });
+    }
+    
+    // Make SKU input always uppercase
+    if (skuInput) {
+        skuInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
         });
     }
     
