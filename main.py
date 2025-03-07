@@ -122,6 +122,7 @@ def main():
             logger.info("Development environment detected, running startup sync")
             import threading
             import time
+            import sys
             
             def delayed_startup_sync():
                 # Wait for app to initialize before running sync

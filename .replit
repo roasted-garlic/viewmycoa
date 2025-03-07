@@ -54,14 +54,6 @@ author = "agent"
 task = "shell.exec"
 args = "python startup_sync.py"
 
-[[workflows.workflow]]
-name = "Run Scheduled Sync"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python scheduled_sync.py 15"
-
 [deployment]
 run = ["sh", "-c", "REPLIT_DEPLOYMENT=1 python main.py"]
 
