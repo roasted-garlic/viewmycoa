@@ -46,22 +46,6 @@ author = 27469103
 task = "shell.exec"
 args = "python sync_pdfs.py"
 
-[[workflows.workflow]]
-name = "Sync All Images"
-author = 27469103
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python sync_images.py"
-
-[[workflows.workflow]]
-name = "Sync All PDFs"
-author = 27469103
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python sync_pdfs.py"
-
 [deployment]
 run = ["sh", "-c", "REPLIT_DEPLOYMENT=1 python main.py"]
 
