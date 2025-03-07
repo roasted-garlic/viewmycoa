@@ -9,9 +9,15 @@ logger = logging.getLogger(__name__)
 # Define is_deployment at module level so it's available globally
 is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
 
+# Set port for the application
+port = int(os.environ.get("PORT", 3000))
+
 def init_app():
     """Initialize the application"""
     try:
+        # Log deployment status
+        logger.info(f"Starting application in {'deployment' if is_deployment else 'development'} mode")
+        logger.info(f"Using port: {port}")
         
         # Get the workspace directory - this is where persistent storage should go
         # Using os.getcwd() ensures we're starting from the workspace root in both dev and prod
@@ -90,9 +96,9 @@ def main():
         # Initialize the application
         init_app()
 
-        # Configure host and port - always use port 3000 for consistency between dev and prod
+        # Configure host and port - use PORT env variable for deployment compatibility
         host = "0.0.0.0"  # Listen on all available interfaces
-        port = 3000  # Always use port 3000 for Replit compatibility
+        # port is now defined at module level and uses PORT environment variable
         
         # Check if we're in production mode
         is_production = os.getenv("REPLIT_DEPLOYMENT", "0") == "1"

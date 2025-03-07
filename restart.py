@@ -67,9 +67,13 @@ def restart_application():
         
         # Run the main script in background
         logger.info(f"Running main.py on port {port}...")
+        env = os.environ.copy()
+        # Ensure PORT environment variable is set
+        env["PORT"] = str(port)
         subprocess.Popen(["python", "main.py"], 
                         stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE)
+                        stderr=subprocess.PIPE,
+                        env=env)
         
         # Let the user know the application is restarting
         print("\n" + "="*50)
@@ -83,4 +87,4 @@ def restart_application():
         return False
 
 if __name__ == "__main__":
-    restart_application()
+    restart_application()()
