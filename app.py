@@ -770,15 +770,30 @@ def generate_pdf(product_id):
             is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
             if is_deployment:
                 try:
-                    # Import auto sync module
-                    from auto_sync import trigger_pdf_sync
-                    # Trigger PDF sync in background (don't wait for response)
+                    # Directly run the sync_pdfs.py script with the product ID
                     import threading
+                    import subprocess
+                    
                     # Use a small delay to ensure the file is fully written before sync
                     def delayed_sync(product_id):
                         import time
                         time.sleep(1)  # Small delay to ensure file is saved completely
-                        trigger_pdf_sync(product_id)
+                        
+                        # Use subprocess to directly run the sync_pdfs.py script
+                        try:
+                            app.logger.info(f"Running sync_pdfs.py with product ID: {product_id}")
+                            result = subprocess.run(
+                                [sys.executable, "sync_pdfs.py", str(product_id)],
+                                capture_output=True,
+                                text=True
+                            )
+                            if result.returncode == 0:
+                                app.logger.info(f"Successfully synced PDF for product ID {product_id}")
+                                app.logger.debug(f"Sync output: {result.stdout}")
+                            else:
+                                app.logger.error(f"PDF sync failed: {result.stderr}")
+                        except Exception as run_error:
+                            app.logger.error(f"Error running sync_pdfs.py: {str(run_error)}")
                         
                     threading.Thread(target=delayed_sync, args=(product.id,)).start()
                     app.logger.info(f"Scheduled PDF sync for product ID {product.id}")
