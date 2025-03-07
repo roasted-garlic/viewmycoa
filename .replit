@@ -47,12 +47,20 @@ task = "shell.exec"
 args = "python sync_pdfs.py"
 
 [[workflows.workflow]]
-name = "Sync Single Product"
+name = "Sync All Images"
 author = 27469103
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python -c 'import sys; prod_id = input(\"Enter product ID to sync: \"); from sync_images import sync_product_images; from sync_pdfs import sync_product_pdfs; print(f\"Syncing product ID {prod_id}...\"); sync_product_images([int(prod_id)]); sync_product_pdfs([int(prod_id)]); print(\"Sync complete.\")'"
+args = "python sync_images.py"
+
+[[workflows.workflow]]
+name = "Sync All PDFs"
+author = 27469103
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python sync_pdfs.py"
 
 [deployment]
 run = ["sh", "-c", "REPLIT_DEPLOYMENT=1 python main.py"]
