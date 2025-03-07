@@ -38,6 +38,14 @@ author = 27469103
 task = "shell.exec"
 args = "python sync_images.py"
 
+[[workflows.workflow]]
+name = "Sync PDFs"
+author = 27469103
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python sync_pdfs.py 100"
+
 [deployment]
 run = ["sh", "-c", "REPLIT_DEPLOYMENT=1 python main.py"]
 
