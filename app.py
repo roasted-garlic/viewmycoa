@@ -29,7 +29,7 @@ def load_user(user_id):
 
 # Configuration for secret key
 # IMPORTANT: For production deployment, set FLASK_SECRET_KEY environment variable
-if is_deployment and not os.environ.get("FLASK_SECRET_KEY"):
+if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1" and not os.environ.get("FLASK_SECRET_KEY"):
     app.logger.error("CRITICAL ERROR: FLASK_SECRET_KEY environment variable is required in deployment")
     sys.exit(1)
 
@@ -43,9 +43,6 @@ import sys
 # 1. DATABASE_URL environment variable 
 # 2. Constructed from individual PGUSER, PGPASSWORD, etc. variables
 # 3. Fallback to SQLite in any environment (including deployment) if no Postgres variables are set
-
-# Check if we're in deployment mode
-is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
 
 # First, try to get a complete database URL
 database_url = os.environ.get("DATABASE_URL")
@@ -63,20 +60,20 @@ env_vars = {
 app.logger.info(f"Database environment check: {env_vars}")
 
 # Handle deployment specially to ensure we detect and fix database issues
-if is_deployment:
+if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
     app.logger.warning("DEPLOYMENT MODE DETECTED - Checking database configuration...")
-    
+
     # If we're in deployment and database_url isn't set, we need to construct it 
     if not database_url:
         app.logger.warning("No DATABASE_URL found in deployment, constructing from individual variables")
-        
+
         # Make sure these individual variables are present
         pg_user = os.environ.get("PGUSER")
         pg_password = os.environ.get("PGPASSWORD")
         pg_host = os.environ.get("PGHOST") 
         pg_port = os.environ.get("PGPORT")
         pg_database = os.environ.get("PGDATABASE")
-        
+
         # Check if all PostgreSQL variables are set
         if pg_user and pg_password and pg_host and pg_port and pg_database:
             database_url = f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
@@ -89,14 +86,14 @@ if is_deployment:
             if not pg_host: missing_vars.append("PGHOST")
             if not pg_port: missing_vars.append("PGPORT")
             if not pg_database: missing_vars.append("PGDATABASE")
-            
+
             app.logger.error(f"CRITICAL ERROR: Missing required PostgreSQL environment variables: {', '.join(missing_vars)}")
             app.logger.error("These variables must be set in deployment secrets for successful deployment")
-            
+
             # Exit with error in deployment mode rather than falling back to SQLite
-            if is_deployment:
+            if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
                 sys.exit(1)
-            
+
             # Only fall back to SQLite in development
             database_url = "sqlite:///instance/database.db"
             app.logger.warning("Falling back to SQLite for development only")
@@ -143,24 +140,24 @@ app.config['DEFAULT_IMAGE'] = 'img/no-image.png'  # Default image to use when on
 def get_safe_image_path(image_path):
     """
     Returns a safe image path, checking if the file exists and falling back to default if not.
-    
+
     Args:
         image_path: Relative path to the image file (usually from database)
-        
+
     Returns:
         Safe path to use in templates (default image if original is missing)
     """
     if not image_path:
         # No image path provided, use default
         return app.config['DEFAULT_IMAGE']
-    
+
     # Check if we're in deployment or development
     is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
-    
+
     # Construct full path using workspace root to check if file exists
     workspace_root = os.getcwd()
     full_path = os.path.join(workspace_root, 'static', image_path)
-    
+
     if os.path.isfile(full_path):
         # File exists, return the correct relative path
         return image_path
@@ -171,7 +168,7 @@ def get_safe_image_path(image_path):
         app.logger.warning(f"Environment: {'Deployment' if is_deployment else 'Development'}")
         app.logger.warning(f"Working directory: {workspace_root}")
         app.logger.warning(f"Using default image: {app.config['DEFAULT_IMAGE']}")
-        
+
         # Attempt to create the directory if it doesn't exist
         # This helps when moving between environments
         try:
@@ -181,7 +178,7 @@ def get_safe_image_path(image_path):
                 app.logger.info(f"Created missing directory: {directory}")
         except Exception as e:
             app.logger.error(f"Error creating directory: {str(e)}")
-            
+
         return app.config['DEFAULT_IMAGE']
 
 @app.after_request
@@ -212,10 +209,10 @@ def serve_pdf(filename):
         app.logger.info(f"Found PDF file ({file_size} bytes)")
 
         download = request.args.get('download', '0') == '1'
-        
+
         # Use the relative path for send_from_directory
         relative_pdf_dir = os.path.join('static', 'pdfs')
-        
+
         app.logger.info(f"Serving PDF with download={download}")
         return send_from_directory(
             relative_pdf_dir, 
@@ -642,7 +639,7 @@ def generate_pdf(product_id):
         # Check if we're in development mode - use production URL for generated PDFs
         is_development = os.environ.get("REPLIT_DEPLOYMENT", "0") != "1"
         production_url = "https://viewmycoa.com"
-        
+
         # Add batch_url to each label's data
         if isinstance(final_data, dict):
             if "label_data" in final_data:
@@ -665,7 +662,7 @@ def generate_pdf(product_id):
                     batch_url = url_for('public_product_detail',
                                       batch_number=product.batch_number,
                                       _external=True)
-                    
+
                 final_data = {
                     "label_data": [{
                         **final_data,
@@ -752,7 +749,7 @@ def generate_pdf(product_id):
             pdf.pdf_url = url_for('serve_pdf', filename=os.path.join(product.batch_number, pdf_filename), _external=True)
             db.session.add(pdf)
             db.session.commit()
-            
+
             # If this is running in production, trigger sync to development
             is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
             if is_deployment:
@@ -766,7 +763,7 @@ def generate_pdf(product_id):
                 except Exception as sync_error:
                     app.logger.error(f"Error triggering PDF sync: {str(sync_error)}")
 
-        return jsonify({'success': True, 'pdf_url': pdf_url})
+        return jsonify({'success': True, 'pdf_url':pdf_url})
 
     except requests.exceptions.RequestException as e:
         app.logger.error(f"API request error: {str(e)}")
@@ -1113,7 +1110,7 @@ def edit_product(product_id):
                 if coa_pdf:
                     # Get workspace root for consistent path handling
                     workspace_root = os.getcwd()
-                    
+
                     # Delete old PDF if it exists
                     if product.coa_pdf:
                         try:
@@ -1124,22 +1121,22 @@ def edit_product(product_id):
                         except OSError as e:
                             app.logger.error(f"Failed to delete old PDF: {str(e)}")
                             pass
-                            
+
                     if coa_pdf.filename:
                         filename = secure_filename(coa_pdf.filename)
                         batch_dir = os.path.join('pdfs', product.batch_number)
                         filepath = os.path.join(batch_dir, filename)
-                        
+
                         # Create directory with absolute path
                         full_dir = os.path.join(workspace_root, 'static', batch_dir)
                         os.makedirs(full_dir, exist_ok=True)
                         app.logger.info(f"Created or verified directory: {full_dir}")
-                        
+
                         # Save file with absolute path
                         full_filepath = os.path.join(workspace_root, 'static', filepath)
                         app.logger.info(f"Saving PDF to: {full_filepath}")
                         coa_pdf.save(full_filepath)
-                        
+
                         # Verify file exists after saving
                         if os.path.exists(full_filepath):
                             app.logger.info(f"Successfully saved PDF: {full_filepath} ({os.path.getsize(full_filepath)} bytes)")
@@ -1285,7 +1282,7 @@ def delete_coa(product_id):
                 app.logger.info(f"Successfully deleted COA file")
             else:
                 app.logger.warning(f"COA file not found for deletion: {file_path}")
-                
+
             # Clear database reference
             product.coa_pdf = None
             db.session.commit()
@@ -1380,7 +1377,7 @@ def delete_product(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
         batch_number = product.batch_number
-        
+
         # Use absolute paths for file operations
         workspace_root = os.getcwd()
         product_dir_rel = os.path.join('static', 'uploads', str(product.id))
@@ -1447,7 +1444,7 @@ def generate_json(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
         settings = models.Settings.get_settings()
-        
+
         # Check if we're in development mode - use production URL for generated PDFs
         is_development = os.environ.get("REPLIT_DEPLOYMENT", "0") != "1"
         production_url = "https://viewmycoa.com"
@@ -1459,7 +1456,7 @@ def generate_json(product_id):
             "barcode": product.barcode,
             "product_name": product.title,
         }
-        
+
         # Use production URLs when in development, or normal URLs in production
         if is_development and product.label_image:
             # Use production URL for images in development
@@ -1525,12 +1522,12 @@ def sync_single_product(product_id):
 def save_image(file, product_id, image_type):
     """
     Save an uploaded image file for a product with improved cross-environment compatibility.
-    
+
     Args:
         file: The uploaded file object
         product_id: The product ID to associate with this image
         image_type: Type of image (product_image, label_image, etc.)
-        
+
     Returns:
         The relative path to the saved image
     """
@@ -1538,7 +1535,7 @@ def save_image(file, product_id, image_type):
         # Check if we're in deployment or development - useful for logging
         is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
         app.logger.info(f"Saving image in {'deployment' if is_deployment else 'development'} environment")
-        
+
         # If this is running in production, trigger sync to development
         if is_deployment:
             try:
@@ -1550,15 +1547,15 @@ def save_image(file, product_id, image_type):
                 app.logger.info(f"Triggered image sync for product ID {product_id}")
             except Exception as sync_error:
                 app.logger.error(f"Error triggering image sync: {str(sync_error)}")
-        
+
         # Use absolute path with workspace root for consistency
         workspace_root = os.getcwd()
-        
+
         # Create product-specific directory 
         product_dir = os.path.join('uploads', str(product_id))
         relative_dir = os.path.join('static', product_dir)
         full_dir = os.path.join(workspace_root, relative_dir)
-        
+
         # Make sure directory exists
         try:
             os.makedirs(full_dir, exist_ok=True)
@@ -1566,7 +1563,7 @@ def save_image(file, product_id, image_type):
         except Exception as dir_error:
             app.logger.error(f"Failed to create directory {full_dir}: {str(dir_error)}")
             # Try to continue anyway
-        
+
         # Get file extension with validation
         orig_filename = secure_filename(file.filename)
         if not orig_filename:
@@ -1576,43 +1573,43 @@ def save_image(file, product_id, image_type):
             ext = os.path.splitext(orig_filename)[1].lower()
             if not ext:
                 ext = '.png'  # Default to png if no extension
-            
+
             # Ensure we have a valid extension for web images
             valid_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
             if ext.lower() not in valid_extensions:
                 ext = '.png'  # Default to PNG for unsupported formats
-        
+
         # IMPORTANT CHANGE: Use a completely deterministic filename that will be the same
         # in both production and development for the same product
         # Remove any timestamp or random components that would make filenames differ
         filename = f"{image_type}_{product_id}{ext}"
         filepath = os.path.join(product_dir, filename)
         full_filepath = os.path.join(workspace_root, 'static', filepath)
-        
+
         # Process and save image
         img = Image.open(file)
-        
+
         # Resize to reasonable dimensions to save space and ensure consistency
         img.thumbnail((800, 800))  # Consistent size across environments
-        
+
         # Ensure the image is in a web-friendly format
         if img.mode not in ('RGB', 'RGBA'):
             img = img.convert('RGBA')
-            
+
         # Log before saving
         app.logger.info(f"Saving image to: {full_filepath}")
-        
+
         # Save with explicit format
         format_type = 'PNG' if ext.lower() == '.png' else 'JPEG'
         img.save(full_filepath, format=format_type, quality=85)  # Consistent quality
-        
+
         # Verify file exists after saving
         if os.path.exists(full_filepath):
             app.logger.info(f"Successfully saved image: {full_filepath} ({os.path.getsize(full_filepath)} bytes)")
         else:
             app.logger.error(f"Failed to save image: {full_filepath} does not exist after save operation")
             return 'img/no-image.png'
-        
+
         # Return path relative to static directory for proper URL generation
         return filepath
     except Exception as e:
@@ -1682,20 +1679,20 @@ def sync_images_api():
     try:
         data = request.get_json()
         product_ids = data.get('product_ids', [])
-        
+
         if not product_ids:
             return jsonify({'error': 'No product IDs provided'}), 400
-            
+
         app.logger.info(f"API request to sync images for product IDs: {product_ids}")
-        
+
         # Import here to avoid circular import
         from sync_images import sync_product_images
-        
+
         # Execute sync for specified products only
         sync_product_images(product_ids)
-        
+
         return jsonify({'success': True, 'message': f'Synced images for product IDs: {product_ids}'})
-    
+
     except Exception as e:
         app.logger.error(f"Error in sync images API: {str(e)}")
         return jsonify({'error': str(e)}), 500
@@ -1709,20 +1706,20 @@ def sync_pdfs_api():
     try:
         data = request.get_json()
         product_ids = data.get('product_ids', [])
-        
+
         if not product_ids:
             return jsonify({'error': 'No product IDs provided'}), 400
-            
+
         app.logger.info(f"API request to sync PDFs for product IDs: {product_ids}")
-        
+
         # Import here to avoid circular import
         from sync_pdfs import sync_product_pdfs
-        
+
         # Execute sync for specified products only
         sync_product_pdfs(product_ids)
-        
+
         return jsonify({'success': True, 'message': f'Synced PDFs for product IDs: {product_ids}'})
-    
+
     except Exception as e:
         app.logger.error(f"Error in sync PDFs API: {str(e)}")
         return jsonify({'error': str(e)}), 500

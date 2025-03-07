@@ -92,7 +92,7 @@ def main():
 
         # Configure host and port - always use port 3000 for consistency between dev and prod
         host = "0.0.0.0"  # Listen on all available interfaces
-        port = int(os.getenv("PORT", 3000))  # Always default to 3000 for Replit compatibility
+        port = 3000  # Always use port 3000 for Replit compatibility
         
         # Check if we're in production mode
         is_production = os.getenv("REPLIT_DEPLOYMENT", "0") == "1"
