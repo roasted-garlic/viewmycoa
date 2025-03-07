@@ -19,6 +19,25 @@ def init_app():
         logger.info(f"Starting application in {'deployment' if is_deployment else 'development'} mode")
         logger.info(f"Using port: {port}")
         
+        # Check for required environment variables in deployment mode
+        if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
+            missing_vars = []
+            if not os.environ.get("FLASK_SECRET_KEY"):
+                missing_vars.append("FLASK_SECRET_KEY")
+            
+            # Check database configuration
+            if not os.environ.get("DATABASE_URL"):
+                # Check individual PostgreSQL variables
+                pg_vars = ["PGUSER", "PGPASSWORD", "PGHOST", "PGPORT", "PGDATABASE"]
+                missing_pg_vars = [var for var in pg_vars if not os.environ.get(var)]
+                if missing_pg_vars:
+                    missing_vars.extend(missing_pg_vars)
+            
+            if missing_vars:
+                logger.error(f"Missing required environment variables: {', '.join(missing_vars)}")
+                logger.error("Please set these variables in your deployment configuration.")
+                logger.error("Refer to DEPLOYMENT.md for required variables and setup instructions.")
+        
         # Get the workspace directory - this is where persistent storage should go
         # Using os.getcwd() ensures we're starting from the workspace root in both dev and prod
         workspace_dir = os.getcwd()

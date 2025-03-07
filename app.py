@@ -78,6 +78,18 @@ if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
             database_url = f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
             app.logger.info("Successfully constructed PostgreSQL URL from environment variables")
         else:
+            # In deployment mode, log error with detailed missing variable information
+            if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
+                missing_vars = []
+                if not pg_user: missing_vars.append("PGUSER")
+                if not pg_password: missing_vars.append("PGPASSWORD")
+                if not pg_host: missing_vars.append("PGHOST")
+                if not pg_port: missing_vars.append("PGPORT")
+                if not pg_database: missing_vars.append("PGDATABASE")
+                
+                app.logger.error(f"CRITICAL ERROR in deployment: Missing PostgreSQL variables: {', '.join(missing_vars)}")
+                app.logger.error("These must be set in your deployment secrets. See DEPLOYMENT.md for details.")
+        else:
             # Missing variables - this will cause deployment to fail
             missing_vars = []
             if not pg_user: missing_vars.append("PGUSER")
