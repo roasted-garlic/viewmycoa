@@ -549,8 +549,20 @@ def create_product():
             if category:
                 product.categories = [category]
 
-        db.session.add(product)
         db.session.commit()
+
+        # If this is running in production, trigger sync to development
+        is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
+        if is_deployment:
+            try:
+                # Import auto sync module
+                from auto_sync import trigger_image_sync
+                # Trigger image sync in background (don't wait for response)
+                import threading
+                threading.Thread(target=trigger_image_sync, args=(product.id,)).start()
+                app.logger.info(f"Triggered image sync for new product ID {product.id}")
+            except Exception as sync_error:
+                app.logger.error(f"Error triggering image sync: {str(sync_error)}")
 
         flash('Product created successfully!', 'success')
         return redirect(url_for('product_detail', product_id=product.id))
@@ -751,7 +763,7 @@ def generate_pdf(product_id):
             db.session.commit()
 
             # If this is running in production, trigger sync to development
-            is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
+            is_deployment = os.environ.get(""REPLIT_DEPLOYMENT", "0") == "1"
             if is_deployment:
                 try:
                     # Import auto sync module

@@ -2,6 +2,7 @@
 import os
 import requests
 import logging
+import traceback
 from flask import url_for
 from models import Product, db, GeneratedPDF
 
@@ -12,7 +13,7 @@ logger = logging.getLogger("AutoSync")
 
 # Define the base URL of your development site
 # This should be your Replit development URL
-DEV_ENDPOINT = "https://repl-viewmycoa.replit.app"  # Make sure this matches your Replit URL
+DEV_ENDPOINT = "https://viewmycoa.replit.app"  # Updated to match your actual Replit URL
 
 def trigger_image_sync(product_id):
     """
@@ -24,11 +25,16 @@ def trigger_image_sync(product_id):
         logger.info(f"Triggering image sync for product ID: {product_id}")
         
         # Make request to development server sync endpoint
+        endpoint = f"{DEV_ENDPOINT}/api/sync/images"
+        logger.info(f"Sending request to endpoint: {endpoint}")
+        
         response = requests.post(
-            f"{DEV_ENDPOINT}/api/sync/images", 
+            endpoint, 
             json={"product_ids": [product_id]},
-            timeout=10
+            timeout=30  # Extended timeout for slower connections
         )
+        
+        logger.info(f"Response status code: {response.status_code}")
         
         if response.status_code == 200:
             logger.info(f"Successfully triggered image sync for product ID {product_id}")
@@ -36,10 +42,23 @@ def trigger_image_sync(product_id):
         else:
             logger.error(f"Failed to trigger image sync. Status code: {response.status_code}")
             logger.error(f"Response: {response.text}")
+            # Try another attempt with a different protocol if https fails
+            if "https" in DEV_ENDPOINT:
+                alt_endpoint = DEV_ENDPOINT.replace("https", "http")
+                logger.info(f"Trying alternative endpoint: {alt_endpoint}/api/sync/images")
+                alt_response = requests.post(
+                    f"{alt_endpoint}/api/sync/images",
+                    json={"product_ids": [product_id]},
+                    timeout=30
+                )
+                if alt_response.status_code == 200:
+                    logger.info(f"Successfully triggered image sync using alternative endpoint")
+                    return True
             return False
             
     except Exception as e:
         logger.error(f"Error triggering image sync: {str(e)}")
+        logger.error(f"Stack trace: {traceback.format_exc()}")
         return False
 
 def trigger_pdf_sync(product_id):
@@ -52,11 +71,16 @@ def trigger_pdf_sync(product_id):
         logger.info(f"Triggering PDF sync for product ID: {product_id}")
         
         # Make request to development server sync endpoint
+        endpoint = f"{DEV_ENDPOINT}/api/sync/pdfs"
+        logger.info(f"Sending request to endpoint: {endpoint}")
+        
         response = requests.post(
-            f"{DEV_ENDPOINT}/api/sync/pdfs", 
+            endpoint, 
             json={"product_ids": [product_id]},
-            timeout=10
+            timeout=30  # Extended timeout for PDF transfer
         )
+        
+        logger.info(f"Response status code: {response.status_code}")
         
         if response.status_code == 200:
             logger.info(f"Successfully triggered PDF sync for product ID {product_id}")
@@ -64,8 +88,23 @@ def trigger_pdf_sync(product_id):
         else:
             logger.error(f"Failed to trigger PDF sync. Status code: {response.status_code}")
             logger.error(f"Response: {response.text}")
+            # Try another attempt with a different protocol if https fails
+            if "https" in DEV_ENDPOINT:
+                alt_endpoint = DEV_ENDPOINT.replace("https", "http")
+                logger.info(f"Trying alternative endpoint: {alt_endpoint}/api/sync/pdfs")
+                alt_response = requests.post(
+                    f"{alt_endpoint}/api/sync/pdfs",
+                    json={"product_ids": [product_id]},
+                    timeout=30
+                )
+                if alt_response.status_code == 200:
+                    logger.info(f"Successfully triggered PDF sync using alternative endpoint")
+                    return True
             return False
             
     except Exception as e:
         logger.error(f"Error triggering PDF sync: {str(e)}")
+        # Add traceback for better debugging
+        import traceback
+        logger.error(f"Stack trace: {traceback.format_exc()}")
         return False
