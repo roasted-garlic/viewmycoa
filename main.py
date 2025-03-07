@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 # Define is_deployment at module level so it's available globally
 is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
 
-# Set port for the application
-port = int(os.environ.get("PORT", 3000))
+# Set port for the application - always respect PORT env variable
+port = int(os.environ.get("PORT", 5000))
 
 def init_app():
     """Initialize the application"""
@@ -117,8 +117,8 @@ def main():
 
         # Configure host and port - use PORT env variable for deployment compatibility
         host = "0.0.0.0"  # Listen on all available interfaces
-        # Always use port 3000 for consistency between development and production
-        port = 3000
+        # Use port from environment variable (already set at module level)
+        # This ensures we respect the PORT variable set in the command
         
         # Check if we're in production mode
         is_production = os.getenv("REPLIT_DEPLOYMENT", "0") == "1"
@@ -148,12 +148,31 @@ def main():
                 import sys
                 
                 def delayed_startup_sync():
+                    """Run startup sync with protection against duplicate runs"""
                     # Wait for app to initialize before running sync
                     time.sleep(5)
+                    
                     try:
+                        # Run sync using the improved startup_sync.py script
+                        # which handles its own locking mechanism
                         import subprocess
                         logger.info("Starting background sync on development startup")
-                        subprocess.Popen([sys.executable, "startup_sync.py"])
+                        result = subprocess.run(
+                            [sys.executable, "startup_sync.py"],
+                            capture_output=True,
+                            text=True,
+                            timeout=300  # 5 minute timeout
+                        )
+                        
+                        if result.returncode == 0:
+                            logger.info("Startup sync completed successfully")
+                        else:
+                            logger.error(f"Startup sync failed (code {result.returncode})")
+                            if result.stderr:
+                                for line in result.stderr.splitlines():
+                                    logger.error(f"  {line.strip()}")
+                    except subprocess.TimeoutExpired:
+                        logger.error("Startup sync timed out after 5 minutes")
                     except Exception as e:
                         logger.error(f"Error launching startup sync: {str(e)}")
                 

@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger("AutoSync")
 
 # Define endpoints
-DEV_ENDPOINT = "http://localhost:3000"  # Development server endpoint
+DEV_ENDPOINT = "http://localhost:5000"  # Development server endpoint
 
 def trigger_image_sync(product_id):
     """

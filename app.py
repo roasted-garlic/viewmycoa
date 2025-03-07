@@ -1744,8 +1744,14 @@ def sync_images_api():
     """
     API endpoint to sync images for specific product IDs
     Expects a JSON payload with 'product_ids' as a list of ints
+    Only functions in development environment
     """
     try:
+        # First check if we're in production - if so, this endpoint shouldn't do anything
+        if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
+            app.logger.warning("Image sync API endpoint called in production environment - not performing any sync operations")
+            return jsonify({'success': False, 'message': 'Sync operations are disabled in production environment'}), 403
+            
         data = request.get_json()
         product_ids = data.get('product_ids', [])
 
@@ -1757,7 +1763,7 @@ def sync_images_api():
         # Import here to avoid circular import
         from sync_images import sync_product_images
 
-        # Execute sync for specified products only
+        # Execute sync for specified products only - this will download from production to development
         sync_product_images(product_ids)
 
         return jsonify({'success': True, 'message': f'Synced images for product IDs: {product_ids}'})
@@ -1771,8 +1777,14 @@ def sync_pdfs_api():
     """
     API endpoint to sync PDFs for specific product IDs
     Expects a JSON payload with 'product_ids' as a list of ints
+    Only functions in development environment
     """
     try:
+        # First check if we're in production - if so, this endpoint shouldn't do anything
+        if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
+            app.logger.warning("PDF sync API endpoint called in production environment - not performing any sync operations")
+            return jsonify({'success': False, 'message': 'Sync operations are disabled in production environment'}), 403
+            
         data = request.get_json()
         product_ids = data.get('product_ids', [])
 
@@ -1784,7 +1796,7 @@ def sync_pdfs_api():
         # Import here to avoid circular import
         from sync_pdfs import sync_product_pdfs
 
-        # Execute sync for specified products only
+        # Execute sync for specified products only - this will download from production to development
         sync_product_pdfs(product_ids)
 
         return jsonify({'success': True, 'message': f'Synced PDFs for product IDs: {product_ids}'})

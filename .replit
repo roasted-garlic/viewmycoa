@@ -18,7 +18,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "FLASK_APP=app.py flask db upgrade && python main.py"
+args = "FLASK_APP=app.py PORT=5000 flask db upgrade && PORT=5000 python main.py"
 waitForPort = 5000
 
 [[workflows.workflow]]
@@ -29,6 +29,10 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "Flask Server"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Run Manual Sync"
 
 [[workflows.workflow]]
 name = "Sync Images"
@@ -50,9 +54,15 @@ args = "python sync_pdfs.py"
 name = "Run Manual Sync"
 author = "agent"
 
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python startup_sync.py"
+args = "python startup_sync.py --debug"
 
 [deployment]
 run = ["sh", "-c", "REPLIT_DEPLOYMENT=1 python main.py"]
@@ -60,3 +70,7 @@ run = ["sh", "-c", "REPLIT_DEPLOYMENT=1 python main.py"]
 [[ports]]
 localPort = 3000
 externalPort = 80
+
+[[ports]]
+localPort = 5000
+externalPort = 5000
