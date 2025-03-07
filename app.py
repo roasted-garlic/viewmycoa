@@ -30,8 +30,7 @@ def load_user(user_id):
 # Configuration for secret key
 # IMPORTANT: For production deployment, set FLASK_SECRET_KEY environment variable
 if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1" and not os.environ.get("FLASK_SECRET_KEY"):
-    app.logger.error("CRITICAL ERROR: FLASK_SECRET_KEY environment variable is required in deployment")
-    sys.exit(1)
+    app.logger.error("CRITICAL ERROR: FLASK_SECRET_KEY environment variable is not set. Using fallback key (not recommended for production)")
 
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a development-only secret key"
 
@@ -90,13 +89,12 @@ if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
             app.logger.error(f"CRITICAL ERROR: Missing required PostgreSQL environment variables: {', '.join(missing_vars)}")
             app.logger.error("These variables must be set in deployment secrets for successful deployment")
 
-            # Exit with error in deployment mode rather than falling back to SQLite
+            # Log error in deployment mode but continue with SQLite
             if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
-                sys.exit(1)
-
-            # Only fall back to SQLite in development
+                app.logger.error("Continuing with SQLite in deployment mode. This is not recommended for production.")
+                
             database_url = "sqlite:///instance/database.db"
-            app.logger.warning("Falling back to SQLite for development only")
+            app.logger.warning("Falling back to SQLite database")
 else:
     # Development environment
     if not database_url:

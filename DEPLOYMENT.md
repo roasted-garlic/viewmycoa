@@ -30,9 +30,11 @@ For full functionality, you may need:
 
 ## Deployment Steps
 
-1. Set the recommended environment variables in your Replit deployment settings
+1. Set the following REQUIRED environment variables in your Replit deployment settings:
+   - `FLASK_SECRET_KEY`: A secure random string for session encryption
+   - Either set `DATABASE_URL` or all of these PostgreSQL variables: `PGDATABASE`, `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`
 2. Click the Deploy button in Replit
-3. The application will automatically configure itself with sensible defaults for any missing variables
+3. Check logs to ensure all variables are properly configured
 
 ## Verifying the Deployment
 
