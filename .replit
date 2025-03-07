@@ -44,7 +44,7 @@ author = 27469103
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python sync_pdfs.py 100"
+args = "python sync_pdfs.py"
 
 [[workflows.workflow]]
 name = "Sync Single Product"
