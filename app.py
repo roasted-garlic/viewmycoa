@@ -756,11 +756,15 @@ def generate_pdf(product_id):
             with open(pdf_filepath, 'wb') as f:
                 f.write(pdf_response.content)
 
-            # Create PDF record
+            # Create PDF record with consistent URL structure
             pdf = models.GeneratedPDF()
             pdf.product_id = product.id
             pdf.filename = pdf_filename
-            pdf.pdf_url = url_for('serve_pdf', filename=os.path.join(product.batch_number, pdf_filename), _external=True)
+            
+            # Always use production URL for PDFs, regardless of environment
+            production_url = "https://viewmycoa.com"
+            pdf.pdf_url = f"{production_url}/static/pdfs/{product.batch_number}/{pdf_filename}"
+            
             db.session.add(pdf)
             db.session.commit()
 
