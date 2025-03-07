@@ -67,6 +67,9 @@ def sync_product_pdfs(product_ids=None):
         products = query.all()
         logger.info(f"Found {len(products)} products to process")
 
+        # Track valid PDF paths to use for cleanup later
+        valid_pdf_paths = set()
+        
         success_count = 0
         for product in products:
             product_id = product.id
@@ -83,6 +86,9 @@ def sync_product_pdfs(product_ids=None):
                     
                     save_path = os.path.join(batch_dir, pdf.filename)
                     
+                    # Track this as a valid PDF path
+                    valid_pdf_paths.add(save_path)
+                    
                     # Only download if file doesn't exist locally
                     if not os.path.exists(save_path):
                         # Construct URL based on filename structure - add missing slash
@@ -93,9 +99,94 @@ def sync_product_pdfs(product_ids=None):
                     else:
                         logger.info(f"PDF already exists locally: {save_path}")
 
+            # Also check batch history for PDFs
+            from models import BatchHistory
+            batch_histories = BatchHistory.query.filter_by(product_id=product_id).all()
+            for history in batch_histories:
+                history_batch = history.batch_number
+                history_pdfs = GeneratedPDF.query.filter_by(batch_history_id=history.id).all()
+                
+                for pdf in history_pdfs:
+                    if pdf.filename:
+                        # Handle historical PDFs
+                        batch_dir = os.path.join('static', 'pdfs', history_batch)
+                        ensure_dir_exists(batch_dir)
+                        
+                        save_path = os.path.join(batch_dir, pdf.filename)
+                        
+                        # Track this as a valid PDF path
+                        valid_pdf_paths.add(save_path)
+                        
+                        # Only download if file doesn't exist locally
+                        if not os.path.exists(save_path):
+                            pdf_url = f"{PRODUCTION_URL}/static/pdfs/{history_batch}/{pdf.filename}"
+                            logger.info(f"Downloading historical PDF: {pdf_url}")
+                            if download_pdf(pdf_url, save_path):
+                                success_count += 1
+                        else:
+                            logger.info(f"Historical PDF already exists locally: {save_path}")
+
+        # Clean up orphaned PDFs
+        cleanup_count = clean_orphaned_pdfs(valid_pdf_paths)
+
         logger.info(
-            f"PDF sync complete. Successfully downloaded {success_count} PDFs."
+            f"PDF sync complete. Downloaded {success_count} PDFs, removed {cleanup_count} orphaned PDFs."
         )
+
+
+def clean_orphaned_pdfs(valid_pdf_paths):
+    """
+    Remove PDF files that exist in development but not in production.
+    
+    Args:
+        valid_pdf_paths: Set of PDF paths that should be kept
+        
+    Returns:
+        Number of files removed
+    """
+    cleanup_count = 0
+    pdfs_dir = os.path.join('static', 'pdfs')
+    
+    # Only clean if PDFs directory exists
+    if not os.path.exists(pdfs_dir):
+        return 0
+        
+    # Iterate through batch directories
+    for batch_dir in os.listdir(pdfs_dir):
+        batch_path = os.path.join(pdfs_dir, batch_dir)
+        
+        # Skip if not a directory
+        if not os.path.isdir(batch_path):
+            continue
+            
+        # Check each file in the batch directory
+        for filename in os.listdir(batch_path):
+            file_path = os.path.join(batch_path, filename)
+            
+            # Skip directories
+            if os.path.isdir(file_path):
+                continue
+                
+            # Check if file is in our valid paths list
+            if file_path not in valid_pdf_paths:
+                try:
+                    os.remove(file_path)
+                    logger.info(f"Removed orphaned PDF: {file_path}")
+                    cleanup_count += 1
+                except OSError as e:
+                    logger.error(f"Error removing orphaned PDF {file_path}: {str(e)}")
+    
+    # Clean up empty batch directories
+    for batch_dir in os.listdir(pdfs_dir):
+        batch_path = os.path.join(pdfs_dir, batch_dir)
+        if os.path.isdir(batch_path) and not os.listdir(batch_path):
+            try:
+                os.rmdir(batch_path)
+                logger.info(f"Removed empty batch directory: {batch_path}")
+            except OSError as e:
+                logger.error(f"Error removing empty batch directory {batch_path}: {str(e)}")
+    
+    return cleanup_count
 
 
 if __name__ == "__main__":

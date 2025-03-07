@@ -72,6 +72,9 @@ def sync_product_images(product_ids=None):
         products = query.all()
         logger.info(f"Found {len(products)} products to process")
 
+        # Track valid image paths to use for cleanup later
+        valid_image_paths = set()
+        
         success_count = 0
         for product in products:
             product_id = product.id
@@ -86,6 +89,9 @@ def sync_product_images(product_ids=None):
                 # Get image filename from path
                 filename = os.path.basename(product.product_image)
                 save_path = os.path.join(product_dir, filename)
+                
+                # Keep track of this valid image
+                valid_image_paths.add(save_path)
 
                 # Only download if file doesn't exist locally
                 if not os.path.exists(save_path):
@@ -109,6 +115,9 @@ def sync_product_images(product_ids=None):
                 # Get image filename from path
                 filename = os.path.basename(product.label_image)
                 save_path = os.path.join(product_dir, filename)
+                
+                # Keep track of this valid image
+                valid_image_paths.add(save_path)
 
                 # Only download if file doesn't exist locally
                 if not os.path.exists(save_path):
@@ -121,10 +130,57 @@ def sync_product_images(product_ids=None):
                 else:
                     logger.info(
                         f"Label image already exists locally: {save_path}")
+        
+        # Clean up orphaned images
+        cleanup_count = clean_orphaned_images(valid_image_paths)
 
         logger.info(
-            f"Image sync complete. Successfully downloaded {success_count} images."
+            f"Image sync complete. Downloaded {success_count} images, removed {cleanup_count} orphaned images."
         )
+
+def clean_orphaned_images(valid_image_paths):
+    """
+    Remove image files that exist in development but not in production.
+    
+    Args:
+        valid_image_paths: Set of image paths that should be kept
+        
+    Returns:
+        Number of files removed
+    """
+    cleanup_count = 0
+    uploads_dir = os.path.join('static', 'uploads')
+    
+    # Only clean if uploads directory exists
+    if not os.path.exists(uploads_dir):
+        return 0
+        
+    # Iterate through product directories
+    for product_dir in os.listdir(uploads_dir):
+        product_path = os.path.join(uploads_dir, product_dir)
+        
+        # Skip if not a directory or not a product ID directory
+        if not os.path.isdir(product_path) or not product_dir.isdigit():
+            continue
+            
+        # Check each file in the product directory
+        for filename in os.listdir(product_path):
+            file_path = os.path.join(product_path, filename)
+            
+            # Skip directories
+            if os.path.isdir(file_path):
+                continue
+                
+            # Check if file is in our valid paths list
+            if file_path not in valid_image_paths:
+                try:
+                    os.remove(file_path)
+                    logger.info(f"Removed orphaned image: {file_path}")
+                    cleanup_count += 1
+                except OSError as e:
+                    logger.error(f"Error removing orphaned image {file_path}: {str(e)}")
+    
+    return cleanup_count
 
 
 if __name__ == "__main__":

@@ -24,7 +24,7 @@ def run_startup_sync():
         time.sleep(3)
         
         # Run image sync
-        logger.info("Running image sync...")
+        logger.info("Running image sync (download new, remove deleted)...")
         img_result = subprocess.run(
             [sys.executable, "sync_images.py"],
             capture_output=True,
@@ -32,6 +32,10 @@ def run_startup_sync():
         )
         if img_result.returncode == 0:
             logger.info("Image sync completed successfully")
+            # Log details from image sync output
+            for line in img_result.stdout.splitlines():
+                if "Downloaded" in line or "orphaned" in line:
+                    logger.info(f"  {line.strip()}")
         else:
             logger.error(f"Image sync failed: {img_result.stderr}")
             
@@ -39,7 +43,7 @@ def run_startup_sync():
         time.sleep(2)
         
         # Run PDF sync
-        logger.info("Running PDF sync...")
+        logger.info("Running PDF sync (download new, remove deleted)...")
         pdf_result = subprocess.run(
             [sys.executable, "sync_pdfs.py"],
             capture_output=True,
@@ -47,6 +51,10 @@ def run_startup_sync():
         )
         if pdf_result.returncode == 0:
             logger.info("PDF sync completed successfully")
+            # Log details from PDF sync output
+            for line in pdf_result.stdout.splitlines():
+                if "Downloaded" in line or "orphaned" in line:
+                    logger.info(f"  {line.strip()}")
         else:
             logger.error(f"PDF sync failed: {pdf_result.stderr}")
             
@@ -54,6 +62,8 @@ def run_startup_sync():
         
     except Exception as e:
         logger.error(f"Error during startup sync: {str(e)}")
+        import traceback
+        logger.error(f"Stack trace: {traceback.format_exc()}")
 
 if __name__ == "__main__":
     run_startup_sync()
