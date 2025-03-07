@@ -68,9 +68,5 @@ args = "python startup_sync.py --debug"
 run = ["sh", "-c", "REPLIT_DEPLOYMENT=1 python main.py"]
 
 [[ports]]
-localPort = 3000
-externalPort = 80
-
-[[ports]]
 localPort = 5000
-externalPort = 5000
+externalPort = 80
