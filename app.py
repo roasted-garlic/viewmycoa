@@ -628,20 +628,37 @@ def generate_pdf(product_id):
         else:
             final_data = label_data
 
+        # Check if we're in development mode - use production URL for generated PDFs
+        is_development = os.environ.get("REPLIT_DEPLOYMENT", "0") != "1"
+        production_url = "https://viewmycoa.com"
+        
         # Add batch_url to each label's data
         if isinstance(final_data, dict):
             if "label_data" in final_data:
                 for label in final_data["label_data"]:
-                    label["batch_url"] = url_for('public_product_detail',
-                                                 batch_number=product.batch_number,
-                                                 _external=True)
+                    # Use production URLs in development, normal URLs in production
+                    if is_development:
+                        label["batch_url"] = f"{production_url}/batch/{product.batch_number}"
+                        if product.label_image and "label_image" in label:
+                            label["label_image"] = f"{production_url}/static/{product.label_image}"
+                    else:
+                        label["batch_url"] = url_for('public_product_detail',
+                                                   batch_number=product.batch_number,
+                                                   _external=True)
             else:
+                if is_development:
+                    batch_url = f"{production_url}/batch/{product.batch_number}"
+                    if product.label_image and "label_image" in final_data:
+                        final_data["label_image"] = f"{production_url}/static/{product.label_image}"
+                else:
+                    batch_url = url_for('public_product_detail',
+                                      batch_number=product.batch_number,
+                                      _external=True)
+                    
                 final_data = {
                     "label_data": [{
                         **final_data,
-                        "batch_url": url_for('public_product_detail',
-                                             batch_number=product.batch_number,
-                                             _external=True)
+                        "batch_url": batch_url
                     }]
                 }
 
@@ -1162,6 +1179,7 @@ def inject_settings():
     return {
         'settings': models.Settings.get_settings(),
         'get_safe_image_path': get_safe_image_path,
+        'is_production': os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
     }
 
 @app.route('/vmc-admin/settings', methods=['GET', 'POST'])
@@ -1417,25 +1435,33 @@ def delete_product(product_id):
 def generate_json(product_id):
     try:
         product = models.Product.query.get_or_404(product_id)
+        settings = models.Settings.get_settings()
+        
+        # Check if we're in development mode - use production URL for generated PDFs
+        is_development = os.environ.get("REPLIT_DEPLOYMENT", "0") != "1"
+        production_url = "https://viewmycoa.com"
 
         # Create base label data structure
         label_data = {
-            "batch_lot":
-            product.batch_number,
-            "sku":
-            product.sku,
-            "barcode":
-            product.barcode,
-            "product_name":
-            product.title,
-            "label_image":
-            url_for('static', filename=product.label_image, _external=True)
-            if product.label_image else None,
-            "batch_url":
-            url_for('public_product_detail',
-                    batch_number=product.batch_number,
-                    _external=True)
+            "batch_lot": product.batch_number,
+            "sku": product.sku,
+            "barcode": product.barcode,
+            "product_name": product.title,
         }
+        
+        # Use production URLs when in development, or normal URLs in production
+        if is_development and product.label_image:
+            # Use production URL for images in development
+            label_data["label_image"] = f"{production_url}/static/{product.label_image}"
+            label_data["batch_url"] = f"{production_url}/batch/{product.batch_number}"
+        else:
+            # In production, use the normal URL generation
+            label_data["label_image"] = url_for('static', 
+                                              filename=product.label_image, 
+                                              _external=True) if product.label_image else None
+            label_data["batch_url"] = url_for('public_product_detail',
+                                            batch_number=product.batch_number,
+                                            _external=True)
 
         # Add all product attributes
         for key, value in product.get_attributes().items():

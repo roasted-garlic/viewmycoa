@@ -13,8 +13,7 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger("PDFSync")
 
 # Define the base URL of your production site
-# Change this to your actual production URL
-PRODUCTION_URL = "https://viewmycoa.com/"  # Update this!
+PRODUCTION_URL = "https://viewmycoa.com"  # This is the correct production URL
 
 
 def ensure_dir_exists(directory):

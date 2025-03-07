@@ -11,8 +11,8 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger("AutoSync")
 
 # Define the base URL of your development site
-# Change this to your actual development URL if different
-DEV_ENDPOINT = "https://repl-viewmycoa.replit.app"  # Update this!
+# This should be your Replit development URL
+DEV_ENDPOINT = "https://repl-viewmycoa.replit.app"  # Make sure this matches your Replit URL
 
 def trigger_image_sync(product_id):
     """
