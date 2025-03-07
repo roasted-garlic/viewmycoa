@@ -142,7 +142,10 @@ def get_safe_image_path(image_path):
     if not image_path:
         # No image path provided, use default
         return app.config['DEFAULT_IMAGE']
-        
+    
+    # Check if we're in deployment or development
+    is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
+    
     # Construct full path using workspace root to check if file exists
     workspace_root = os.getcwd()
     full_path = os.path.join(workspace_root, 'static', image_path)
@@ -154,7 +157,20 @@ def get_safe_image_path(image_path):
         # Log the missing file with detailed information
         app.logger.warning(f"Image file not found: {full_path}")
         app.logger.warning(f"Original path requested: {image_path}")
+        app.logger.warning(f"Environment: {'Deployment' if is_deployment else 'Development'}")
+        app.logger.warning(f"Working directory: {workspace_root}")
         app.logger.warning(f"Using default image: {app.config['DEFAULT_IMAGE']}")
+        
+        # Attempt to create the directory if it doesn't exist
+        # This helps when moving between environments
+        try:
+            directory = os.path.dirname(full_path)
+            if not os.path.exists(directory):
+                os.makedirs(directory, exist_ok=True)
+                app.logger.info(f"Created missing directory: {directory}")
+        except Exception as e:
+            app.logger.error(f"Error creating directory: {str(e)}")
+            
         return app.config['DEFAULT_IMAGE']
 
 @app.after_request
@@ -1469,6 +1485,10 @@ def save_image(file, product_id, image_type):
         The relative path to the saved image
     """
     try:
+        # Check if we're in deployment or development
+        is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
+        app.logger.info(f"Saving image in {'deployment' if is_deployment else 'development'} environment")
+        
         # Use absolute path with workspace root to ensure consistency across environments
         workspace_root = os.getcwd()
         
@@ -1500,9 +1520,9 @@ def save_image(file, product_id, image_type):
             if ext.lower() not in valid_extensions:
                 ext = '.png'  # Default to PNG for unsupported formats
         
-        # Create filename based on product_id and type with timestamp to prevent caching issues
-        timestamp = int(datetime.datetime.now().timestamp())
-        filename = f"{image_type}_{product_id}_{timestamp}{ext}"
+        # Create a more consistent filename without timestamp to help with environment syncing
+        # Just use product_id and type to ensure file names are consistent across environments
+        filename = f"{image_type}_{product_id}{ext}"
         filepath = os.path.join(product_dir, filename)
         full_filepath = os.path.join(workspace_root, 'static', filepath)
         
