@@ -2,18 +2,14 @@
 import os
 import requests
 import logging
-import traceback
-from flask import url_for
-from models import Product, db, GeneratedPDF
 
 # Configure logging
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("AutoSync")
 
-# Define the base URL of your development site
-# This should be your Replit development URL
-DEV_ENDPOINT = "https://viewmycoa.replit.app"  # Updated to match your actual Replit URL
+# Define endpoints
+DEV_ENDPOINT = "http://localhost:3000"  # Development server endpoint
 
 def trigger_image_sync(product_id):
     """
@@ -31,7 +27,7 @@ def trigger_image_sync(product_id):
         response = requests.post(
             endpoint, 
             json={"product_ids": [product_id]},
-            timeout=30  # Extended timeout for slower connections
+            timeout=30
         )
         
         logger.info(f"Response status code: {response.status_code}")
@@ -58,6 +54,8 @@ def trigger_image_sync(product_id):
             
     except Exception as e:
         logger.error(f"Error triggering image sync: {str(e)}")
+        # Add traceback for better debugging
+        import traceback
         logger.error(f"Stack trace: {traceback.format_exc()}")
         return False
 

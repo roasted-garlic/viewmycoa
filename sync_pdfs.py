@@ -85,8 +85,8 @@ def sync_product_pdfs(product_ids=None):
                     
                     # Only download if file doesn't exist locally
                     if not os.path.exists(save_path):
-                        # Construct URL based on filename structure
-                        pdf_url = f"{PRODUCTION_URL}static/pdfs/{batch_number}/{pdf.filename}"
+                        # Construct URL based on filename structure - add missing slash
+                        pdf_url = f"{PRODUCTION_URL}/static/pdfs/{batch_number}/{pdf.filename}"
                         logger.info(f"Downloading PDF for product ID {product_id}: {pdf_url}")
                         if download_pdf(pdf_url, save_path):
                             success_count += 1
