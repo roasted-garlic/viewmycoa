@@ -22,10 +22,9 @@ def init_app():
         static_dir = os.path.join(workspace_dir, 'static')
         uploads_dir = os.path.join(static_dir, 'uploads')
         pdfs_dir = os.path.join(static_dir, 'pdfs')
-        object_storage_dir = os.path.join(static_dir, 'object_storage')
         
         # Create these directories and log their creation
-        for directory in [static_dir, uploads_dir, pdfs_dir, object_storage_dir]:
+        for directory in [static_dir, uploads_dir, pdfs_dir]:
             try:
                 os.makedirs(directory, exist_ok=True)
                 logger.info(f"Ensured directory exists at {directory}")
@@ -35,20 +34,6 @@ def init_app():
         # Ensure instance directory exists for SQLite fallback
         os.makedirs(os.path.join(workspace_dir, 'instance'), exist_ok=True)
         logger.info("Ensured instance directory exists")
-        
-        # Initialize object storage sync if available
-        try:
-            import object_storage_sync
-            logger.info("Initializing object storage synchronization")
-            
-            # If in development mode, sync existing files from object storage
-            if not is_deployment:
-                logger.info("Development environment detected - syncing available files from object storage")
-                # Actual sync happens on-demand when images are requested
-        except ImportError:
-            logger.warning("Object storage sync not available - file sharing between environments disabled")
-        except Exception as sync_error:
-            logger.error(f"Error initializing object storage sync: {str(sync_error)}")
 
         # Initialize database
         with app.app_context():
@@ -125,25 +110,6 @@ def main():
                 "PGPASSWORD": "***" if os.environ.get("PGPASSWORD") else "Not set"
             }
             logger.info(f"Production environment variables: {env_vars}")
-        
-        # Run database migrations if needed
-        try:
-            from flask.cli import ScriptInfo
-            from flask_migrate import upgrade
-            
-            # Create a ScriptInfo object to create the Flask app
-            script_info = ScriptInfo(create_app=lambda: app)
-            
-            # Get the Flask app
-            flask_app = script_info.load_app()
-            
-            # Run migrations with app context
-            with flask_app.app_context():
-                upgrade()
-                logger.info("Database migrations completed successfully")
-        except Exception as e:
-            logger.error(f"Database migration error: {str(e)}")
-            logger.info("Continuing with application startup...")
         
         # Run the Flask application
         app.run(
