@@ -62,6 +62,9 @@ def create_backup():
         logger.error(f"Error backing up PDFs folder: {str(e)}")
     
     logger.info(f"Backup completed: {backup_dir}")
+    logger.info("Note: To restore images and PDFs from production after a deployment, use:")
+    logger.info("  - python sync_images.py (to sync all product images)")
+    logger.info("  - python sync_pdfs.py (to sync all generated PDFs)")
     return timestamp
 
 if __name__ == "__main__":
