@@ -724,6 +724,19 @@ def generate_pdf(product_id):
             pdf.pdf_url = url_for('serve_pdf', filename=os.path.join(product.batch_number, pdf_filename), _external=True)
             db.session.add(pdf)
             db.session.commit()
+            
+            # If this is running in production, trigger sync to development
+            is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
+            if is_deployment:
+                try:
+                    # Import auto sync module
+                    from auto_sync import trigger_pdf_sync
+                    # Trigger PDF sync in background (don't wait for response)
+                    import threading
+                    threading.Thread(target=trigger_pdf_sync, args=(product.id,)).start()
+                    app.logger.info(f"Triggered PDF sync for product ID {product.id}")
+                except Exception as sync_error:
+                    app.logger.error(f"Error triggering PDF sync: {str(sync_error)}")
 
         return jsonify({'success': True, 'pdf_url': pdf_url})
 
@@ -1489,6 +1502,18 @@ def save_image(file, product_id, image_type):
         is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
         app.logger.info(f"Saving image in {'deployment' if is_deployment else 'development'} environment")
         
+        # If this is running in production, trigger sync to development
+        if is_deployment:
+            try:
+                # Import auto sync module
+                from auto_sync import trigger_image_sync
+                # Trigger image sync in background (don't wait for response)
+                import threading
+                threading.Thread(target=trigger_image_sync, args=(product_id,)).start()
+                app.logger.info(f"Triggered image sync for product ID {product_id}")
+            except Exception as sync_error:
+                app.logger.error(f"Error triggering image sync: {str(sync_error)}")
+        
         # Use absolute path with workspace root for consistency
         workspace_root = os.getcwd()
         
@@ -1609,6 +1634,60 @@ def clear_square_image_id(product_id):
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/sync/images', methods=['POST'])
+def sync_images_api():
+    """
+    API endpoint to sync images for specific product IDs
+    Expects a JSON payload with 'product_ids' as a list of ints
+    """
+    try:
+        data = request.get_json()
+        product_ids = data.get('product_ids', [])
+        
+        if not product_ids:
+            return jsonify({'error': 'No product IDs provided'}), 400
+            
+        app.logger.info(f"API request to sync images for product IDs: {product_ids}")
+        
+        # Import here to avoid circular import
+        from sync_images import sync_product_images
+        
+        # Execute sync for specified products only
+        sync_product_images(product_ids)
+        
+        return jsonify({'success': True, 'message': f'Synced images for product IDs: {product_ids}'})
+    
+    except Exception as e:
+        app.logger.error(f"Error in sync images API: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/sync/pdfs', methods=['POST'])
+def sync_pdfs_api():
+    """
+    API endpoint to sync PDFs for specific product IDs
+    Expects a JSON payload with 'product_ids' as a list of ints
+    """
+    try:
+        data = request.get_json()
+        product_ids = data.get('product_ids', [])
+        
+        if not product_ids:
+            return jsonify({'error': 'No product IDs provided'}), 400
+            
+        app.logger.info(f"API request to sync PDFs for product IDs: {product_ids}")
+        
+        # Import here to avoid circular import
+        from sync_pdfs import sync_product_pdfs
+        
+        # Execute sync for specified products only
+        sync_product_pdfs(product_ids)
+        
+        return jsonify({'success': True, 'message': f'Synced PDFs for product IDs: {product_ids}'})
+    
+    except Exception as e:
+        app.logger.error(f"Error in sync PDFs API: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/health')
