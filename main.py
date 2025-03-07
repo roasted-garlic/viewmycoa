@@ -6,11 +6,12 @@ from app import app, db
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+# Define is_deployment at module level so it's available globally
+is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
+
 def init_app():
     """Initialize the application"""
     try:
-        # Check if we're in deployment mode - define this before it's used later
-        is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
         
         # Get the workspace directory - this is where persistent storage should go
         # Using os.getcwd() ensures we're starting from the workspace root in both dev and prod
