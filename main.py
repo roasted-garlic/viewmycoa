@@ -22,9 +22,10 @@ def init_app():
         static_dir = os.path.join(workspace_dir, 'static')
         uploads_dir = os.path.join(static_dir, 'uploads')
         pdfs_dir = os.path.join(static_dir, 'pdfs')
+        object_storage_dir = os.path.join(static_dir, 'object_storage')
         
         # Create these directories and log their creation
-        for directory in [static_dir, uploads_dir, pdfs_dir]:
+        for directory in [static_dir, uploads_dir, pdfs_dir, object_storage_dir]:
             try:
                 os.makedirs(directory, exist_ok=True)
                 logger.info(f"Ensured directory exists at {directory}")
@@ -34,6 +35,20 @@ def init_app():
         # Ensure instance directory exists for SQLite fallback
         os.makedirs(os.path.join(workspace_dir, 'instance'), exist_ok=True)
         logger.info("Ensured instance directory exists")
+        
+        # Initialize object storage sync if available
+        try:
+            import object_storage_sync
+            logger.info("Initializing object storage synchronization")
+            
+            # If in development mode, sync existing files from object storage
+            if not is_deployment:
+                logger.info("Development environment detected - syncing available files from object storage")
+                # Actual sync happens on-demand when images are requested
+        except ImportError:
+            logger.warning("Object storage sync not available - file sharing between environments disabled")
+        except Exception as sync_error:
+            logger.error(f"Error initializing object storage sync: {str(sync_error)}")
 
         # Initialize database
         with app.app_context():
