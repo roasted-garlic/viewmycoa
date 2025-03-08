@@ -66,3 +66,32 @@ def settings_page():
     """Display and manage system settings"""
     settings = Settings.get_settings()
     return render_template('settings.html', settings=settings)
+
+@app.route('/vmc-admin/products/<int:product_id>')
+@login_required
+def product_detail(product_id):
+    # Get filter parameters from query string
+    category_id = request.args.get('category')
+    square_filter = request.args.get('square')
+
+    product = Product.query.get_or_404(product_id)
+
+    # Get previous and next products
+    previous_product = Product.query.filter(Product.id < product_id).order_by(Product.id.desc()).first()
+    next_product = Product.query.filter(Product.id > product_id).order_by(Product.id.asc()).first()
+
+    # Get all PDFs for this product
+    from models import GeneratedPDF, BatchHistory
+    
+    pdfs = GeneratedPDF.query.filter(
+        GeneratedPDF.product_id == product_id
+    ).order_by(GeneratedPDF.created_at.desc()).all()
+
+    return render_template('product_detail.html', 
+                         product=product, 
+                         pdfs=pdfs, 
+                         previous_product=previous_product,
+                         next_product=next_product,
+                         category_id=category_id,
+                         square_filter=square_filter,
+                         BatchHistory=BatchHistory)
