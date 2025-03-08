@@ -31,8 +31,8 @@
     <div class="col-md-3">
         <select class="form-select" id="squareFilter" onchange="applyFilters()">
             <option value="">All Products</option>
-            <option value="synced" {% if square_filter == 'synced' %}selected{% endif %}>Synced with Square</option>
-            <option value="unsynced" {% if square_filter == 'unsynced' %}selected{% endif %}>Not Synced with Square</option>
+            <option value="synced" {% if square_filter == 'synced' %}selected="selected"{% endif %}>Synced with Square</option>
+            <option value="unsynced" {% if square_filter == 'unsynced' %}selected="selected"{% endif %}>Not Synced with Square</option>
         </select>
     </div>
 </div>
@@ -42,19 +42,19 @@ function applyFilters() {
     const url = new URL(window.location.href);
     const categoryId = document.getElementById('categoryFilter').value;
     const squareStatus = document.getElementById('squareFilter').value;
-    
+
     if (categoryId) {
         url.searchParams.set('category', categoryId);
     } else {
         url.searchParams.delete('category');
     }
-    
+
     if (squareStatus) {
         url.searchParams.set('square', squareStatus);
     } else {
         url.searchParams.delete('square');
     }
-    
+
     window.location.href = url.toString();
 }
 </script>
@@ -109,11 +109,11 @@ document.addEventListener('DOMContentLoaded', function() {
         searchInput.addEventListener('input', function(e) {
             const searchText = e.target.value.toLowerCase();
             const products = document.getElementsByClassName('product-card');
-            
+
             Array.from(products).forEach(product => {
                 const title = product.querySelector('.card-title').textContent.toLowerCase();
                 const batch = product.querySelector('.card-text').textContent.toLowerCase();
-                
+
                 if (title.includes(searchText) || batch.includes(searchText)) {
                     product.style.display = '';
                 } else {
@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle duplicate confirmation
     document.getElementById('confirmDuplicate').addEventListener('click', async function() {
         if (!productToDuplicate) return;
-        
+
         try {
             const response = await fetch(`/api/duplicate_product/${productToDuplicate}`, {
                 method: 'POST'
@@ -181,14 +181,14 @@ document.getElementById('syncSquare').addEventListener('click', async function()
             method: 'POST'
         });
         const data = await response.json();
-        
+
         const resultsDiv = document.getElementById('syncResults');
         if (data.success) {
             resultsDiv.innerHTML = '<div class="alert alert-success">Products synced successfully!</div>';
         } else {
             resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
         }
-        
+
         const modal = new bootstrap.Modal(document.getElementById('squareSyncModal'));
         modal.show();
     } catch (error) {
@@ -199,11 +199,11 @@ document.getElementById('syncSquare').addEventListener('click', async function()
 document.getElementById('searchInput').addEventListener('input', function(e) {
     const searchText = e.target.value.toLowerCase();
     const products = document.getElementsByClassName('product-card');
-    
+
     Array.from(products).forEach(product => {
         const title = product.querySelector('.card-title').textContent.toLowerCase();
         const batch = product.querySelector('.card-text').textContent.toLowerCase();
-        
+
         if (title.includes(searchText) || batch.includes(searchText)) {
             product.style.display = '';
         } else {

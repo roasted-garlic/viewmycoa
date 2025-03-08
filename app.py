@@ -422,14 +422,26 @@ def unsync_category(category_id):
 @login_required
 def products():
     category_id = request.args.get('category', type=int)
+    square_filter = request.args.get('square')
+    
     query = models.Product.query.order_by(models.Product.created_at.desc())
 
     if category_id:
         query = query.join(models.Product.categories).filter(models.Category.id == category_id)
+        
+    # Apply Square sync status filter
+    if square_filter == 'synced':
+        query = query.filter(models.Product.square_catalog_id.isnot(None))
+    elif square_filter == 'unsynced':
+        query = query.filter(models.Product.square_catalog_id.is_(None))
 
     products = query.all()
     categories = models.Category.query.order_by(models.Category.name).all()
-    return render_template('product_list.html', products=products, categories=categories, selected_category=category_id)
+    return render_template('product_list.html', 
+                          products=products, 
+                          categories=categories, 
+                          selected_category=category_id,
+                          square_filter=square_filter)
 
 
 def fetch_craftmypdf_templates():
