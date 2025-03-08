@@ -206,6 +206,13 @@ if __name__ == "__main__":
             if not os.environ.get("FLASK_SECRET_KEY"):
                 os.environ["FLASK_SECRET_KEY"] = "temporary-deployment-key-please-change"
                 logger.warning("Set temporary FLASK_SECRET_KEY for deployment - please change in production secrets")
+            
+            # Check database variables and provide clear error message
+            pg_vars = ["PGUSER", "PGPASSWORD", "PGHOST", "PGPORT", "PGDATABASE"]
+            missing_pg_vars = [var for var in pg_vars if not os.environ.get(var)]
+            if missing_pg_vars and not os.environ.get("DATABASE_URL"):
+                logger.error(f"Missing required PostgreSQL variables: {', '.join(missing_pg_vars)}")
+                logger.error("Please add these variables in the Deployments secrets configuration.")
                 
         main()
     except Exception as e:
