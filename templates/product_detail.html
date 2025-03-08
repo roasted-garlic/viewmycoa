@@ -26,13 +26,11 @@
                title="Previous: {{ previous_product.title }} (ID: {{ previous_product.id }})">
                 <i class="fas fa-chevron-left"></i> Previous
             </a>
-            {% else %}
-            <!-- Only show disabled button if there's a filter active -->
-            {% if request.query_string %}
+            {% elif has_filters %}
+            <!-- Only show disabled button if there's a filter active and we're at the first item -->
             <button class="btn btn-outline-secondary" disabled title="First product in filtered list">
                 <i class="fas fa-chevron-left"></i> Previous
             </button>
-            {% endif %}
             {% endif %}
             {% if next_product %}
             <a href="{{ url_for('admin_product_detail', product_id=next_product.id) }}{{ '?' + request.query_string.decode() if request.query_string else '' }}" 
@@ -40,13 +38,11 @@
                title="Next: {{ next_product.title }} (ID: {{ next_product.id }})">
                 Next <i class="fas fa-chevron-right"></i>
             </a>
-            {% else %}
-            <!-- Only show disabled button if there's a filter active -->
-            {% if request.query_string %}
+            {% elif has_filters %}
+            <!-- Only show disabled button if there's a filter active and we're at the last item -->
             <button class="btn btn-outline-secondary" disabled title="Last product in filtered list">
                 Next <i class="fas fa-chevron-right"></i>
             </button>
-            {% endif %}
             {% endif %}
         </div>
     </div>

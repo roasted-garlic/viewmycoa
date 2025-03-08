@@ -144,6 +144,9 @@ def admin_product_detail(product_id):
         GeneratedPDF.product_id == product_id
     ).order_by(GeneratedPDF.created_at.desc()).all()
     
+    # Flag for template to determine if filters are active
+    has_filters = bool(category_id or square_filter)
+    
     return render_template('product_detail.html', 
                          product=product, 
                          pdfs=pdfs,
@@ -151,4 +154,5 @@ def admin_product_detail(product_id):
                          next_product=next_product,
                          BatchHistory=BatchHistory,
                          selected_category=category_id,
-                         square_filter=square_filter)
+                         square_filter=square_filter,
+                         has_filters=has_filters)
