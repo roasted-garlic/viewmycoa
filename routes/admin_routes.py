@@ -73,9 +73,30 @@ def admin_product_detail(product_id):
     """Show product detail with filter preservation"""
     product = Product.query.get_or_404(product_id)
     
-    # Get previous and next products
-    previous_product = Product.query.filter(Product.id < product_id).order_by(Product.id.desc()).first()
-    next_product = Product.query.filter(Product.id > product_id).order_by(Product.id.asc()).first()
+    # Get filter parameters
+    category_id = request.args.get('category')
+    square_filter = request.args.get('square')
+    
+    # Start with base query for previous and next products
+    prev_query = Product.query
+    next_query = Product.query
+    
+    # Apply category filter if provided
+    if category_id:
+        prev_query = prev_query.join(Product.categories).filter(Category.id == category_id)
+        next_query = next_query.join(Product.categories).filter(Category.id == category_id)
+    
+    # Apply Square sync status filter if provided
+    if square_filter == 'synced':
+        prev_query = prev_query.filter(Product.square_catalog_id.isnot(None))
+        next_query = next_query.filter(Product.square_catalog_id.isnot(None))
+    elif square_filter == 'unsynced':
+        prev_query = prev_query.filter(Product.square_catalog_id.is_(None))
+        next_query = next_query.filter(Product.square_catalog_id.is_(None))
+    
+    # Get previous and next products within the filtered set
+    previous_product = prev_query.filter(Product.id < product_id).order_by(Product.id.desc()).first()
+    next_product = next_query.filter(Product.id > product_id).order_by(Product.id.asc()).first()
     
     # Get all PDFs for this product
     from models import GeneratedPDF, BatchHistory
@@ -89,4 +110,6 @@ def admin_product_detail(product_id):
                          pdfs=pdfs,
                          previous_product=previous_product,
                          next_product=next_product,
-                         BatchHistory=BatchHistory)
+                         BatchHistory=BatchHistory,
+                         selected_category=category_id,
+                         square_filter=square_filter)
