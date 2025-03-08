@@ -35,12 +35,12 @@
         </div>
         <div class="d-flex gap-2">
             {% if previous_product %}
-            <a href="{{ url_for('admin_product_detail', product_id=previous_product.id) }}{{ '?' + request.query_string.decode() if request.query_string else '' }}" class="btn btn-outline-primary" title="Previous Product">
+            <a href="{{ url_for('product_detail', product_id=previous_product.id) }}{{ '?' + request.query_string.decode() if request.query_string else '' }}" class="btn btn-outline-primary" title="Previous Product">
                 <i class="fas fa-chevron-left"></i>
             </a>
             {% endif %}
             {% if next_product %}
-            <a href="{{ url_for('admin_product_detail', product_id=next_product.id) }}{{ '?' + request.query_string.decode() if request.query_string else '' }}" class="btn btn-outline-primary" title="Next Product">
+            <a href="{{ url_for('product_detail', product_id=next_product.id) }}{{ '?' + request.query_string.decode() if request.query_string else '' }}" class="btn btn-outline-primary" title="Next Product">
                 <i class="fas fa-chevron-right"></i>
             </a>
             {% endif %}
