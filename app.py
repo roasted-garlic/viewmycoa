@@ -601,22 +601,31 @@ def create_product():
                            pdf_templates=pdf_templates)
 
 
-# Route moved to routes/admin_routes.py as admin_product_detail
-# This now serves as a redirect to the correct implementation
 @app.route('/vmc-admin/products/<int:product_id>')
 @login_required
 def product_detail(product_id):
-    # Import redirect and url_for here to avoid circular imports
-    from flask import redirect, url_for, request
-    
-    # Preserve the query string parameters
-    query_string = request.query_string.decode() if request.query_string else ''
-    target_url = url_for('admin_product_detail', product_id=product_id)
-    
-    if query_string:
-        target_url = f"{target_url}?{query_string}"
-        
-    return redirect(target_url)
+    product = models.Product.query.get_or_404(product_id)
+
+    # Get previous and next products
+    previous_product = models.Product.query.filter(models.Product.id > product_id).order_by(models.Product.id.asc()).first()
+    next_product = models.Product.query.filter(models.Product.id < product_id).order_by(models.Product.id.desc()).first()
+
+    # Get all PDFs for this product, including historical ones
+    pdfs = models.GeneratedPDF.query.filter(
+        models.GeneratedPDF.product_id == product_id
+    ).order_by(models.GeneratedPDF.created_at.desc()).all()
+
+    # Debug logging
+    app.logger.debug(f"Found {len(pdfs)} PDFs for product {product_id}")
+    for pdf in pdfs:
+        app.logger.debug(f"PDF ID: {pdf.id}, Filename: {pdf.filename}, Batch History ID: {pdf.batch_history_id}")
+
+    return render_template('product_detail.html', 
+                         product=product, 
+                         pdfs=pdfs, 
+                         previous_product=previous_product,
+                         next_product=next_product,
+                         BatchHistory=models.BatchHistory)
 
 
 @app.route('/api/generate_batch', methods=['POST'])
