@@ -77,26 +77,28 @@ def admin_product_detail(product_id):
     category_id = request.args.get('category')
     square_filter = request.args.get('square')
     
-    # Start with base query for previous and next products
-    prev_query = Product.query
-    next_query = Product.query
+    # Create base query with the same filters as the product list page
+    filtered_query = Product.query
     
     # Apply category filter if provided
     if category_id:
-        prev_query = prev_query.join(Product.categories).filter(Category.id == category_id)
-        next_query = next_query.join(Product.categories).filter(Category.id == category_id)
+        filtered_query = filtered_query.join(Product.categories).filter(Category.id == category_id)
     
     # Apply Square sync status filter if provided
     if square_filter == 'synced':
-        prev_query = prev_query.filter(Product.square_catalog_id.isnot(None))
-        next_query = next_query.filter(Product.square_catalog_id.isnot(None))
+        filtered_query = filtered_query.filter(Product.square_catalog_id.isnot(None))
     elif square_filter == 'unsynced':
-        prev_query = prev_query.filter(Product.square_catalog_id.is_(None))
-        next_query = next_query.filter(Product.square_catalog_id.is_(None))
+        filtered_query = filtered_query.filter(Product.square_catalog_id.is_(None))
     
-    # Get previous and next products within the filtered set
-    previous_product = prev_query.filter(Product.id < product_id).order_by(Product.id.desc()).first()
-    next_product = next_query.filter(Product.id > product_id).order_by(Product.id.asc()).first()
+    # Get all products in the filtered list in the same order as shown on the product list page
+    filtered_products = filtered_query.order_by(Product.id.asc()).all()
+    
+    # Find the current product's position in this filtered list
+    current_index = next((i for i, p in enumerate(filtered_products) if p.id == product_id), -1)
+    
+    # Determine previous and next products based on position in the filtered list
+    previous_product = filtered_products[current_index - 1] if current_index > 0 else None
+    next_product = filtered_products[current_index + 1] if current_index < len(filtered_products) - 1 else None
     
     # Get all PDFs for this product
     from models import GeneratedPDF, BatchHistory
