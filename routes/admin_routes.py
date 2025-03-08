@@ -83,7 +83,12 @@ def admin_product_detail(product_id):
     
     # Apply category filter if provided
     if category_id:
-        query = query.join(Product.categories).filter(Category.id == int(category_id))
+        try:
+            # Ensure we're using an integer for filtering
+            category_id_int = int(category_id)
+            query = query.join(Product.categories).filter(Category.id == category_id_int)
+        except (ValueError, TypeError):
+            app.logger.warning(f"Invalid category_id parameter: {category_id}")
     
     # Apply Square sync status filter if provided
     if square_filter == 'synced':
@@ -98,11 +103,18 @@ def admin_product_detail(product_id):
     previous_product = None
     next_product = None
     
+    # Log filtered products to help with debugging
+    app.logger.debug(f"Filtered products count: {len(filtered_products)}")
+    app.logger.debug(f"Current filters - Category: {category_id}, Square: {square_filter}")
+    filtered_ids = [p.id for p in filtered_products]
+    app.logger.debug(f"Filtered product IDs: {filtered_ids}")
+    
     # Find the current product's index in the list
     current_index = None
     for i, p in enumerate(filtered_products):
-        if p.id == int(product_id):
+        if p.id == product_id:  # No need to cast, both should be integers already
             current_index = i
+            app.logger.debug(f"Found current product at index {i} of filtered list")
             break
     
     # Set previous and next products based on position in filtered list
@@ -110,10 +122,18 @@ def admin_product_detail(product_id):
         # Get previous product (if not first)
         if current_index > 0:
             previous_product = filtered_products[current_index - 1]
+            app.logger.debug(f"Previous product ID: {previous_product.id}")
+        else:
+            app.logger.debug("No previous product (first in filtered list)")
         
         # Get next product (if not last)
         if current_index < len(filtered_products) - 1:
             next_product = filtered_products[current_index + 1]
+            app.logger.debug(f"Next product ID: {next_product.id}")
+        else:
+            app.logger.debug("No next product (last in filtered list)")
+    else:
+        app.logger.warning(f"Current product ID {product_id} not found in filtered list!")
     
     # Get all PDFs for this product
     from models import GeneratedPDF, BatchHistory
