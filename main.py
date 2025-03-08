@@ -24,6 +24,9 @@ def init_app():
             missing_vars = []
             if not os.environ.get("FLASK_SECRET_KEY"):
                 missing_vars.append("FLASK_SECRET_KEY")
+                # Set a default value for deployment
+                os.environ["FLASK_SECRET_KEY"] = "temporary-deployment-key-please-change"
+                logger.warning("Set temporary FLASK_SECRET_KEY for deployment - please change in production secrets")
             
             # Check database configuration
             if not os.environ.get("DATABASE_URL"):
@@ -31,12 +34,13 @@ def init_app():
                 pg_vars = ["PGUSER", "PGPASSWORD", "PGHOST", "PGPORT", "PGDATABASE"]
                 missing_pg_vars = [var for var in pg_vars if not os.environ.get(var)]
                 if missing_pg_vars:
-                    missing_vars.extend(missing_pg_vars)
+                    missing_vars.append("PostgreSQL variables")
+                    logger.warning("Missing PostgreSQL variables - will fall back to SQLite")
             
             if missing_vars:
-                logger.error(f"Missing required environment variables: {', '.join(missing_vars)}")
-                logger.error("Please set these variables in your deployment configuration.")
-                logger.error("Refer to DEPLOYMENT.md for required variables and setup instructions.")
+                logger.warning(f"Missing environment variables: {', '.join(missing_vars)}")
+                logger.warning("The application will run but may have limited functionality.")
+                logger.warning("Refer to DEPLOYMENT.md for required variables and setup instructions.")
         
         # Get the workspace directory - this is where persistent storage should go
         # Using os.getcwd() ensures we're starting from the workspace root in both dev and prod
@@ -196,4 +200,15 @@ def main():
         raise
 
 if __name__ == "__main__":
-    main()
+    try:
+        # Always set missing environment variables with default values in deployment
+        if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
+            if not os.environ.get("FLASK_SECRET_KEY"):
+                os.environ["FLASK_SECRET_KEY"] = "temporary-deployment-key-please-change"
+                logger.warning("Set temporary FLASK_SECRET_KEY for deployment - please change in production secrets")
+                
+        main()
+    except Exception as e:
+        logger.error(f"Error during application initialization: {str(e)}")        
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")

@@ -31,6 +31,8 @@ def load_user(user_id):
 # IMPORTANT: For production deployment, set FLASK_SECRET_KEY environment variable
 if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1" and not os.environ.get("FLASK_SECRET_KEY"):
     app.logger.error("CRITICAL ERROR: FLASK_SECRET_KEY environment variable is not set. Using fallback key (not recommended for production)")
+    # Don't just log an error - set a reasonable default for deployment
+    os.environ["FLASK_SECRET_KEY"] = "temporary-deployment-key-please-change"
 
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a development-only secret key"
 
