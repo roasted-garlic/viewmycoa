@@ -6,6 +6,7 @@
 <div class="alert alert-info mb-3">
     <h6>Debug Info:</h6>
     <p>Current filter: {% if request.args.get('category') %}Category={{ request.args.get('category') }}{% endif %} {% if request.args.get('square') %}Square={{ request.args.get('square') }}{% endif %}</p>
+    <p>Has filters flag: {{ has_filters }}</p>
     <p>Current product ID: {{ product.id }}</p>
     <p>Previous product ID: {{ previous_product.id if previous_product else 'None' }}</p>
     <p>Next product ID: {{ next_product.id if next_product else 'None' }}</p>
