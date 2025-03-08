@@ -1,6 +1,6 @@
 from flask import render_template, request
 from app import app
-from models import Product, Category, ProductTemplate, Settings, GeneratedPDF, BatchHistory
+from models import Product, Category, ProductTemplate, Settings
 from flask_login import login_required
 from routes.auth_routes import admin_required
 
@@ -25,26 +25,26 @@ def products_list():
     # Get filter parameters
     category_id = request.args.get('category')
     square_filter = request.args.get('square')
-
+    
     # Start with base query
     query = Product.query
-
+    
     # Apply category filter if provided
     if category_id:
         query = query.join(Product.categories).filter(Category.id == category_id)
-
+    
     # Apply Square sync status filter if provided
     if square_filter == 'synced':
         query = query.filter(Product.square_catalog_id.isnot(None))
     elif square_filter == 'unsynced':
         query = query.filter(Product.square_catalog_id.is_(None))
-
+    
     # Get all products with applied filters
     products = query.all()
-
+    
     # Get all categories for the dropdown
     categories = Category.query.all()
-
+    
     return render_template('product_list.html', 
                           products=products, 
                           categories=categories, 
@@ -66,35 +66,3 @@ def settings_page():
     """Display and manage system settings"""
     settings = Settings.get_settings()
     return render_template('settings.html', settings=settings)
-
-@app.route('/vmc-admin/products/<int:product_id>')
-@login_required
-def product_detail(product_id):
-    # Get filter parameters from query string
-    category_id = request.args.get('category')
-    square_filter = request.args.get('square')
-
-    product = Product.query.get_or_404(product_id)
-
-    # Get previous and next products
-    previous_product = Product.query.filter(Product.id > product_id).order_by(Product.id.asc()).first()
-    next_product = Product.query.filter(Product.id < product_id).order_by(Product.id.desc()).first()
-
-    # Get all PDFs for this product, including historical ones
-    pdfs = GeneratedPDF.query.filter(
-        GeneratedPDF.product_id == product_id
-    ).order_by(GeneratedPDF.created_at.desc()).all()
-
-    # Debug logging
-    app.logger.debug(f"Found {len(pdfs)} PDFs for product {product_id}")
-    for pdf in pdfs:
-        app.logger.debug(f"PDF ID: {pdf.id}, Filename: {pdf.filename}, Batch History ID: {pdf.batch_history_id}")
-
-    return render_template('product_detail.html', 
-                         product=product, 
-                         pdfs=pdfs, 
-                         previous_product=previous_product,
-                         next_product=next_product,
-                         category_id=category_id,
-                         square_filter=square_filter,
-                         BatchHistory=BatchHistory)
