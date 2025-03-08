@@ -354,7 +354,7 @@
                                         {% endif %}
                                         {% for pdf in pdfs %}
                                         {% if history.batch_number in pdf.filename %}
-                                        <a href="{{ url_for('serve_pdf', filename=history.batch_number + '/' + pdf.filename.split('/')[-1]) }}" class="btn btn-primary btn-sm w-100" style="width: 100%;" target="_blank">
+                                        <a href="{{ url_for('serve_pdf', filename=history.batch_number + '/' + pdf.filename.split('/')[-1]) }}" class="btn btn-primary btn-sm w-100" target="_blank">
                                             <i class="fas fa-file-pdf"></i> View Label
                                         </a>
                                         {% endif %}
