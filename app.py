@@ -604,10 +604,17 @@ def create_product():
 # Route moved to routes/admin_routes.py as admin_product_detail
 # This now serves as a redirect to the correct implementation
 @app.route('/vmc-admin/products/<int:product_id>')
-@login_required
 def product_detail(product_id):
     # Import redirect and url_for here to avoid circular imports
     from flask import redirect, url_for, request
+    
+    # Check if user is authenticated
+    if not current_user.is_authenticated:
+        # Redirect to login page with next parameter
+        next_url = url_for('admin_product_detail', product_id=product_id)
+        if request.query_string:
+            next_url = f"{next_url}?{request.query_string.decode()}"
+        return redirect(url_for('login', next=next_url))
     
     # Preserve the query string parameters
     query_string = request.query_string.decode() if request.query_string else ''
