@@ -601,31 +601,24 @@ def create_product():
                            pdf_templates=pdf_templates)
 
 
+# Route for product detail was moved to admin_routes.py to handle filtered navigation
+# This is a fallback to avoid 404 errors when other code references this route
 @app.route('/vmc-admin/products/<int:product_id>')
 @login_required
 def product_detail(product_id):
-    product = models.Product.query.get_or_404(product_id)
-
-    # Get previous and next products
-    previous_product = models.Product.query.filter(models.Product.id > product_id).order_by(models.Product.id.asc()).first()
-    next_product = models.Product.query.filter(models.Product.id < product_id).order_by(models.Product.id.desc()).first()
-
-    # Get all PDFs for this product, including historical ones
-    pdfs = models.GeneratedPDF.query.filter(
-        models.GeneratedPDF.product_id == product_id
-    ).order_by(models.GeneratedPDF.created_at.desc()).all()
-
-    # Debug logging
-    app.logger.debug(f"Found {len(pdfs)} PDFs for product {product_id}")
-    for pdf in pdfs:
-        app.logger.debug(f"PDF ID: {pdf.id}, Filename: {pdf.filename}, Batch History ID: {pdf.batch_history_id}")
-
-    return render_template('product_detail.html', 
-                         product=product, 
-                         pdfs=pdfs, 
-                         previous_product=previous_product,
-                         next_product=next_product,
-                         BatchHistory=models.BatchHistory)
+    """This function is only here to retain compatibility with existing code.
+    The actual implementation is now in admin_product_detail in admin_routes.py.
+    This redirects to the correct view with any existing query parameters preserved."""
+    from flask import request, redirect, url_for
+    
+    # Extract the query string to preserve any filters
+    query_string = request.query_string.decode('utf-8')
+    if query_string:
+        redirect_url = url_for('admin_product_detail', product_id=product_id) + '?' + query_string
+    else:
+        redirect_url = url_for('admin_product_detail', product_id=product_id)
+    
+    return redirect(redirect_url)
 
 
 @app.route('/api/generate_batch', methods=['POST'])
