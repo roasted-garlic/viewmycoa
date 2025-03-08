@@ -77,13 +77,8 @@ def admin_product_detail(product_id):
     category_id = request.args.get('category')
     square_filter = request.args.get('square')
     
-    # Store the IDs of all products that match our filters
-    filtered_product_ids = []
-    
-    # Order products by created_at in descending order (newest first)
-    # This ensures navigation matches the order shown on the products list page
-    
-    # Use the exact same query logic as in products_list() to get consistent results
+    # Exactly copy the product query from products_list() to ensure
+    # we get the same product ordering for navigation
     query = Product.query.order_by(Product.created_at.desc())
     
     # Apply category filter if provided
@@ -96,30 +91,29 @@ def admin_product_detail(product_id):
     elif square_filter == 'unsynced':
         query = query.filter(Product.square_catalog_id.is_(None))
     
-    # Get all products that match our filters
+    # Get all products that match our filters in the exact order shown in the product list
     filtered_products = query.all()
-    filtered_product_ids = [p.id for p in filtered_products]
     
-    # Find current product's position in the filtered list
+    # Get current product's position in filtered list
     previous_product = None
     next_product = None
     
-    if filtered_product_ids:
-        try:
-            current_index = filtered_product_ids.index(int(product_id))
-            
-            # Get previous product
-            if current_index > 0:
-                previous_id = filtered_product_ids[current_index - 1]
-                previous_product = Product.query.get(previous_id)
-                
-            # Get next product
-            if current_index < len(filtered_product_ids) - 1:
-                next_id = filtered_product_ids[current_index + 1]
-                next_product = Product.query.get(next_id)
-        except ValueError:
-            # Product not in the filtered list
-            pass
+    # Find the current product's index in the list
+    current_index = None
+    for i, p in enumerate(filtered_products):
+        if p.id == int(product_id):
+            current_index = i
+            break
+    
+    # Set previous and next products based on position in filtered list
+    if current_index is not None:
+        # Get previous product (if not first)
+        if current_index > 0:
+            previous_product = filtered_products[current_index - 1]
+        
+        # Get next product (if not last)
+        if current_index < len(filtered_products) - 1:
+            next_product = filtered_products[current_index + 1]
     
     # Get all PDFs for this product
     from models import GeneratedPDF, BatchHistory
