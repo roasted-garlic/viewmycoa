@@ -15,11 +15,11 @@
 </div>
 
 <div class="row mb-4">
-    <div class="col-md-8">
+    <div class="col-md-6">
         <input type="text" id="searchInput" class="form-control" placeholder="Search products...">
     </div>
-    <div class="col-md-4">
-        <select class="form-select" id="categoryFilter" onchange="filterByCategory(this.value)">
+    <div class="col-md-3">
+        <select class="form-select" id="categoryFilter" onchange="applyFilters()">
             <option value="">All Categories</option>
             {% for category in categories %}
             <option value="{{ category.id }}" {% if selected_category == category.id %}selected{% endif %}>
@@ -28,16 +28,33 @@
             {% endfor %}
         </select>
     </div>
+    <div class="col-md-3">
+        <select class="form-select" id="squareFilter" onchange="applyFilters()">
+            <option value="">All Products</option>
+            <option value="synced" {% if square_filter == 'synced' %}selected{% endif %}>Synced with Square</option>
+            <option value="unsynced" {% if square_filter == 'unsynced' %}selected{% endif %}>Not Synced with Square</option>
+        </select>
+    </div>
 </div>
 
 <script>
-function filterByCategory(categoryId) {
+function applyFilters() {
     const url = new URL(window.location.href);
+    const categoryId = document.getElementById('categoryFilter').value;
+    const squareStatus = document.getElementById('squareFilter').value;
+    
     if (categoryId) {
         url.searchParams.set('category', categoryId);
     } else {
         url.searchParams.delete('category');
     }
+    
+    if (squareStatus) {
+        url.searchParams.set('square', squareStatus);
+    } else {
+        url.searchParams.delete('square');
+    }
+    
     window.location.href = url.toString();
 }
 </script>

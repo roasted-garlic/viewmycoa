@@ -1,4 +1,4 @@
-from flask import render_template
+from flask import render_template, request
 from app import app
 from models import Product, Category, ProductTemplate, Settings
 from flask_login import login_required
@@ -20,9 +20,35 @@ def admin_overview():
 @login_required
 @admin_required
 def products_list():
-    """List all products"""
-    products = Product.query.all()
-    return render_template('product_list.html', products=products)
+    """List all products with optional filtering"""
+    # Get filter parameters
+    category_id = request.args.get('category')
+    square_filter = request.args.get('square')
+    
+    # Start with base query
+    query = Product.query
+    
+    # Apply category filter if provided
+    if category_id:
+        query = query.join(Product.categories).filter(Category.id == category_id)
+    
+    # Apply Square sync status filter if provided
+    if square_filter == 'synced':
+        query = query.filter(Product.square_catalog_id.isnot(None))
+    elif square_filter == 'unsynced':
+        query = query.filter(Product.square_catalog_id.is_(None))
+    
+    # Get all products with applied filters
+    products = query.all()
+    
+    # Get all categories for the dropdown
+    categories = Category.query.all()
+    
+    return render_template('product_list.html', 
+                          products=products, 
+                          categories=categories, 
+                          selected_category=category_id,
+                          square_filter=square_filter)
 
 @app.route('/vmc-admin/categories-list')
 @login_required
