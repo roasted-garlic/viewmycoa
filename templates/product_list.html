@@ -21,7 +21,12 @@
 
 <div class="row mb-4">
     <div class="col-md-6">
-        <input type="text" id="searchInput" class="form-control" placeholder="Search products...">
+        <div class="position-relative">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search products...">
+            <a href="#" id="clearSearch" class="position-absolute end-0 top-50 translate-middle-y pe-3" style="display: none;">
+                <i class="fas fa-times text-secondary"></i>
+            </a>
+        </div>
     </div>
     <div class="col-md-3">
         <select class="form-select" id="categoryFilter" onchange="applyFilters()">
@@ -204,6 +209,10 @@ document.getElementById('syncSquare').addEventListener('click', async function()
 document.getElementById('searchInput').addEventListener('input', function(e) {
     const searchText = e.target.value.toLowerCase();
     const products = document.getElementsByClassName('product-card');
+    const clearButton = document.getElementById('clearSearch');
+    
+    // Show/hide clear button based on search input
+    clearButton.style.display = searchText.length > 0 ? 'block' : 'none';
 
     Array.from(products).forEach(product => {
         const title = product.querySelector('.card-title').textContent.toLowerCase();
@@ -215,6 +224,17 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
             product.style.display = 'none';
         }
     });
+});
+
+// Add click handler for clear button
+document.getElementById('clearSearch').addEventListener('click', function(e) {
+    e.preventDefault();
+    const searchInput = document.getElementById('searchInput');
+    searchInput.value = '';
+    // Trigger input event to update product display
+    searchInput.dispatchEvent(new Event('input'));
+    // Focus back on the search input
+    searchInput.focus();
 });
 </script>
 {% endblock %}
