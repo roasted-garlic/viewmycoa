@@ -21,14 +21,26 @@
         </div>
         <div class="d-flex gap-2">
             {% if previous_product %}
-            <a href="{{ url_for('admin_product_detail', product_id=previous_product.id) }}{{ '?' + request.query_string.decode() if request.query_string else '' }}" class="btn btn-outline-primary" title="Previous Product (ID: {{ previous_product.id }})">
-                <i class="fas fa-chevron-left"></i>
+            <a href="{{ url_for('admin_product_detail', product_id=previous_product.id) }}{{ '?' + request.query_string.decode() if request.query_string else '' }}" 
+               class="btn btn-outline-primary" 
+               title="Previous: {{ previous_product.title }} (ID: {{ previous_product.id }})">
+                <i class="fas fa-chevron-left"></i> Previous
             </a>
+            {% else %}
+            <button class="btn btn-outline-secondary" disabled title="No previous product">
+                <i class="fas fa-chevron-left"></i> Previous
+            </button>
             {% endif %}
             {% if next_product %}
-            <a href="{{ url_for('admin_product_detail', product_id=next_product.id) }}{{ '?' + request.query_string.decode() if request.query_string else '' }}" class="btn btn-outline-primary" title="Next Product (ID: {{ next_product.id }})">
-                <i class="fas fa-chevron-right"></i>
+            <a href="{{ url_for('admin_product_detail', product_id=next_product.id) }}{{ '?' + request.query_string.decode() if request.query_string else '' }}" 
+               class="btn btn-outline-primary" 
+               title="Next: {{ next_product.title }} (ID: {{ next_product.id }})">
+                Next <i class="fas fa-chevron-right"></i>
             </a>
+            {% else %}
+            <button class="btn btn-outline-secondary" disabled title="No next product">
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
             {% endif %}
         </div>
     </div>
