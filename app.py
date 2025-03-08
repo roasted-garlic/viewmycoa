@@ -613,6 +613,10 @@ def product_detail(product_id):
     
     # Extract the query string to preserve any filters
     query_string = request.query_string.decode('utf-8')
+    
+    # Debug logging to track the redirection
+    app.logger.debug(f"Redirecting from product_detail to admin_product_detail with product_id={product_id} and query_string={query_string}")
+    
     if query_string:
         redirect_url = url_for('admin_product_detail', product_id=product_id) + '?' + query_string
     else:

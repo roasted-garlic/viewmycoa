@@ -72,7 +72,7 @@ def settings_page():
     settings = Settings.get_settings()
     return render_template('settings.html', settings=settings)
 
-@app.route('/vmc-admin/products/<int:product_id>')
+@app.route('/vmc-admin/products/detail/<int:product_id>')
 @login_required
 def admin_product_detail(product_id):
     """Show product detail with filter preservation"""
