@@ -166,12 +166,8 @@ def admin_product_detail(product_id):
             has_filters = False
     else:
         # If no filters are applied, use simple ID-based navigation
-        # But correctly handle first and last product in the list
         previous_product = Product.query.filter(Product.id < product_id).order_by(Product.id.desc()).first()
         next_product = Product.query.filter(Product.id > product_id).order_by(Product.id.asc()).first()
-        
-        # Debug log for troubleshooting
-        app.logger.debug(f"No filters - Previous product: {previous_product.id if previous_product else None}, Next product: {next_product.id if next_product else None}")
 
     # Get all PDFs for this product
     from models import GeneratedPDF, BatchHistory
