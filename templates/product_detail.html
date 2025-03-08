@@ -21,26 +21,28 @@
             </a>
         </div>
         <div class="d-flex gap-2">
-            {% if previous_product %}
+            {% if has_filters or previous_product %}
+            <!-- Show active button when we have previous product -->
             <a href="{{ url_for('admin_product_detail', product_id=previous_product.id) }}{{ '?' + request.query_string.decode() if request.query_string else '' }}" 
                class="btn btn-outline-primary" 
                title="Previous: {{ previous_product.title }} (ID: {{ previous_product.id }})">
                 <i class="fas fa-chevron-left"></i> Previous
             </a>
             {% else %}
-            <!-- Always show disabled button when there's no previous product -->
+            <!-- Show disabled button when there's no previous product -->
             <button class="btn btn-outline-secondary" disabled title="First product {% if has_filters %}in filtered list{% else %}in database{% endif %}">
                 <i class="fas fa-chevron-left"></i> Previous
             </button>
             {% endif %}
-            {% if next_product %}
+            {% if has_filters or next_product %}
+            <!-- Show active button when we have next product -->
             <a href="{{ url_for('admin_product_detail', product_id=next_product.id) }}{{ '?' + request.query_string.decode() if request.query_string else '' }}" 
                class="btn btn-outline-primary" 
                title="Next: {{ next_product.title }} (ID: {{ next_product.id }})">
                 Next <i class="fas fa-chevron-right"></i>
             </a>
             {% else %}
-            <!-- Always show disabled button when there's no next product -->
+            <!-- Show disabled button when there's no next product -->
             <button class="btn btn-outline-secondary" disabled title="Last product {% if has_filters %}in filtered list{% else %}in database{% endif %}">
                 Next <i class="fas fa-chevron-right"></i>
             </button>
