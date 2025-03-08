@@ -17,6 +17,7 @@ def admin_overview():
                          template_count=template_count)
 
 @app.route('/vmc-admin/products-list')
+@app.route('/vmc-admin/products')
 @login_required
 @admin_required
 def products_list():
