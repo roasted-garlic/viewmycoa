@@ -15,8 +15,13 @@
 </div>
 
 <div class="row mb-4">
-    <div class="col-md-6">
-        <input type="text" id="searchInput" class="form-control" placeholder="Search products...">
+    <div class="col-md-6 d-flex">
+        <div class="input-group">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search products...">
+            <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn" style="border-top-right-radius: 0.25rem; border-bottom-right-radius: 0.25rem;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
     </div>
     <div class="col-md-3">
         <select class="form-select" id="categoryFilter" onchange="applyFilters()">
@@ -35,6 +40,13 @@
             <option value="unsynced" {% if square_filter == 'unsynced' %}selected="selected"{% endif %}>Not Synced with Square</option>
         </select>
     </div>
+    {% if selected_category or square_filter %}
+    <div class="col-auto d-flex align-items-center">
+        <button id="resetFiltersBtn" class="btn btn-outline-secondary" style="height: 100%;">
+            <i class="fas fa-filter"></i> Reset
+        </button>
+    </div>
+    {% endif %}
 </div>
 
 <script>
@@ -57,6 +69,29 @@ function applyFilters() {
 
     window.location.href = url.toString();
 }
+
+// Initialize buttons when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Clear search button functionality
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const searchInput = document.getElementById('searchInput');
+    
+    if (clearSearchBtn && searchInput) {
+        clearSearchBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            searchInput.dispatchEvent(new Event('input'));
+            searchInput.focus();
+        });
+    }
+    
+    // Reset filters button functionality
+    const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+    if (resetFiltersBtn) {
+        resetFiltersBtn.addEventListener('click', function() {
+            window.location.href = window.location.pathname;
+        });
+    }
+});
 </script>
 
 <div class="row" id="productList">
