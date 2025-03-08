@@ -72,23 +72,28 @@ def settings_page():
 def admin_product_detail(product_id):
     """Show product detail with filter preservation"""
     product = Product.query.get_or_404(product_id)
+    print(f"*** Processing product detail for ID: {product_id} ***")
     
     # Get filter parameters
     category_id = request.args.get('category')
     square_filter = request.args.get('square')
+    print(f"*** Filter params: category_id={category_id}, square_filter={square_filter} ***")
     
     # Create base query with the same filters as the product list page
     filtered_query = Product.query
     
     # Apply category filter if provided
     if category_id:
-        filtered_query = filtered_query.join(Product.categories).filter(Category.id == category_id)
+        filtered_query = filtered_query.join(Product.categories).filter(Category.id == int(category_id))
+        print(f"*** Applied category filter: {category_id} ***")
     
     # Apply Square sync status filter if provided
     if square_filter == 'synced':
         filtered_query = filtered_query.filter(Product.square_catalog_id.isnot(None))
+        print("*** Applied synced filter ***")
     elif square_filter == 'unsynced':
         filtered_query = filtered_query.filter(Product.square_catalog_id.is_(None))
+        print("*** Applied unsynced filter ***")
     
     # Get all products in the filtered list in the same order as shown on the product list page
     # Sort by created_at in descending order just like the main products list
@@ -96,11 +101,19 @@ def admin_product_detail(product_id):
     
     # Debug: Print the filtered products
     product_ids = [p.id for p in filtered_products]
-    app.logger.debug(f"Filtered product IDs: {product_ids}")
+    print(f"*** Filtered product IDs: {product_ids} ***")
+    
+    # Convert product_id to int for comparison
+    product_id_int = int(product_id)
     
     # Find the current product's position in this filtered list
-    current_index = next((i for i, p in enumerate(filtered_products) if p.id == int(product_id)), -1)
-    app.logger.debug(f"Current product ID: {product_id}, Found at index: {current_index}")
+    current_index = -1
+    for i, p in enumerate(filtered_products):
+        if p.id == product_id_int:
+            current_index = i
+            break
+    
+    print(f"*** Current product ID: {product_id_int}, Found at index: {current_index} ***")
     
     # Determine previous and next products based on position in the filtered list
     previous_product = filtered_products[current_index - 1] if current_index > 0 else None
@@ -109,7 +122,7 @@ def admin_product_detail(product_id):
     # Debug: Print the previous and next product IDs
     prev_id = previous_product.id if previous_product else None
     next_id = next_product.id if next_product else None
-    app.logger.debug(f"Previous product ID: {prev_id}, Next product ID: {next_id}")
+    print(f"*** Previous product ID: {prev_id}, Next product ID: {next_id} ***")
     
     # Get all PDFs for this product
     from models import GeneratedPDF, BatchHistory
