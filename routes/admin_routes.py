@@ -91,10 +91,11 @@ def admin_product_detail(product_id):
         filtered_query = filtered_query.filter(Product.square_catalog_id.is_(None))
     
     # Get all products in the filtered list in the same order as shown on the product list page
-    filtered_products = filtered_query.order_by(Product.id.asc()).all()
+    # Sort by created_at in descending order just like the main products list
+    filtered_products = filtered_query.order_by(Product.created_at.desc()).all()
     
     # Find the current product's position in this filtered list
-    current_index = next((i for i, p in enumerate(filtered_products) if p.id == product_id), -1)
+    current_index = next((i for i, p in enumerate(filtered_products) if p.id == int(product_id)), -1)
     
     # Determine previous and next products based on position in the filtered list
     previous_product = filtered_products[current_index - 1] if current_index > 0 else None
