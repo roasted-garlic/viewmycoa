@@ -79,6 +79,7 @@ def admin_product_detail(product_id):
     
     # Exactly copy the product query from products_list() to ensure
     # we get the same product ordering for navigation
+    # Start with base query - use same ordering as products_list view
     query = Product.query.order_by(Product.created_at.desc())
     
     # Apply category filter if provided
@@ -99,43 +100,43 @@ def admin_product_detail(product_id):
     # Get all products that match our filters in the exact order shown in the product list
     filtered_products = query.all()
     
-    # Get current product's position in filtered list
+    # Initialize previous and next products
     previous_product = None
     next_product = None
     
-    # Log filtered products to help with debugging
-    app.logger.debug(f"Filtered products count: {len(filtered_products)}")
-    app.logger.debug(f"Current filters - Category: {category_id}, Square: {square_filter}")
-    filtered_ids = [p.id for p in filtered_products]
-    app.logger.debug(f"Filtered product IDs: {filtered_ids}")
-    
-    # Find the current product's index in the list
-    current_index = None
-    for i, p in enumerate(filtered_products):
-        if p.id == product_id:  # No need to cast, both should be integers already
-            current_index = i
-            app.logger.debug(f"Found current product at index {i} of filtered list")
-            break
-    
-    # Set previous and next products based on position in filtered list
-    if current_index is not None:
-        # Get previous product (if not first)
-        if current_index > 0:
-            previous_product = filtered_products[current_index - 1]
-            app.logger.debug(f"Previous product ID: {previous_product.id}")
-        else:
-            previous_product = None
-            app.logger.debug("No previous product (first in filtered list)")
+    # Only attempt to find previous/next products if we have filters
+    if category_id or square_filter:
+        # Log filtered products to help with debugging
+        app.logger.debug(f"Filtered products count: {len(filtered_products)}")
+        app.logger.debug(f"Current filters - Category: {category_id}, Square: {square_filter}")
+        filtered_ids = [p.id for p in filtered_products]
+        app.logger.debug(f"Filtered product IDs: {filtered_ids}")
         
-        # Get next product (if not last)
-        if current_index < len(filtered_products) - 1:
-            next_product = filtered_products[current_index + 1]
-            app.logger.debug(f"Next product ID: {next_product.id}")
+        # Find the current product's index in the filtered list
+        current_index = None
+        for i, p in enumerate(filtered_products):
+            if p.id == product_id:
+                current_index = i
+                app.logger.debug(f"Found current product at index {i} of filtered list")
+                break
+        
+        # Set previous and next products based on position in filtered list
+        if current_index is not None:
+            # Get previous product (if not first)
+            if current_index > 0:
+                previous_product = filtered_products[current_index - 1]
+                app.logger.debug(f"Previous product ID: {previous_product.id}")
+            
+            # Get next product (if not last)
+            if current_index < len(filtered_products) - 1:
+                next_product = filtered_products[current_index + 1]
+                app.logger.debug(f"Next product ID: {next_product.id}")
         else:
-            next_product = None
-            app.logger.debug("No next product (last in filtered list)")
+            app.logger.warning(f"Current product ID {product_id} not found in filtered list!")
     else:
-        app.logger.warning(f"Current product ID {product_id} not found in filtered list!")
+        # If no filters are applied, use simple ID-based navigation
+        previous_product = Product.query.filter(Product.id < product_id).order_by(Product.id.desc()).first()
+        next_product = Product.query.filter(Product.id > product_id).order_by(Product.id.asc()).first()
     
     # Get all PDFs for this product
     from models import GeneratedPDF, BatchHistory
