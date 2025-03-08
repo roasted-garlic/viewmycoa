@@ -124,6 +124,7 @@ def admin_product_detail(product_id):
             previous_product = filtered_products[current_index - 1]
             app.logger.debug(f"Previous product ID: {previous_product.id}")
         else:
+            previous_product = None
             app.logger.debug("No previous product (first in filtered list)")
         
         # Get next product (if not last)
@@ -131,6 +132,7 @@ def admin_product_detail(product_id):
             next_product = filtered_products[current_index + 1]
             app.logger.debug(f"Next product ID: {next_product.id}")
         else:
+            next_product = None
             app.logger.debug("No next product (last in filtered list)")
     else:
         app.logger.warning(f"Current product ID {product_id} not found in filtered list!")
