@@ -26,8 +26,8 @@ def products_list():
     category_id = request.args.get('category')
     square_filter = request.args.get('square')
     
-    # Start with base query
-    query = Product.query
+    # Start with base query, sorted by created_at descending (newest first)
+    query = Product.query.order_by(Product.created_at.desc())
     
     # Apply category filter if provided
     if category_id:
