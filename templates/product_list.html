@@ -75,7 +75,7 @@ function applyFilters() {
                 <h5 class="card-title">{{ product.title }}</h5>
                 <p class="card-text">Batch: {{ product.batch_number }}</p>
                 <div class="d-flex justify-content-between">
-                    <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-primary">View Details</a>
+                    <a href="{{ url_for('product_detail', product_id=product.id, category=selected_category, square=square_filter) }}" class="btn btn-primary">View Details</a>
                     {% if current_user.is_admin %}
                     <button class="btn btn-secondary duplicate-product" data-product-id="{{ product.id }}">
                         <i class="fas fa-copy"></i> Duplicate
