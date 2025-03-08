@@ -29,7 +29,7 @@
 <div class="mb-4">
     <div class="mb-3 d-flex justify-content-between align-items-center">
         <div>
-            <a href="{{ url_for('products') }}" class="btn btn-outline-secondary">
+            <a href="{{ url_for('products_list') }}{{ '?' + request.query_string.decode() if request.query_string else '' }}" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left"></i> Back to Products
             </a>
         </div>
