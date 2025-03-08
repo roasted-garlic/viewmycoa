@@ -27,9 +27,9 @@
                title="Previous: {{ previous_product.title }} (ID: {{ previous_product.id }})">
                 <i class="fas fa-chevron-left"></i> Previous
             </a>
-            {% elif has_filters %}
-            <!-- Only show disabled button if we're at the first item with active filters -->
-            <button class="btn btn-outline-secondary" disabled title="First product in filtered list">
+            {% else %}
+            <!-- Always show disabled button when there's no previous product -->
+            <button class="btn btn-outline-secondary" disabled title="First product {% if has_filters %}in filtered list{% else %}in database{% endif %}">
                 <i class="fas fa-chevron-left"></i> Previous
             </button>
             {% endif %}
@@ -39,9 +39,9 @@
                title="Next: {{ next_product.title }} (ID: {{ next_product.id }})">
                 Next <i class="fas fa-chevron-right"></i>
             </a>
-            {% elif has_filters %}
-            <!-- Only show disabled button if we're at the last item with active filters -->
-            <button class="btn btn-outline-secondary" disabled title="Last product in filtered list">
+            {% else %}
+            <!-- Always show disabled button when there's no next product -->
+            <button class="btn btn-outline-secondary" disabled title="Last product {% if has_filters %}in filtered list{% else %}in database{% endif %}">
                 Next <i class="fas fa-chevron-right"></i>
             </button>
             {% endif %}
