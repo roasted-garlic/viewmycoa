@@ -593,7 +593,7 @@ def create_product():
                 app.logger.error(f"Error triggering sync: {str(sync_error)}")
 
         flash('Product created successfully!', 'success')
-        return redirect(url_for('product_detail', product_id=product.id))
+        return redirect(url_for('admin_product_detail', product_id=product.id))
 
     return render_template('product_create.html',
                            templates=templates,
@@ -1244,7 +1244,7 @@ def edit_product(product_id):
                     
             flash('Product updated successfully!', 'success')
             show_reminder = '?showSquareReminder=true' if product.square_catalog_id else ''
-            return redirect(url_for('product_detail', product_id=product.id) + show_reminder)
+            return redirect(url_for('admin_product_detail', product_id=product.id) + show_reminder)
 
         except Exception as e:
             db.session.rollback()
