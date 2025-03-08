@@ -94,12 +94,22 @@ def admin_product_detail(product_id):
     # Sort by created_at in descending order just like the main products list
     filtered_products = filtered_query.order_by(Product.created_at.desc()).all()
     
+    # Debug: Print the filtered products
+    product_ids = [p.id for p in filtered_products]
+    app.logger.debug(f"Filtered product IDs: {product_ids}")
+    
     # Find the current product's position in this filtered list
     current_index = next((i for i, p in enumerate(filtered_products) if p.id == int(product_id)), -1)
+    app.logger.debug(f"Current product ID: {product_id}, Found at index: {current_index}")
     
     # Determine previous and next products based on position in the filtered list
     previous_product = filtered_products[current_index - 1] if current_index > 0 else None
     next_product = filtered_products[current_index + 1] if current_index < len(filtered_products) - 1 else None
+    
+    # Debug: Print the previous and next product IDs
+    prev_id = previous_product.id if previous_product else None
+    next_id = next_product.id if next_product else None
+    app.logger.debug(f"Previous product ID: {prev_id}, Next product ID: {next_id}")
     
     # Get all PDFs for this product
     from models import GeneratedPDF, BatchHistory
