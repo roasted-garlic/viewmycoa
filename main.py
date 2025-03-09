@@ -211,8 +211,10 @@ if __name__ == "__main__":
             pg_vars = ["PGUSER", "PGPASSWORD", "PGHOST", "PGPORT", "PGDATABASE"]
             missing_pg_vars = [var for var in pg_vars if not os.environ.get(var)]
             if missing_pg_vars and not os.environ.get("DATABASE_URL"):
-                logger.error(f"Missing required PostgreSQL variables: {', '.join(missing_pg_vars)}")
-                logger.error("Please add these variables in the Deployments secrets configuration.")
+                logger.warning(f"Missing PostgreSQL variables: {', '.join(missing_pg_vars)}")
+                logger.warning("Will attempt to use SQLite as fallback. Add these variables in Deployments secrets for PostgreSQL.")
+                # Ensure SQLite instance directory exists
+                os.makedirs("instance", exist_ok=True)
                 
         main()
     except Exception as e:
