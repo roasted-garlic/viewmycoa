@@ -551,6 +551,8 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM loaded - initializing product detail page scripts");
+    
     // Show Square sync reminder only after product update
     const urlParams = new URLSearchParams(window.location.search);
     const referrer = document.referrer;
@@ -561,13 +563,16 @@ document.addEventListener('DOMContentLoaded', function() {
         window.history.replaceState({}, '', window.location.pathname);
     }
 
-    // Initialize all modals
-    const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-    const duplicateModal = new bootstrap.Modal(document.getElementById('duplicateConfirmModal'));
-    const pdfDeleteModal = new bootstrap.Modal(document.getElementById('pdfDeleteModal'));
-    const historyDeleteModal = new bootstrap.Modal(document.getElementById('historyDeleteModal'));
-    const jsonModal = new bootstrap.Modal(document.getElementById('jsonModal'));
-    const squareUnsyncModal = new bootstrap.Modal(document.getElementById('squareUnsyncModal'));
+    // Initialize all bootstrap modals properly
+    const modals = {
+        deleteModal: document.getElementById('deleteConfirmModal'),
+        duplicateModal: document.getElementById('duplicateConfirmModal'),
+        pdfDeleteModal: document.getElementById('pdfDeleteModal'),
+        historyDeleteModal: document.getElementById('historyDeleteModal'),
+        jsonModal: document.getElementById('jsonModal'),
+        squareUnsyncModal: document.getElementById('squareUnsyncModal'),
+        pdfGenerationErrorModal: document.getElementById('pdfGenerationErrorModal')
+    };
 
     // Add event listeners for modal close buttons
     document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(button => {
@@ -593,8 +598,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Enable delete checkbox functionality
     const enableDeleteCheckbox = document.getElementById('enableDelete');
     const deleteHistoryButtons = document.querySelectorAll('.delete-history');
+    
     if (enableDeleteCheckbox) {
+        console.log("Setting up enableDelete checkbox handler");
         enableDeleteCheckbox.addEventListener('change', function() {
+            console.log("Enable delete changed:", this.checked);
             deleteHistoryButtons.forEach(button => {
                 button.classList.toggle('d-none', !this.checked);
             });
@@ -609,6 +617,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const deleteBtn = e.target.closest('.delete-pdf');
             if (deleteBtn) {
                 currentPdfId = deleteBtn.dataset.pdfId;
+                console.log("Deleting PDF ID:", currentPdfId);
+                const pdfDeleteModal = new bootstrap.Modal(document.getElementById('pdfDeleteModal'));
                 pdfDeleteModal.show();
             }
         });
@@ -617,29 +627,33 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmPdfDelete = document.getElementById('confirmPdfDelete');
     if (confirmPdfDelete) {
         confirmPdfDelete.addEventListener('click', async function() {
+            console.log("Confirming PDF deletion for ID:", currentPdfId);
             try {
                 const response = await fetch(`/api/delete_pdf/${currentPdfId}`, {
                     method: 'DELETE'
                 });
                 if (response.ok) {
                     window.location.reload();
+                } else {
+                    console.error("Failed to delete PDF:", await response.text());
                 }
             } catch (error) {
                 console.error('Error:', error);
             }
-            pdfDeleteModal.hide();
         });
     }
 
     // Square sync button
     const syncButton = document.getElementById('syncSquare');
     if (syncButton) {
+        console.log("Setting up Square sync button");
         syncButton.addEventListener('click', async function() {
             const productId = this.dataset.productId;
             const button = this;
             
             if (button.disabled) return;
             
+            console.log("Syncing product to Square:", productId);
             try {
                 button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
                 button.disabled = true;
@@ -660,19 +674,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     }, 2000);
                 } else {
                     let errorHtml = `
-                            </div>
-                            </div>
-                            <div class="text-center my-4">
-                                <i class="fas fa-cog fa-3x text-warning"></i>
-                                <h4 class="mt-3 mb-3">Square API Credentials Required</h4>
-                                <p class="text-muted mb-4">Square API credentials are not configured. You'll need to set these up in settings before using Square integration features.</p>
-                                <button class="btn btn-warning w-100 mb-2" onclick="window.location.href='/vmc-admin/settings'">
-                                    <i class="fas fa-cog"></i> Configure Settings
-                                </button>
-                                <button class="btn btn-secondary w-100" data-bs-dismiss="modal">
-                                    <i class="fas fa-times"></i> Close
-                                </button>
-                            </div>
+                        <div class="text-center my-4">
+                            <i class="fas fa-cog fa-3x text-warning"></i>
+                            <h4 class="mt-3 mb-3">Square API Credentials Required</h4>
+                            <p class="text-muted mb-4">Square API credentials are not configured. You'll need to set these up in settings before using Square integration features.</p>
+                            <button class="btn btn-warning w-100 mb-2" onclick="window.location.href='/vmc-admin/settings'">
+                                <i class="fas fa-cog"></i> Configure Settings
+                            </button>
+                            <button class="btn btn-secondary w-100" data-bs-dismiss="modal">
+                                <i class="fas fa-times"></i> Close
+                            </button>
                         </div>`;
                     resultsDiv.innerHTML = errorHtml;
                     button.innerHTML = '<i class="fas fa-sync"></i> Sync to Square';
@@ -695,19 +706,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Delete product functionality
     const deleteButton = document.getElementById('deleteProduct');
     if (deleteButton) {
+        console.log("Setting up delete product button");
         deleteButton.addEventListener('click', function() {
+            console.log("Delete product button clicked");
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
             deleteModal.show();
-        });
-        
-        // Clean up modal backdrop when modal is hidden
-        document.getElementById('deleteConfirmModal').addEventListener('hidden.bs.modal', function() {
-            document.querySelector('.modal-backdrop')?.remove();
         });
     }
 
     const confirmDeleteButton = document.getElementById('confirmDelete');
     if (confirmDeleteButton && deleteButton) {
         confirmDeleteButton.addEventListener('click', async function() {
+            console.log("Confirm delete button clicked");
             // Prevent multiple clicks
             if (confirmDeleteButton.disabled) return;
             
@@ -716,11 +726,11 @@ document.addEventListener('DOMContentLoaded', function() {
             confirmDeleteButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
             
             // Also disable the Cancel button
-            const cancelButton = document.querySelector('.modal-body button[data-bs-dismiss="modal"]');
+            const cancelButton = document.querySelector('#deleteConfirmModal .modal-footer button[data-bs-dismiss="modal"]');
             if (cancelButton) cancelButton.disabled = true;
             
             const productId = deleteButton.dataset.productId;
-            const confirmationMessage = document.querySelector('.confirmation-message');
+            const confirmationMessage = document.querySelector('#deleteConfirmModal .confirmation-message');
             const resultsDiv = document.getElementById('deleteResults');
             
             try {
@@ -751,52 +761,67 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error:', error);
                 resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
                 confirmationMessage.style.display = 'block';
+                confirmDeleteButton.disabled = false;
+                confirmDeleteButton.innerHTML = 'Delete Product';
+                if (cancelButton) cancelButton.disabled = false;
             }
         });
     }
 
     // Duplicate product functionality
-    let duplicating = false;
     const duplicateButton = document.querySelector('.duplicate-product');
     if (duplicateButton) {
+        console.log("Setting up duplicate product button");
         duplicateButton.addEventListener('click', function() {
-            duplicateModal.show();
+            console.log("Duplicate product button clicked");
+            // Check if modal exists on the page (might be missing if duplicate is defined elsewhere)
+            const duplicateModalElement = document.getElementById('duplicateConfirmModal');
+            if (duplicateModalElement) {
+                const duplicateModal = new bootstrap.Modal(duplicateModalElement);
+                duplicateModal.show();
+            } else {
+                // If no modal, just make the API call directly
+                duplicateProduct(duplicateButton.dataset.productId);
+            }
         });
     }
 
-    const confirmDuplicateButton = document.getElementById('confirmDuplicate');
-    if (confirmDuplicateButton && duplicateButton && !confirmDuplicateButton.hasListener) {
-        confirmDuplicateButton.hasListener = true;
-        confirmDuplicateButton.addEventListener('click', async function() {
-            if (duplicating) return;
-            duplicating = true;
-            const productId = duplicateButton.dataset.productId;
-            try {
-                const response = await fetch(`/api/duplicate_product/${productId}`, {
-                    method: 'POST'
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    window.location.href = `/vmc-admin/products/${data.new_product_id}/edit`;
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                duplicating = false;
+    // Function to handle product duplication
+    async function duplicateProduct(productId) {
+        try {
+            console.log("Duplicating product ID:", productId);
+            const response = await fetch(`/api/duplicate_product/${productId}`, {
+                method: 'POST'
+            });
+            if (response.ok) {
+                const data = await response.json();
+                window.location.href = `/vmc-admin/products/${data.new_product_id}/edit`;
+            } else {
+                console.error("Failed to duplicate product:", await response.text());
             }
-            duplicateModal.hide();
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    const confirmDuplicateButton = document.getElementById('confirmDuplicate');
+    if (confirmDuplicateButton && duplicateButton) {
+        confirmDuplicateButton.addEventListener('click', function() {
+            duplicateProduct(duplicateButton.dataset.productId);
         });
     }
 
     // Generate PDF functionality
     const generatePDFButton = document.getElementById('generatePDF');
-    if (generatePDFButton && !generatePDFButton.hasEventListener) {
-        generatePDFButton.hasEventListener = true;
+    if (generatePDFButton) {
+        console.log("Setting up generate PDF button");
         generatePDFButton.addEventListener('click', async function() {
             const productId = this.dataset.productId;
             const button = this;
             const normalState = button.querySelector('.normal-state');
             const loadingState = button.querySelector('.loading-state');
             
+            console.log("Generating PDF for product ID:", productId);
             normalState.classList.add('d-none');
             loadingState.classList.remove('d-none');
             button.disabled = true;
@@ -809,6 +834,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     window.location.reload();
                 } else {
+                    console.error("PDF generation failed:", data);
                     const errorModal = new bootstrap.Modal(document.getElementById('pdfGenerationErrorModal'));
                     errorModal.show();
                 }
@@ -827,8 +853,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Generate JSON functionality
     const generateJSONButton = document.getElementById('generateJSON');
     if (generateJSONButton) {
+        console.log("Setting up generate JSON button");
         generateJSONButton.addEventListener('click', async function() {
             const productId = this.dataset.productId;
+            console.log("Generating JSON for product ID:", productId);
             try {
                 const response = await fetch(`/api/generate_json/${productId}`);
                 const data = await response.json();
@@ -838,6 +866,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     jsonPreview.textContent = JSON.stringify(data, null, 2);
                 }
                 
+                const jsonModal = new bootstrap.Modal(document.getElementById('jsonModal'));
                 jsonModal.show();
             } catch (error) {
                 console.error('Error:', error);
@@ -848,6 +877,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Copy JSON functionality
     const copyJSONButton = document.getElementById('copyJSON');
     if (copyJSONButton) {
+        console.log("Setting up copy JSON button");
         copyJSONButton.addEventListener('click', function() {
             const jsonPreview = document.getElementById('jsonPreview');
             if (jsonPreview) {
@@ -867,6 +897,8 @@ document.addEventListener('DOMContentLoaded', function() {
     deleteHistoryBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             currentHistoryId = this.dataset.historyId;
+            console.log("Deleting history ID:", currentHistoryId);
+            const historyDeleteModal = new bootstrap.Modal(document.getElementById('historyDeleteModal'));
             historyDeleteModal.show();
         });
     });
@@ -874,60 +906,37 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmHistoryDelete = document.getElementById('confirmHistoryDelete');
     if (confirmHistoryDelete) {
         confirmHistoryDelete.addEventListener('click', async function() {
+            console.log("Confirming history deletion for ID:", currentHistoryId);
             try {
                 const response = await fetch(`/api/delete_batch_history/${currentHistoryId}`, {
                     method: 'DELETE'
                 });
                 if (response.ok) {
                     window.location.reload();
+                } else {
+                    console.error("Failed to delete history:", await response.text());
                 }
             } catch (error) {
                 console.error('Error:', error);
             }
-            historyDeleteModal.hide();
         });
     }
 
     // Unsync from Square functionality
     const unsyncButton = document.getElementById('unsyncSquare');
-    const unsyncModalElement = document.getElementById('squareUnsyncModal');
-    let unsyncModal;
-    
-    if (unsyncButton && !unsyncButton.hasListener) {
-        unsyncButton.hasListener = true;
+    if (unsyncButton) {
+        console.log("Setting up unsync Square button");
         unsyncButton.addEventListener('click', function() {
-            unsyncModal = new bootstrap.Modal(unsyncModalElement, {
-                backdrop: 'static',
-                keyboard: true
-            });
+            console.log("Unsync button clicked");
+            const unsyncModal = new bootstrap.Modal(document.getElementById('squareUnsyncModal'));
             unsyncModal.show();
         });
     }
 
-    // Handle modal close button clicks
-    unsyncModalElement.querySelectorAll('[data-bs-dismiss="modal"]').forEach(button => {
-        button.addEventListener('click', function() {
-            if (unsyncModal) {
-                unsyncModal.hide();
-            }
-        });
-    });
-
-    // Add event listener for modal cleanup
-    unsyncModalElement.addEventListener('hidden.bs.modal', function() {
-        document.querySelector('.modal-backdrop')?.remove();
-        document.body.classList.remove('modal-open');
-        document.body.style.paddingRight = '';
-        if (unsyncModal) {
-            unsyncModal.dispose();
-            unsyncModal = null;
-        }
-    });
-
     const confirmUnsyncButton = document.getElementById('confirmUnsync');
-    if (confirmUnsyncButton && !confirmUnsyncButton.hasListener) {
-        confirmUnsyncButton.hasListener = true;
+    if (confirmUnsyncButton && unsyncButton) {
         confirmUnsyncButton.addEventListener('click', async function() {
+            console.log("Confirm unsync button clicked");
             const productId = unsyncButton.dataset.productId;
             const confirmationMessage = document.querySelector('#squareUnsyncModal .confirmation-message');
             const resultsDiv = document.getElementById('unsyncResults');
@@ -949,7 +958,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.location.reload();
                     }, 2000);
                 } else {
-                    resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+                    resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error || 'Unknown error occurred'}</div>`;
                     confirmationMessage.style.display = 'block';
                     unsyncButton.innerHTML = '<i class="fas fa-unlink"></i> Remove from Square';
                     unsyncButton.disabled = false;
@@ -964,23 +973,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Clear Square ID functionality
+    // Clear Square ID functionality (if present)
     const clearSquareIdButton = document.getElementById('clearSquareId');
     if (clearSquareIdButton) {
         clearSquareIdButton.addEventListener('click', async function() {
             const productId = this.dataset.productId;
+            console.log("Clearing Square ID for product:", productId);
             try {
                 const response = await fetch(`/api/square/clear-id/${productId}`, {
                     method: 'POST'
                 });
                 if (response.ok) {
                     window.location.reload();
+                } else {
+                    console.error("Failed to clear Square ID:", await response.text());
                 }
             } catch (error) {
                 console.error('Error:', error);
             }
         });
     }
+    
+    console.log("Product detail page scripts initialization completed");
 });
 </script>
 {% endblock %}
