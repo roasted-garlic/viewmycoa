@@ -552,7 +552,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     console.log("DOM loaded - initializing product detail page scripts");
-    
+
     // Show Square sync reminder only after product update
     const urlParams = new URLSearchParams(window.location.search);
     const referrer = document.referrer;
@@ -598,7 +598,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Enable delete checkbox functionality
     const enableDeleteCheckbox = document.getElementById('enableDelete');
     const deleteHistoryButtons = document.querySelectorAll('.delete-history');
-    
+
     if (enableDeleteCheckbox) {
         console.log("Setting up enableDelete checkbox handler");
         enableDeleteCheckbox.addEventListener('change', function() {
@@ -650,19 +650,19 @@ document.addEventListener('DOMContentLoaded', function() {
         syncButton.addEventListener('click', async function() {
             const productId = this.dataset.productId;
             const button = this;
-            
+
             if (button.disabled) return;
-            
+
             console.log("Syncing product to Square:", productId);
             try {
                 button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
                 button.disabled = true;
-                
+
                 const response = await fetch(`/api/square/sync/${productId}`, {
                     method: 'POST'
                 });
                 const data = await response.json();
-                
+
                 const resultsDiv = document.getElementById('syncResults');
                 if (data.success) {
                     resultsDiv.innerHTML = '<div class="alert alert-success">Product synced successfully!</div>';
@@ -673,7 +673,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.location.reload();
                     }, 2000);
                 } else {
-                    let errorHtml = `
+                    leterrorHtml = `
                         <div class="text-center my-4">
                             <i class="fas fa-cog fa-3x text-warning"></i>
                             <h4 class="mt-3 mb-3">Square API Credentials Required</h4>
@@ -720,27 +720,27 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("Confirm delete button clicked");
             // Prevent multiple clicks
             if (confirmDeleteButton.disabled) return;
-            
+
             // Disable the button and show loading state
             confirmDeleteButton.disabled = true;
             confirmDeleteButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
-            
+
             // Also disable the Cancel button
             const cancelButton = document.querySelector('#deleteConfirmModal .modal-footer button[data-bs-dismiss="modal"]');
             if (cancelButton) cancelButton.disabled = true;
-            
+
             const productId = deleteButton.dataset.productId;
             const confirmationMessage = document.querySelector('#deleteConfirmModal .confirmation-message');
             const resultsDiv = document.getElementById('deleteResults');
-            
+
             try {
                 confirmationMessage.style.display = 'none';
                 resultsDiv.innerHTML = '<div class="alert alert-info">Deleting product...</div>';
-                
+
                 const response = await fetch(`/api/delete_product/${productId}`, {
                     method: 'DELETE'
                 });
-                
+
                 if (response.ok) {
                     resultsDiv.innerHTML = '<div class="alert alert-success">Product deleted successfully!</div>';
                     // Redirect faster
@@ -751,7 +751,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const data = await response.json();
                     resultsDiv.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
                     confirmationMessage.style.display = 'block';
-                    
+
                     // Re-enable buttons on error
                     confirmDeleteButton.disabled = false;
                     confirmDeleteButton.innerHTML = 'Delete Product';
@@ -820,7 +820,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const button = this;
             const normalState = button.querySelector('.normal-state');
             const loadingState = button.querySelector('.loading-state');
-            
+
             console.log("Generating PDF for product ID:", productId);
             normalState.classList.add('d-none');
             loadingState.classList.remove('d-none');
@@ -860,12 +860,12 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const response = await fetch(`/api/generate_json/${productId}`);
                 const data = await response.json();
-                
+
                 const jsonPreview = document.getElementById('jsonPreview');
                 if (jsonPreview) {
                     jsonPreview.textContent = JSON.stringify(data, null, 2);
                 }
-                
+
                 const jsonModal = new bootstrap.Modal(document.getElementById('jsonModal'));
                 jsonModal.show();
             } catch (error) {
@@ -940,18 +940,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const productId = unsyncButton.dataset.productId;
             const confirmationMessage = document.querySelector('#squareUnsyncModal .confirmation-message');
             const resultsDiv = document.getElementById('unsyncResults');
-            
+
             try {
                 confirmationMessage.style.display = 'none';
                 resultsDiv.innerHTML = '<div class="alert alert-info">Removing from Square...</div>';
                 unsyncButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing...';
                 unsyncButton.disabled = true;
-                
+
                 const response = await fetch(`/api/square/unsync/${productId}`, {
                     method: 'POST'
                 });
                 const data = await response.json();
-                
+
                 if (data.success) {
                     resultsDiv.innerHTML = '<div class="alert alert-success">Product removed from Square successfully!</div>';
                     setTimeout(() => {
@@ -993,7 +993,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     console.log("Product detail page scripts initialization completed");
 });
 </script>
