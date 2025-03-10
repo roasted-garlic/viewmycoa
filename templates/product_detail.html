@@ -505,6 +505,31 @@
     </div>
 </div>
 
+<!-- Duplicate Confirmation Modal -->
+<div class="modal fade" id="duplicateConfirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Duplicate</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to duplicate this product?</p>
+                <p>This will create a copy of the product with:</p>
+                <ul>
+                    <li>New batch number and SKU</li>
+                    <li>All product attributes</li>
+                    <li>All associated images</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmDuplicate">Duplicate Product</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Delete Product Modal -->
 <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
     <div class="modal-dialog">
