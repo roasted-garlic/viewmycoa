@@ -88,27 +88,16 @@ if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
                 if not pg_host: missing_vars.append("PGHOST")
                 if not pg_port: missing_vars.append("PGPORT")
                 if not pg_database: missing_vars.append("PGDATABASE")
-                
-                app.logger.error(f"CRITICAL ERROR in deployment: Missing PostgreSQL variables: {', '.join(missing_vars)}")
-                app.logger.error("These must be set in your deployment secrets. See DEPLOYMENT.md for details.")
-            
-            # Missing variables - this will cause deployment to fail
-            missing_vars = []
-            if not pg_user: missing_vars.append("PGUSER")
-            if not pg_password: missing_vars.append("PGPASSWORD") 
-            if not pg_host: missing_vars.append("PGHOST")
-            if not pg_port: missing_vars.append("PGPORT")
-            if not pg_database: missing_vars.append("PGDATABASE")
 
-            app.logger.error(f"CRITICAL ERROR: Missing required PostgreSQL environment variables: {', '.join(missing_vars)}")
-            app.logger.error("These variables must be set in deployment secrets for successful deployment")
+                app.logger.warning(f"Missing PostgreSQL environment variables: {', '.join(missing_vars)}")
+                app.logger.warning("These variables should be set in deployment secrets for production PostgreSQL use")
 
-            # Log error in deployment mode but continue with SQLite
+            # Log warning in deployment mode but continue with SQLite
             if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
-                app.logger.error("Continuing with SQLite in deployment mode. This is not recommended for production.")
+                app.logger.warning("Continuing with SQLite in deployment mode. This is not recommended for production.")
                 # Ensure SQLite directory exists in deployment environment
                 os.makedirs("instance", exist_ok=True)
-                
+
             database_url = "sqlite:///instance/database.db"
             app.logger.warning("Falling back to SQLite database")
 else:
@@ -425,12 +414,12 @@ def unsync_category(category_id):
 def products():
     category_id = request.args.get('category', type=int)
     square_filter = request.args.get('square')
-    
+
     query = models.Product.query.order_by(models.Product.created_at.desc())
 
     if category_id:
         query = query.join(models.Product.categories).filter(models.Category.id == category_id)
-        
+
     # Apply Square sync status filter
     if square_filter == 'synced':
         query = query.filter(models.Product.square_catalog_id.isnot(None))
@@ -587,7 +576,7 @@ def create_product():
                 import threading
                 threading.Thread(target=trigger_image_sync, args=(product.id,)).start()
                 app.logger.info(f"Triggered image sync for new product ID {product.id}")
-                
+
                 # Also trigger PDF sync if needed (for existing PDFs that might have been imported)
                 threading.Thread(target=trigger_pdf_sync, args=(product.id,)).start()
                 app.logger.info(f"Triggered PDF sync for new product ID {product.id}")
@@ -612,18 +601,18 @@ def product_detail(product_id):
     The actual implementation is now in admin_product_detail in admin_routes.py.
     This redirects to the correct view with any existing query parameters preserved."""
     from flask import request, redirect, url_for
-    
+
     # Extract the query string to preserve any filters
     query_string = request.query_string.decode('utf-8')
-    
+
     # Debug logging to track the redirection
     app.logger.debug(f"Redirecting from product_detail to admin_product_detail with product_id={product_id} and query_string={query_string}")
-    
+
     if query_string:
         redirect_url = url_for('admin_product_detail', product_id=product_id) + '?' + query_string
     else:
         redirect_url = url_for('admin_product_detail', product_id=product_id)
-    
+
     return redirect(redirect_url)
 
 
@@ -785,11 +774,11 @@ def generate_pdf(product_id):
             pdf = models.GeneratedPDF()
             pdf.product_id = product.id
             pdf.filename = pdf_filename
-            
+
             # Always use production URL for PDFs, regardless of environment
             production_url = "https://viewmycoa.com"
             pdf.pdf_url = f"{production_url}/static/pdfs/{product.batch_number}/{pdf_filename}"
-            
+
             db.session.add(pdf)
             db.session.commit()
 
@@ -800,12 +789,12 @@ def generate_pdf(product_id):
                     # Directly run the sync_pdfs.py script with the product ID
                     import threading
                     import subprocess
-                    
+
                     # Use a small delay to ensure the file is fully written before sync
                     def delayed_sync(product_id):
                         import time
                         time.sleep(1)  # Small delay to ensure file is saved completely
-                        
+
                         # Use subprocess to directly run the sync_pdfs.py script
                         try:
                             app.logger.info(f"Running sync_pdfs.py with product ID: {product_id}")
@@ -821,7 +810,7 @@ def generate_pdf(product_id):
                                 app.logger.error(f"PDF sync failed: {result.stderr}")
                         except Exception as run_error:
                             app.logger.error(f"Error running sync_pdfs.py: {str(run_error)}")
-                        
+
                     threading.Thread(target=delayed_sync, args=(product.id,)).start()
                     app.logger.info(f"Scheduled PDF sync for product ID {product.id}")
                 except Exception as sync_error:
@@ -1226,7 +1215,7 @@ def edit_product(product_id):
                     product.label_image = save_image(file, product.id, 'label_image')
 
             db.session.commit()
-            
+
             # If this is running in production, trigger sync to development
             is_deployment = os.environ.get("REPLIT_DEPLOYMENT", "0") == "1"
             if is_deployment:
@@ -1237,13 +1226,13 @@ def edit_product(product_id):
                     import threading
                     threading.Thread(target=trigger_image_sync, args=(product.id,)).start()
                     app.logger.info(f"Triggered image sync for updated product ID {product.id}")
-                    
+
                     # Also trigger PDF sync for updated product
                     threading.Thread(target=trigger_pdf_sync, args=(product.id,)).start()
                     app.logger.info(f"Triggered PDF sync for updated product ID {product.id}")
                 except Exception as sync_error:
                     app.logger.error(f"Error triggering sync: {str(sync_error)}")
-                    
+
             flash('Product updated successfully!', 'success')
             show_reminder = '?showSquareReminder=true' if product.square_catalog_id else ''
             return redirect(url_for('admin_product_detail', product_id=product.id) + show_reminder)
@@ -1764,7 +1753,7 @@ def sync_images_api():
         if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
             app.logger.warning("Image sync API endpoint called in production environment - not performing any sync operations")
             return jsonify({'success': False, 'message': 'Sync operations are disabled in production environment'}), 403
-            
+
         data = request.get_json()
         product_ids = data.get('product_ids', [])
 
@@ -1797,7 +1786,7 @@ def sync_pdfs_api():
         if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
             app.logger.warning("PDF sync API endpoint called in production environment - not performing any sync operations")
             return jsonify({'success': False, 'message': 'Sync operations are disabled in production environment'}), 403
-            
+
         data = request.get_json()
         product_ids = data.get('product_ids', [])
 

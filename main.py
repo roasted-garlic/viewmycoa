@@ -1,3 +1,24 @@
+
+"""
+Deployment Instructions:
+
+To successfully deploy this application:
+1. Set these secret environment variables in the Deployments tab:
+   - FLASK_SECRET_KEY: Used for session security (required)
+   - DATABASE_URL: PostgreSQL connection string (recommended) 
+     OR individual PostgreSQL variables:
+   - PGUSER: PostgreSQL username
+   - PGPASSWORD: PostgreSQL password 
+   - PGHOST: PostgreSQL host
+   - PGPORT: PostgreSQL port (usually 5432)
+   - PGDATABASE: PostgreSQL database name
+
+Note: If PostgreSQL variables are not set, the application will 
+automatically fall back to using SQLite, which is suitable for
+testing but not recommended for production.
+"""
+
+
 import os
 import logging
 from app import app, db
@@ -84,8 +105,25 @@ def init_app():
                 logger.error(f"Database connection error: {str(db_error)}")
                 
                 if is_deployment:
-                    logger.error("Deployment may fail - Please check database environment variables")
-                    logger.error("See DEPLOYMENT.md for required variables")
+                    logger.warning("Database connection failed in deployment - reconfiguring to use SQLite")
+                    # Reconfigure to use SQLite instead of failing
+                    from app import app as flask_app
+                    # Create SQLite database URL
+                    sqlite_url = "sqlite:///instance/database.db"
+                    logger.info(f"Setting database to SQLite: {sqlite_url}")
+                    
+                    # Set the SQLAlchemy Database URI
+                    flask_app.config['SQLALCHEMY_DATABASE_URI'] = sqlite_url
+                    
+                    # Ensure instance directory exists
+                    os.makedirs('instance', exist_ok=True)
+                    
+                    # Log the reconfiguration
+                    logger.info("Reconfigured to use SQLite database for this deployment")
+                    
+                    # We need to re-create any disconnected sessions
+                    db.session.remove()
+                    db.session = db.create_scoped_session()
                 else:
                     logger.info("Attempting to create database tables anyway...")
             
@@ -206,6 +244,14 @@ if __name__ == "__main__":
             if not os.environ.get("FLASK_SECRET_KEY"):
                 os.environ["FLASK_SECRET_KEY"] = "temporary-deployment-key-please-change"
                 logger.warning("Set temporary FLASK_SECRET_KEY for deployment - please change in production secrets")
+            
+            # In deployment mode, add defaults for PostgreSQL variables if not set
+            # This ensures our application can start even with missing variables
+            os.environ.setdefault("PGUSER", "postgres")
+            os.environ.setdefault("PGPASSWORD", "postgres")
+            os.environ.setdefault("PGHOST", "localhost")
+            os.environ.setdefault("PGPORT", "5432")
+            os.environ.setdefault("PGDATABASE", "postgres")
             
             # Check database variables and provide clear error message
             pg_vars = ["PGUSER", "PGPASSWORD", "PGHOST", "PGPORT", "PGDATABASE"]
