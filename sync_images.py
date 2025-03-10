@@ -2,6 +2,7 @@ import os
 import sys
 import requests
 import shutil
+import re
 from PIL import Image
 import logging
 
@@ -106,8 +107,24 @@ def sync_product_images(product_ids=None):
                 
                 # Keep track of this valid image
                 valid_image_paths.add(save_path)
-
-                # Only download if file doesn't exist locally
+                
+                # Check if file exists with timestamp suffix pattern
+                base_name, ext = os.path.splitext(filename)
+                timestamp_pattern = f"{base_name}_[0-9]{{10}}{ext}"
+                existing_files = [f for f in os.listdir(product_dir) if os.path.isfile(os.path.join(product_dir, f))]
+                
+                # Find timestamped versions if they exist and use them
+                timestamp_files = [f for f in existing_files if re.match(timestamp_pattern, f)]
+                if timestamp_files and not os.path.exists(save_path):
+                    # Use the most recent timestamped file
+                    most_recent = sorted(timestamp_files)[-1]
+                    logger.info(f"Found timestamped version of image: {most_recent} for {filename}")
+                    # No need to download again - Create symlink or copy if needed
+                    if not os.path.exists(save_path):
+                        shutil.copy2(os.path.join(product_dir, most_recent), save_path)
+                        logger.info(f"Created copy from timestamped version: {save_path}")
+                
+                # Only download if file doesn't exist locally in any form
                 if not os.path.exists(save_path):
                     image_url = f"{PRODUCTION_URL}/static/{product.product_image}"
                     logger.info(
@@ -132,8 +149,24 @@ def sync_product_images(product_ids=None):
                 
                 # Keep track of this valid image
                 valid_image_paths.add(save_path)
-
-                # Only download if file doesn't exist locally
+                
+                # Check if file exists with timestamp suffix pattern
+                base_name, ext = os.path.splitext(filename)
+                timestamp_pattern = f"{base_name}_[0-9]{{10}}{ext}"
+                existing_files = [f for f in os.listdir(product_dir) if os.path.isfile(os.path.join(product_dir, f))]
+                
+                # Find timestamped versions if they exist and use them
+                timestamp_files = [f for f in existing_files if re.match(timestamp_pattern, f)]
+                if timestamp_files and not os.path.exists(save_path):
+                    # Use the most recent timestamped file
+                    most_recent = sorted(timestamp_files)[-1]
+                    logger.info(f"Found timestamped version of image: {most_recent} for {filename}")
+                    # No need to download again - Create symlink or copy if needed
+                    if not os.path.exists(save_path):
+                        shutil.copy2(os.path.join(product_dir, most_recent), save_path)
+                        logger.info(f"Created copy from timestamped version: {save_path}")
+                
+                # Only download if file doesn't exist locally in any form
                 if not os.path.exists(save_path):
                     image_url = f"{PRODUCTION_URL}/static/{product.label_image}"
                     logger.info(
