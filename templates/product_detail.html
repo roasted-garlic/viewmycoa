@@ -795,17 +795,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Duplicate product functionality
     const duplicateButton = document.querySelector('.duplicate-product');
+    let duplicateModal = null;
+    
     if (duplicateButton) {
         console.log("Setting up duplicate product button");
         duplicateButton.addEventListener('click', function() {
             console.log("Duplicate product button clicked");
-            // Check if modal exists on the page (might be missing if duplicate is defined elsewhere)
+            // Check if modal exists on the page
             const duplicateModalElement = document.getElementById('duplicateConfirmModal');
             if (duplicateModalElement) {
-                const duplicateModal = new bootstrap.Modal(duplicateModalElement);
+                duplicateModal = new bootstrap.Modal(duplicateModalElement);
                 duplicateModal.show();
             } else {
-                // If no modal, just make the API call directly
+                // If no modal, just make the API call directly (shouldn't happen now that we've added the modal)
                 duplicateProduct(duplicateButton.dataset.productId);
             }
         });
@@ -815,6 +817,14 @@ document.addEventListener('DOMContentLoaded', function() {
     async function duplicateProduct(productId) {
         try {
             console.log("Duplicating product ID:", productId);
+            // Disable any UI elements to prevent multiple submissions
+            if (duplicateModal) {
+                document.getElementById('confirmDuplicate').disabled = true;
+            }
+            if (duplicateButton) {
+                duplicateButton.disabled = true;
+            }
+            
             const response = await fetch(`/api/duplicate_product/${productId}`, {
                 method: 'POST'
             });
@@ -829,10 +839,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Set up the confirm duplicate button in the modal
     const confirmDuplicateButton = document.getElementById('confirmDuplicate');
     if (confirmDuplicateButton && duplicateButton) {
-        confirmDuplicateButton.addEventListener('click', function() {
+        // Remove any existing event listeners by cloning and replacing
+        const newButton = confirmDuplicateButton.cloneNode(true);
+        confirmDuplicateButton.parentNode.replaceChild(newButton, confirmDuplicateButton);
+        
+        // Add the event listener to the new button
+        newButton.addEventListener('click', function() {
             duplicateProduct(duplicateButton.dataset.productId);
+            // Close the modal after initiating the duplication
+            if (duplicateModal) {
+                duplicateModal.hide();
+            }
         });
     }
 
