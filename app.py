@@ -97,6 +97,8 @@ if os.environ.get("REPLIT_DEPLOYMENT", "0") == "1":
                 app.logger.warning("Continuing with SQLite in deployment mode. This is not recommended for production.")
                 # Ensure SQLite directory exists in deployment environment
                 os.makedirs("instance", exist_ok=True)
+                # Set the DATABASE_URL environment variable for other parts of the app to use
+                os.environ["DATABASE_URL"] = "sqlite:///instance/database.db"
 
             database_url = "sqlite:///instance/database.db"
             app.logger.warning("Falling back to SQLite database")

@@ -258,7 +258,9 @@ if __name__ == "__main__":
             missing_pg_vars = [var for var in pg_vars if not os.environ.get(var)]
             if missing_pg_vars and not os.environ.get("DATABASE_URL"):
                 logger.warning(f"Missing PostgreSQL variables: {', '.join(missing_pg_vars)}")
-                logger.warning("Will attempt to use SQLite as fallback. Add these variables in Deployments secrets for PostgreSQL.")
+                logger.warning("Will use SQLite as fallback. Add these variables in Deployments secrets for PostgreSQL.")
+                # Explicitly set a SQLite database URL for the app to use
+                os.environ["DATABASE_URL"] = "sqlite:///instance/database.db"
                 # Ensure SQLite instance directory exists
                 os.makedirs("instance", exist_ok=True)
                 
